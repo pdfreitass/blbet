@@ -267,7 +267,7 @@ Condições verificáveis. "Verificável" significa demonstrável por teste auto
 | **PD-003** | Escopo da busca: apenas cassino ou cassino e esportes | RF-005, CA-005.x | Escopo inicial da visão menciona busca sem delimitar |
 | ~~**PD-004**~~ | ~~Quais mercados esportivos modelar e em que profundidade~~ | RF-003 | **Resolvida** — DT-010: resultado final e mais/menos golos |
 | **PD-005** | Conjunto de categorias do catálogo de cassino | RF-004, RF-005 | Não definido |
-| **PD-006** | Campos exatos do perfil demonstrativo e se exibe saldo fictício | RF-007 | Não definido |
+| **PD-006** | Campos exatos do perfil demonstrativo e se exibe saldo fictício | RF-007 | **Adiada** — Pedro, 2026-10-27: sem saldo nem histórico por agora; o saldo entra numa fase futura com gateway de pagamentos, que exige decisão própria em `decisoes-tecnicas.md` (RN-001 e `CLAUDE.md` proíbem-no até lá) |
 | ~~**PD-007**~~ | ~~Formato de exibição das odds (decimal, fracionário, americano) e se é alternável~~ | RF-003, CA-003.2 | **Resolvida** — DT-010: decimal com 2 casas, sem alternância |
 | **PD-008** | Idiomas e formato de data, hora e números | RF-002 | Não definido |
 | **PD-009** | Forma visual de identificar dados demonstrativos | RNF-008, RN-002 | Depende de `docs/design-system.md`, inexistente |

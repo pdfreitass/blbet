@@ -263,7 +263,7 @@ Acordo de 2026-10-26 (T-004): proposta do `backend` (secção 9), revisão do `f
 | ~~**PC-007**~~ | ~~Convenção de nomes de campos~~ | **Resolvida** — `camelCase` |
 | ~~**PC-008**~~ | ~~Formato de paginação e limites~~ | **Resolvida** — secção 9 + A6 |
 | ~~**PC-009**~~ | ~~Formato de ordenação e filtros~~ | **Resolvida** — secção 9 + A7 |
-| **PC-010** | Sinalização de dado demonstrativo na resposta | **Forma resolvida** (`origin` obrigatório, A8); **apresentação pendente** da DIV-001 (Pedro) |
+| **PC-010** | Sinalização de dado demonstrativo na resposta | **Resolvida** — forma: `origin` obrigatório (A8); apresentação: DT-014, a interface marca só `origin: "demo"` |
 | ~~**PC-011**~~ | ~~Forma de compartilhar tipos entre os agentes~~ | **Resolvida** — DT-001: `packages/contracts/` |
 | ~~**PC-012**~~ | ~~Biblioteca de validação por esquema~~ | **Resolvida** — DT-001: Zod |
 | ~~**PC-013**~~ | ~~Confirmação da estratégia de versionamento~~ | **Resolvida** — sem versão na URL; prefixo `/api` |

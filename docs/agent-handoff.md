@@ -49,20 +49,42 @@
 
 ## Seção Backend
 
-**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-26
+**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-27
 
 ### Situação
 
-Fundação técnica do backend commitada em `feat/backend-foundation` e integrada na `main` com aprovação do Pedro.
+T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbook API, cache e rotas `GET /api/competitions`, `/api/events`, `/api/events/{id}`) **concluídas e integradas**. O RF-007 do `frontend` (`7400b27`) foi revisto e integrado pelo `backend` na `main` local em `928843f`. O `origin/main` está em `ad3b8c5`: o push do `928843f` espera aprovação do Pedro.
 
 - **Arquivos modificados:** ver o histórico abaixo
-- **Contratos ou interfaces alterados:** nenhum contrato de domínio. Só existe `GET /health`, que é operacional e não pertence ao contrato
-- **Pendências para o agente `frontend`:** ver a seção de integração
-- **Bloqueios:** BLQ-001 resolvido em parte pela DT-009 (Sportsbook API, só testes). A T-014 e a T-015 esperam a chave do Pedro e chamadas reais
-- **Testes executados e resultados:** ver o histórico abaixo
-- **Próxima ação recomendada:** com a chave no `apps/api/.env`, confirmar C5, C7 e C13 com chamadas reais e avançar para a T-014
+- **Contratos ou interfaces alterados:** rotas de esportes da secção 7.1 do `api-contract.md`, acordadas (T-014). Sem alterações pendentes
+- **Pendências para o agente `frontend`:** nenhuma
+- **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
+- **Testes executados e resultados:** na `main` em `928843f`: typecheck ok · contracts 23/23, api 49/49, web 106/106 · build ok
+- **Próxima ação recomendada:** Pedro decide o push e vê os jogos reais no ecrã (`pnpm dev:api` com a chave + `pnpm dev:web`); depois, próxima tarefa do `backend` segundo o `agent-tasks.md`
 
 ### Histórico
+
+### 2026-10-27 — DIV-001: opção A escolhida (DT-014)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** registo de decisão do Pedro
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-014, índice, DIV-001), `docs/arquitetura.md` (DP-004, nota DIV-001), `docs/api-contract.md` (estado da PC-010), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum. A PC-010 passa a resolvida, e o `origin` (A8) fica como está
+- **Pendências para o agente `frontend`:** atualizar o §7 do `design-system.md` com a opção A escolhida (DT-014). A variante `real` do componente de procedência **não** é para criar. A DT-011 continua por registar (aprovada)
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** só documentação
+- **Próxima ação recomendada:** `frontend` regista a DT-011 e atualiza o §7; o Pedro reescreve, quando quiser, as secções 8 e 9 do `visao.md` e a Fase 4 do `roadmap.md` (DIV-001 documental, DIV-002)
+
+### 2026-10-27 — Caminho de sucesso com dados reais verificado no navegador; PD-006 adiada
+
+- **Agente responsável:** backend
+- **Tarefa executada:** verificação ponta a ponta das rotas de esportes com a chave; registo de decisões do Pedro
+- **Arquivos modificados:** `docs/requisitos.md` (PD-006), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:** o Pedro **aprovou a DT-011** (decisão de tema): registá-la em `decisoes-tecnicas.md`. PD-006 adiada: o perfil fica sem saldo nem histórico, como está
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `pnpm dev:api` com a chave + Vite do `frontend` em `localhost:5173`. `GET /health` → `200`; `GET /api/competitions` → EPL, La Liga, Serie A; `GET /api/events` → 20 eventos (Serie A 11, EPL 6, La Liga 3), todos com resultado final. No navegador: lista de esportes com jogos reais (ex.: Sassuolo × Lazio, 27/10 14:30, odds 3,50 / 3,45 / 2,02; mais/menos 2,50 → 1,70 / 2,10), hora local correta, faixa com o texto da DT-013
+- **Próxima ação recomendada:** Pedro decide a DIV-001 (A ou B); `frontend` regista a DT-011
 
 ### 2026-10-27 — Integração na `main`; T-014 e T-015 concluídas
 

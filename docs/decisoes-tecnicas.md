@@ -44,6 +44,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-010](#dt-010--âmbito-inicial-dos-dados-esportivos) | Mercados, formato das odds, fonte única e só jogos futuros | PD-004, PD-007, PC-006 | aprovada |
 | [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
 | [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
+| [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a) | Marcar só o dado fictício (opção A do `design-system.md`); o dado real não leva selo | DIV-001 (interface), DP-004, PC-010 | aprovada |
 
 ---
 
@@ -252,7 +253,7 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 
 | # | Divergência | Documentos afetados | Impacto | Quem resolve |
 |---|---|---|---|---|
-| **DIV-001** — **resolvida em parte pela [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios)** (RN-002, RF-003, CA-003.4) | A DT-002 integra uma API esportiva real. Os requisitos e a visão assumem que **todo** dado é fictício | Em aberto: seções 8 e 9 ([`visao.md`](visao.md)); Fase 4 ([`roadmap.md`](roadmap.md)), que admite provedor real só "em ambiente autorizado de demonstração" e com "autorização formal do provedor" | Marcação item a item de dado real vs. fictício (DP-004, PC-010, opções A/B do `design-system.md`); ordem das fases | Pedro |
+| **DIV-001** — **requisitos e interface resolvidos pela [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) e pela [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a)** | A DT-002 integra uma API esportiva real. Os requisitos e a visão assumiam que **todo** dado é fictício | Em aberto, só o texto: seções 8 e 9 ([`visao.md`](visao.md)); Fase 4 ([`roadmap.md`](roadmap.md)), que admite provedor real só "em ambiente autorizado de demonstração" e com "autorização formal do provedor" | Documental: visão e roadmap descrevem um produto anterior à DT-002 (ver também DIV-002) | Pedro |
 | **DIV-002** | [`roadmap.md`](roadmap.md) desatualizado: "4 de 6 documentos", DP-001 como bloqueio, `decisoes-tecnicas.md` inexistente, Fase 4 a pressupor dados locais antes do provedor | `roadmap.md` | Ordem e estado das fases mostram informação velha | Pedro |
 | **DIV-003** | PD-010 de [`requisitos.md`](requisitos.md) diz "depende de `docs/arquitetura.md`"; as ferramentas de teste estão agora definidas na DT-001, mas a cobertura mínima continua aberta | `requisitos.md` | Baixo | Pedro |
 
@@ -357,4 +358,32 @@ A RN-002 passa a ter esta regra: **os dados esportivos (eventos, competições e
 - O `frontend` commita a faixa com a ligação às rotas reais.
 - A RNF-008 continua a valer para os dados fictícios.
 
-**Pendências** — a marcação item a item (opções A/B do `design-system.md`, DP-004, PC-010) continua aberta; a interface usa a opção A por agora, só com a marca do dado fictício. As secções 8 e 9 do `visao.md` e a Fase 4 do `roadmap.md` continuam desatualizadas (DIV-001, DIV-002). C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a publicação.
+**Pendências** — a marcação item a item (opções A/B do `design-system.md`, DP-004, PC-010) continua aberta; a interface usa a opção A por agora, só com a marca do dado fictício. As secções 8 e 9 do `visao.md` e a Fase 4 do `roadmap.md` continuam desatualizadas (DIV-001, DIV-002). C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a publicação. *(Marcação resolvida pela DT-014.)*
+
+---
+
+### DT-014 — Marcar só o dado fictício (opção A)
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `backend`
+- **Resolve:** DIV-001 (marcação na interface), DP-004, PC-010 (apresentação)
+
+**Contexto** — O §7 do [`design-system.md`](design-system.md) propõe duas formas de distinguir dado real de dado fictício: **A**, marcar só o fictício (contorno tracejado, §6), e **B**, marcar os dois, com um selo `● ao vivo · <fonte>` no real. A interface já usa a A, de forma provisória.
+
+**Decisão** — **opção A.** O dado fictício leva a marca demonstrativa, e o dado real de terceiros não leva selo. A faixa permanente (DT-013) declara de que tipo é cada área: esportes vêm de uma fonte externa e são informativos; cassino e perfil são fictícios.
+
+**Alternativas consideradas** — **opção B**, rejeitada por agora:
+- o selo "ao vivo" seria falso, porque as odds podem ter até 1 hora de atraso (cache da DT-012);
+- o nome da fonte seria o de um provedor só de testes (DT-009), que vai ser trocado;
+- acrescentaria ruído em listagens densas e no mobile.
+
+**Consequências**
+
+- Fica decidido o componente de procedência do `frontend`: a variante `demonstrativo` é a única que existe.
+- O `origin` (A8) continua obrigatório no contrato e serve para decidir a marca. Não muda nada no contrato.
+- A RNF-008 continua satisfeita: o dado fictício está sempre marcado da mesma forma.
+- O §7 do `design-system.md` (do `frontend`) passa a registar a opção escolhida.
+
+**Pendências** — se os termos do provedor final exigirem atribuição (C1, C2), essa atribuição entra como texto de fonte no rodapé do bloco, previsto na própria opção A. Quando o provedor for definitivo, pode propor-se ao contrato um campo de atualização ("cotações às HH:MM").
