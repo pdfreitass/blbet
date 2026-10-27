@@ -127,7 +127,7 @@ provedor esportivo → adaptador (apps/api) → validação Zod → modelo inter
 - Os serviços expõem uma interface assíncrona desde já, para que os estados de carregamento e erro (RF-008) sejam reais.
 - **Favoritos** seguem caminho próprio: estado em memória espelhado no armazenamento local; leitura validada e tolerante a falha (CA-006.5).
 
-> **Divergência DIV-001.** Os requisitos dizem que todo dado é fictício (RN-002, RF-003, RNF-008); a DT-002 traz dados reais de terceiros para esportes. Como sinalizar cada tipo de dado na interface (DP-004, PC-010) depende da resolução do Pedro. Ver [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md#divergências-documentais-abertas).
+> **Divergência DIV-001.** Os requisitos dizem que todo dado é fictício (RN-002, RF-003, RNF-008); a DT-002 traz dados reais de terceiros para esportes. **Resolvida na interface pela DT-013 e pela DT-014:** marca-se só o dado fictício. Ver [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md#divergências-documentais-abertas).
 
 ---
 
@@ -201,7 +201,7 @@ Regras:
 | **DP-001** | Stack do projeto | **Resolvida** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto) | — |
 | **DP-002** | Ferramentas e cobertura mínima de teste | **Parcial** — ferramentas na DT-001; cobertura mínima aberta | Seção 8; RNF-007; PD-010 |
 | **DP-003** | Integração contínua | Aberta — com ou sem CI na fase atual | Seção 9 |
-| **DP-004** | Como marcar dados demonstrativos | Aberta — agora também a distinção entre dados reais de terceiros e dados demonstrativos (DIV-001) | RNF-008; RN-002; PC-010 |
+| ~~**DP-004**~~ | ~~Como marcar dados demonstrativos~~ | **Resolvida** — DT-014: marca-se só o dado fictício (opção A); o dado real de terceiros não leva selo | RNF-008; RN-002; PC-010 |
 | **DP-005** | Estratégia de estado da interface | Aberta — área do `frontend` | Seção 3; RNF-005 |
 | **DP-006** | Biblioteca de estilos e componentes | Aberta — área do `frontend`; depende de `docs/design-system.md` | Fase 2 |
 | **DP-007** | Formato dos dados demonstrativos locais | Aberta — módulos TypeScript validados pelos esquemas de `packages/contracts/` ou ficheiros JSON validados em tempo de execução | Seção 5.2 |

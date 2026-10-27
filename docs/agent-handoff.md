@@ -64,6 +64,17 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — DIV-001: opção A escolhida (DT-014)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** registo de decisão do Pedro
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-014, índice, DIV-001), `docs/arquitetura.md` (DP-004, nota DIV-001), `docs/api-contract.md` (estado da PC-010), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum. A PC-010 passa a resolvida, e o `origin` (A8) fica como está
+- **Pendências para o agente `frontend`:** atualizar o §7 do `design-system.md` com a opção A escolhida (DT-014). A variante `real` do componente de procedência **não** é para criar. A DT-011 continua por registar (aprovada)
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** só documentação
+- **Próxima ação recomendada:** `frontend` regista a DT-011 e atualiza o §7; o Pedro reescreve, quando quiser, as secções 8 e 9 do `visao.md` e a Fase 4 do `roadmap.md` (DIV-001 documental, DIV-002)
+
 ### 2026-10-27 — Caminho de sucesso com dados reais verificado no navegador; PD-006 adiada
 
 - **Agente responsável:** backend
