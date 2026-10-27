@@ -276,4 +276,6 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 - A cache é obrigatória por causa do limite diário (DP-009).
 - As rotas `advantages` (arbitragem, "+EV") **não são usadas** (RN-003).
 
-**Pendências** — C1 e C2 (licença de exibição e uso sem apostas) **bloqueiam a publicação**; C5, C7 e C13 confirmam-se com chamadas reais; cobertura brasileira (C3, PD-004).
+**Pendências** — C1 e C2 (licença de exibição e uso sem apostas) **bloqueiam a publicação**; C5, C7 e C13 confirmam-se com chamadas reais.
+
+**Cobertura brasileira (C3, PD-004) — decisão do Pedro, 2026-10-27:** a falta do Brasileirão **não bloqueia** o desenvolvimento. Desenvolve-se com as competições disponíveis; quando o produto estiver pronto, o Pedro contrata um provedor pago com o futebol brasileiro e faz-se a troca. Consequência: o modelo interno e os contratos **não podem depender** de chaves, nomes ou formatos da Sportsbook API — tudo passa pelo adaptador (secção 3 do [`integracoes.md`](integracoes.md)).

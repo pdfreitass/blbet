@@ -97,7 +97,7 @@ Regras:
 |---|---|---|
 | **C1** licença de exibição | ⚠️ **Não explícita.** Os termos do provedor só remetem para os do RapidAPI; nada sobre exibição pública nem atribuição. As odds são de casas de apostas com marca (BetMGM, DraftKings, Bovada…) | Termos do provedor |
 | **C2** uso sem apostas e jurisdição | ⚠️ **Não declarado** | Termos do provedor |
-| **C3** cobertura | Mais de 30 ligas, sobretudo dos EUA (NFL, NBA, MLB, NHL…). Futebol: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, MLS, entre outras. **Brasileirão não está listado.** "Nem todos os mercados e ligas estão disponíveis em todas as casas"; as odds podem só existir com a liga em época | Página do RapidAPI |
+| **C3** cobertura | Mais de 30 ligas, sobretudo dos EUA (NFL, NBA, MLB, NHL…). Futebol: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, MLS, entre outras. **Brasileirão não está listado** — confirmado com chamada real a `GET /v0/competitions/` em 2026-10-27 (38 competições, nenhuma brasileira). Aceite pelo Pedro para desenvolvimento; o provedor final com futebol brasileiro vem depois (DT-009). "Nem todos os mercados e ligas estão disponíveis em todas as casas"; as odds podem só existir com a liga em época | Página do RapidAPI |
 | **C4** odds e mercados | ✅ Sim. Mercados por evento (`key`, `type`, `segment`) com `outcomes` por casa (`source`) | OpenAPI |
 | **C5** IDs estáveis | ❓ As chaves têm o formato `xxxx-xxxx-xxxx` (ex.: `kXuc-xfma-eRVR`); **a estabilidade não está declarada** | OpenAPI |
 | **C6** situação do evento | ❌ **Não há campo de situação nem de placar.** Só `startTime`; o resultado `live: boolean` existe por odd, não por evento | OpenAPI |

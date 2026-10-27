@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-27 — Chave do provedor validada; Brasileirão fica para o provedor final
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-010 (em andamento)
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-009), `docs/integracoes.md` (C3), `docs/agent-handoff.md`. Chave em `apps/api/.env`, fora do git
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação: os dados de teste não terão futebol brasileiro; a interface não deve assumir competições específicas
+- **Bloqueios:** nenhum para a T-014
+- **Testes executados e resultados:** `GET /v0/competitions/` com a chave → `200`, 38 competições, nenhuma brasileira; quota 149/150. `GET /v1/competitions` → `404` (rota não existe)
+- **Próxima ação recomendada:** confirmar C5, C7 e C13 com chamadas reais e iniciar a T-014
+
 ### 2026-10-27 — Provedor esportivo de testes escolhido (DT-009)
 
 - **Agente responsável:** backend
