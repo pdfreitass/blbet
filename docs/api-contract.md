@@ -73,8 +73,8 @@ Princípios acordados:
 
 ### 2.2 Resposta de erro
 
-- Erro usa envelope próprio, distinto do de sucesso, com código de erro **estável e legível por máquina**, mensagem destinada ao usuário e, quando aplicável, detalhamento por campo.
-- O código de erro é o que o `frontend` usa para decidir comportamento. **Mensagem não é contrato** — pode mudar sem aviso; código de erro não.
+- Erro usa envelope próprio, distinto do de sucesso, com código de erro **estável e legível por máquina**, indicação de se a operação é repetível (`retryable`), mensagem **técnica** e, quando aplicável, detalhamento por campo.
+- O código de erro é o que o `frontend` usa para decidir comportamento. **A mensagem é só para diagnóstico e logs, e nunca é mostrada ao utilizador** (DIV-F01, resolvida a 2026-10-26). O texto visível é do `frontend`, mapeado a partir do código. A mensagem pode mudar sem aviso; o código de erro não.
 - Erro de validação identifica **quais** campos falharam e por quê.
 - **Nunca** expor rastreio de pilha, caminho de arquivo, consulta, versão de dependência ou estrutura interna (RNF-004, CA-008.2). Detalhe técnico fica no log do servidor.
 - Toda resposta de erro deve ser suficiente para o `frontend` escolher entre os estados de RF-008: erro recuperável com nova tentativa, erro definitivo, ou ausência de resultados.
@@ -210,31 +210,33 @@ Primeira rota só pode ser definida após:
 
 ## 8. Pendências deste contrato
 
-| # | Pendência | Bloqueia |
+Acordo de 2026-10-26 (T-004): proposta do `backend` (secção 9), revisão do `frontend` (quadro, secção de integração), ajustes A1 a A8 aceites (secção 9.1).
+
+| # | Pendência | Situação |
 |---|---|---|
-| **PC-001** | Nomes das chaves do envelope de resposta | Qualquer resposta |
-| **PC-002** | Catálogo de códigos de erro estáveis | Tratamento de erro no frontend (RF-008) |
-| **PC-003** | Formato do detalhamento de erro por campo | Validação visível na interface |
-| **PC-004** | Formato de identificador | Modelos dos dois lados |
-| **PC-005** | Formato de data, hora e fuso | RF-002, exibição de eventos |
-| **PC-006** | Representação de decimais e odds | RF-003, CA-003.2, PD-007 |
-| **PC-007** | Convenção de nomes de campos | Todos os modelos |
-| **PC-008** | Formato de paginação e limites | Listagens longas, RNF-003 |
-| **PC-009** | Formato de ordenação e filtros | RF-005 |
-| **PC-010** | Sinalização de dado demonstrativo na resposta | RNF-008, RN-002, DP-004 |
+| ~~**PC-001**~~ | ~~Nomes das chaves do envelope de resposta~~ | **Resolvida** — secção 9 + A1 |
+| ~~**PC-002**~~ | ~~Catálogo de códigos de erro estáveis~~ | **Resolvida** — secção 9 + A1 |
+| ~~**PC-003**~~ | ~~Formato do detalhamento de erro por campo~~ | **Resolvida** — secção 9 + A2 |
+| ~~**PC-004**~~ | ~~Formato de identificador~~ | **Resolvida** — secção 9 + A3 |
+| ~~**PC-005**~~ | ~~Formato de data, hora e fuso~~ | **Resolvida** — secção 9 + A4 |
+| **PC-006** | Representação de decimais e odds | **Forma resolvida** (A5); **número de casas pendente** de BLQ-001 e PD-007 |
+| ~~**PC-007**~~ | ~~Convenção de nomes de campos~~ | **Resolvida** — `camelCase` |
+| ~~**PC-008**~~ | ~~Formato de paginação e limites~~ | **Resolvida** — secção 9 + A6 |
+| ~~**PC-009**~~ | ~~Formato de ordenação e filtros~~ | **Resolvida** — secção 9 + A7 |
+| **PC-010** | Sinalização de dado demonstrativo na resposta | **Forma resolvida** (`origin` obrigatório, A8); **apresentação pendente** da DIV-001 (Pedro) |
 | ~~**PC-011**~~ | ~~Forma de compartilhar tipos entre os agentes~~ | **Resolvida** — DT-001: `packages/contracts/` |
 | ~~**PC-012**~~ | ~~Biblioteca de validação por esquema~~ | **Resolvida** — DT-001: Zod |
-| **PC-013** | Confirmação da estratégia de versionamento | Seção 4 |
-| **PC-014** | Se o frontend tolera valor enumerado desconhecido | Classificação de mudança compatível |
-| **PC-015** | Uso de `422` ou apenas `400` para erro semântico | Seção 5.3 |
+| ~~**PC-013**~~ | ~~Confirmação da estratégia de versionamento~~ | **Resolvida** — sem versão na URL; prefixo `/api` |
+| ~~**PC-014**~~ | ~~Se o frontend tolera valor enumerado desconhecido~~ | **Resolvida** — sim; acrescentar valor é compatível e é registado no quadro |
+| ~~**PC-015**~~ | ~~Uso de `422` ou apenas `400` para erro semântico~~ | **Resolvida** — só `400` |
 
 > Pendência aberta não autoriza decisão por omissão durante a implementação. Resolver, registrar no quadro e atualizar este documento.
 
 ---
 
-## 9. Proposta do `backend` para a T-004 — **aguarda revisão do `frontend`**
+## 9. Convenções da T-004 — **acordadas em 2026-10-26**
 
-**Estado:** proposta de 2026-10-26. **Não está acordada.** Nenhum esquema destas convenções existe em `packages/contracts/` e nenhuma rota de domínio as usa até o `frontend` registar a sua análise no quadro (DT-005) e o Pedro aprovar a integração. Quando houver acordo, cada PC passa para "Resolvida" na secção 8.
+**Estado:** acordadas. A tabela abaixo é a proposta original do `backend`; os ajustes da revisão do `frontend` estão na secção 9.1 e **prevalecem** sobre ela. A expressão em código está em `packages/contracts/src/` (`envelope.ts`, `primitives.ts`). Ainda não há rotas de domínio.
 
 | # | Proposta | Motivo |
 |---|---|---|
@@ -252,4 +254,19 @@ Primeira rota só pode ser definida após:
 | **PC-014** | *Pergunta ao `frontend`:* a interface trata um valor enumerado desconhecido sem quebrar (ex.: mostra-o como "outro")? | Se sim, acrescentar um valor passa a ser uma mudança compatível |
 | **PC-015** | Só `400` (`VALIDATION_FAILED`) para entradas inválidas, sem `422` | Uma regra única é mais simples de tratar; o `details` já diz o que falhou |
 
-**Comunicação local entre web e api (pendência da T-013):** proposta — o servidor de desenvolvimento do Vite encaminha `/api` para `http://127.0.0.1:3333`, no ficheiro de configuração do `frontend`. A api não precisa de CORS em desenvolvimento. CORS só entra se a web e a api forem publicadas em origens diferentes (DP-008).
+**Comunicação local entre web e api (T-013): acordada.** O servidor de desenvolvimento do Vite encaminha `/api` para `http://127.0.0.1:3333`, no `vite.config.ts` do `frontend`. A api não tem CORS em desenvolvimento. CORS só entra se a web e a api forem publicadas em origens diferentes (DP-008).
+
+### 9.1 Ajustes acordados (revisão do `frontend`, aceites pelo `backend`)
+
+| # | Regra final |
+|---|---|
+| **A1** (PC-001/002) | O erro tem `retryable: boolean` **obrigatório**, decidido pelo servidor: `true` em `RATE_LIMITED`, `INTERNAL_ERROR` e `UPSTREAM_UNAVAILABLE`; `false` em `VALIDATION_FAILED` e `NOT_FOUND`. Em `RATE_LIMITED`, `retryAfterSeconds` (inteiro positivo) vem **no corpo** quando o tempo de espera for conhecido. Um código novo traz sempre o seu `retryable`, por isso acrescentar um código continua a ser compatível |
+| **A2** (PC-003) | Os valores de `issue` são um catálogo **estável**, como os `code`: `required`, `invalid_type`, `invalid_value`, `invalid_format`, `too_small`, `too_big`, `unknown_field`, `invalid_cursor`. Acrescentar um valor é anunciado no quadro (PC-014) |
+| **A3** (PC-004) | O identificador de um recurso é **estável ao longo do tempo**: deriva do identificador estável da origem e nunca é gerado por pedido. Se um provedor não o garantir, o `backend` avisa no quadro antes, e é uma mudança incompatível. O frontend aplica `encodeURIComponent` ao montar as rotas |
+| **A4** (PC-005) | A situação de um evento é um **campo do modelo**, decidido pelo servidor. Nunca é deduzida da data no cliente |
+| **A5** (PC-006) | Texto decimal com **ponto**, sem separador de milhares, sem sinal e sem notação científica, e com **número fixo de casas por campo**. O `backend` normaliza; o número de casas fecha-se com BLQ-001 e PD-007. Uma odd indisponível é `null`, nunca texto vazio |
+| **A6** (PC-008) | `meta.total` é **opcional**; a interface não depende dele. Um cursor obsoleto ou usado com filtros diferentes dá `400 VALIDATION_FAILED` com `{ "field": "query.cursor", "issue": "invalid_cursor" }` |
+| **A7** (PC-009) | Um valor que **viola o esquema** dá `400 VALIDATION_FAILED`. Um valor **bem formado sem correspondência** (termo de busca inexistente, categoria válida sem jogos) dá **`200` com `data: []`**. O parâmetro de busca chama-se `?q=`, seja qual for o escopo que a PD-003 vier a definir |
+| **A8** (PC-010) | `origin` é **obrigatório** em todos os recursos, nunca opcional. `meta.origin` agregado é opcional e só vem quando toda a coleção tem a mesma procedência |
+| **DIV-F01** | **Resolvida a favor do `frontend`:** `message` é só técnica (secção 2.2) |
+| **DIV-F02** | **Aberta, sem mudança no contrato:** com o cursor, uma página pode cortar um grupo de eventos ao meio. O `frontend` agrupa só o que recebeu e não mostra contagem por grupo. Uma rota de grupos completos fica para quando houver rotas e um requisito que a justifique |

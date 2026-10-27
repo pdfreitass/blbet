@@ -22,7 +22,7 @@ blbet/                       C:\Users\pedro\OneDrive\Documentos\blbet (mudança 
 
 - **Código: nenhum.** Não há `package.json`, lockfile, `tsconfig.json` nem código-fonte. Nenhuma dependência foi instalada.
 - **Histórico:** um único commit (`Initial commit`). `CLAUDE.md` e `docs/` ainda não estão no git.
-- **Não existem:** `docs/design-system.md`, `docs/integracoes.md`. Ausência não é decisão tomada.
+- **Existem desde 2026-10-26:** `docs/design-system.md` (do `frontend`) e `docs/integracoes.md` (do `backend`, sem provedor identificado).
 
 ---
 
@@ -141,7 +141,7 @@ provedor esportivo → adaptador (apps/api) → validação Zod → modelo inter
 - **A resposta do provedor é entrada não confiável** — validada por esquema antes de virar modelo interno.
 - **Sem simulação apresentada como real** — nenhum adaptador devolve dados inventados como se viessem do provedor.
 
-Os detalhes de provedores, termos de uso, limites e ambientes ficam em `docs/integracoes.md`, **ainda inexistente** (T-006, T-010).
+Os detalhes de provedores, termos de uso, limites e ambientes ficam em [`docs/integracoes.md`](integracoes.md), que tem também os critérios para escolher o provedor (T-006, T-010).
 
 ---
 

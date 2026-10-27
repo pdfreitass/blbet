@@ -19,12 +19,12 @@ describe('GET /health', () => {
     expect(response.json()).toEqual({ status: 'ok' });
   });
 
-  it('devolve 404 genérico para rota inexistente', async () => {
+  it('devolve 404 no envelope de erro para rota inexistente', async () => {
     app = buildApp(loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }));
 
     const response = await app.inject({ method: 'GET', url: '/nao-existe' });
 
     expect(response.statusCode).toBe(404);
-    expect(response.json()).toEqual({ message: 'Recurso não encontrado.' });
+    expect(response.json()).toEqual({ error: { code: 'NOT_FOUND', message: 'route not found', retryable: false } });
   });
 });

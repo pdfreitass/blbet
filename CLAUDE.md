@@ -30,7 +30,7 @@ Consultar o documento **antes** de trabalhar na área correspondente:
 
 Decisões relevantes (técnicas, de produto ou de escopo) são registadas em `docs/decisoes-tecnicas.md`.
 
-**Estado atual:** existem `visao.md`, `requisitos.md`, `arquitetura.md`, `roadmap.md`, `decisoes-tecnicas.md`, `agent-protocol.md`, `agent-handoff.md`, `agent-tasks.md` e `api-contract.md`. **Não existem** `design-system.md` nem `integracoes.md`. Um documento inexistente **não** é uma decisão tomada — sinalizar a pendência e pedir esclarecimento em vez de assumir conteúdo.
+**Estado atual:** existem `visao.md`, `requisitos.md`, `arquitetura.md`, `roadmap.md`, `decisoes-tecnicas.md`, `agent-protocol.md`, `agent-handoff.md`, `agent-tasks.md` e `api-contract.md`. Existem também `design-system.md` (do `frontend`) e `integracoes.md` (do `backend`, sem provedor identificado). Um documento inexistente **não** é uma decisão tomada — sinalizar a pendência e pedir esclarecimento em vez de assumir conteúdo.
 
 **Stack aprovada (DT-001):** monorepo pnpm — `apps/web/` (React + Vite + TypeScript), `apps/api/` (Node.js + Fastify + TypeScript), `packages/contracts/` (Zod); Vitest e Playwright. Worktrees e versões: DT-008. Fundação do backend em `apps/api/` (instruções em `apps/api/README.md`); `apps/web/` ainda não existe.
 

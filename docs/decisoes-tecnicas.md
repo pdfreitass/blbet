@@ -40,6 +40,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-006](#dt-006--consulta-ao-quadro-de-coordenação) | Frequência de consulta ao quadro | PA-005 | aprovada |
 | [DT-007](#dt-007--repositório-fora-do-onedrive) | Repositório fora do OneDrive antes de instalar dependências | — | aprovada, executada (T-011) |
 | [DT-008](#dt-008--worktrees-e-versões-da-fundação) | Worktrees em pastas irmãs; versões da fundação | PA-006 | aprovada |
+| [DT-009](#dt-009--sportsbook-api-como-provedor-esportivo-de-testes) | Sportsbook API (RapidAPI, plano gratuito) como provedor esportivo de desenvolvimento e testes | BLQ-001 em parte | aprovada, só para testes |
 
 ---
 
@@ -251,3 +252,30 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 | **DIV-001** | A DT-002 integra uma API esportiva real. Os requisitos e a visão assumem que **todo** dado é fictício | RN-002, RF-003, CA-003.4, RNF-008 ([`requisitos.md`](requisitos.md)); seções 8 e 9 ([`visao.md`](visao.md)); Fase 4 ([`roadmap.md`](roadmap.md)), que admite provedor real só "em ambiente autorizado de demonstração" e com "autorização formal do provedor" | Identificação na interface de dados reais de terceiros; modelo de dados (DP-004, PC-010); ordem das fases | Pedro |
 | **DIV-002** | [`roadmap.md`](roadmap.md) desatualizado: "4 de 6 documentos", DP-001 como bloqueio, `decisoes-tecnicas.md` inexistente, Fase 4 a pressupor dados locais antes do provedor | `roadmap.md` | Ordem e estado das fases mostram informação velha | Pedro |
 | **DIV-003** | PD-010 de [`requisitos.md`](requisitos.md) diz "depende de `docs/arquitetura.md`"; as ferramentas de teste estão agora definidas na DT-001, mas a cobertura mínima continua aberta | `requisitos.md` | Baixo | Pedro |
+
+---
+
+### DT-009 — Sportsbook API como provedor esportivo de testes
+
+- **Data:** 2026-10-26
+- **Estado:** aprovada, **só para desenvolvimento e testes**
+- **Decidido por:** Pedro
+- **Registado por:** `backend`
+- **Resolve:** BLQ-001, em parte
+
+**Contexto** — A DT-002 exige uma API esportiva real desde o início. O Pedro indicou a Sportsbook API, no RapidAPI, para começar com o plano gratuito. A avaliação contra os critérios C1 a C16 está na secção 5 de [`docs/integracoes.md`](integracoes.md), com a fonte de cada resposta.
+
+**Decisão** — usar a Sportsbook API, plano Basic gratuito (150 pedidos/dia), como provedor esportivo **de desenvolvimento e testes**. A adoção para publicação fica para uma decisão posterior.
+
+**Alternativas consideradas** — nenhuma avaliada nesta decisão.
+
+**Consequências**
+
+- A T-014 (modelo e contratos de esportes) pode avançar com base na especificação OpenAPI oficial, depois de confirmar com respostas reais o que a especificação não diz (C5, C7, C13).
+- A situação do evento (C6) não vem do provedor: o modelo interno tem de o refletir (secção 5 do `integracoes.md`).
+- A cache é obrigatória por causa do limite diário (DP-009).
+- As rotas `advantages` (arbitragem, "+EV") **não são usadas** (RN-003).
+
+**Pendências** — C1 e C2 (licença de exibição e uso sem apostas) **bloqueiam a publicação**; C5, C7 e C13 confirmam-se com chamadas reais.
+
+**Cobertura brasileira (C3, PD-004) — decisão do Pedro, 2026-10-27:** a falta do Brasileirão **não bloqueia** o desenvolvimento. Desenvolve-se com as competições disponíveis; quando o produto estiver pronto, o Pedro contrata um provedor pago com o futebol brasileiro e faz-se a troca. Consequência: o modelo interno e os contratos **não podem depender** de chaves, nomes ou formatos da Sportsbook API — tudo passa pelo adaptador (secção 3 do [`integracoes.md`](integracoes.md)).

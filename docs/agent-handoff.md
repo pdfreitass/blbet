@@ -37,12 +37,12 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com o primeiro ecrã a correr na branch do `frontend` (2026-10-27, **por commitar**). Sem lógica de negócio e sem rede |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com o primeiro ecrã a correr, commitado na branch do `frontend` (2026-10-27, `aaf04f2` e `7aeef79`, **por integrar**). Sem lógica de negócio e sem rede |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
-| **Git** | `main` em `d337f1f` (documentação), sem push |
-| **Tarefas em andamento** | T-004, T-007, T-013, T-016 |
+| **Git** | `main` em `e3c7ca9`, **publicada** em `git@github.com:pdfreitass/blbet.git`. A branch `feat/frontend-foundation` ainda não foi publicada |
+| **Tarefas em andamento** | T-006, T-007, T-010, T-013, T-016 |
 | **Tarefas concluídas** | T-001, T-002, T-011, T-012 |
 
 ---
@@ -58,11 +58,55 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 - **Arquivos modificados:** ver o histórico abaixo
 - **Contratos ou interfaces alterados:** nenhum contrato de domínio. Só existe `GET /health`, que é operacional e não pertence ao contrato
 - **Pendências para o agente `frontend`:** ver a seção de integração
-- **Bloqueios:** BLQ-001 (provedor esportivo não identificado) para a T-014 e a T-015
+- **Bloqueios:** BLQ-001 resolvido em parte pela DT-009 (Sportsbook API, só testes). A T-014 e a T-015 esperam a chave do Pedro e chamadas reais
 - **Testes executados e resultados:** ver o histórico abaixo
-- **Próxima ação recomendada:** Pedro aprova o commit da fundação e integra-o na `main`; depois, a parte de estratégia da T-006 e a T-004
+- **Próxima ação recomendada:** com a chave no `apps/api/.env`, confirmar C5, C7 e C13 com chamadas reais e avançar para a T-014
 
 ### Histórico
+
+### 2026-10-27 — Chave do provedor validada; Brasileirão fica para o provedor final
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-010 (em andamento)
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-009), `docs/integracoes.md` (C3), `docs/agent-handoff.md`. Chave em `apps/api/.env`, fora do git
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação: os dados de teste não terão futebol brasileiro; a interface não deve assumir competições específicas
+- **Bloqueios:** nenhum para a T-014
+- **Testes executados e resultados:** `GET /v0/competitions/` com a chave → `200`, 38 competições, nenhuma brasileira; quota 149/150. `GET /v1/competitions` → `404` (rota não existe)
+- **Próxima ação recomendada:** confirmar C5, C7 e C13 com chamadas reais e iniciar a T-014
+
+### 2026-10-27 — Provedor esportivo de testes escolhido (DT-009)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-010 (em andamento), T-006 (secção 5 do `integracoes.md`)
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-009), `docs/integracoes.md` (secção 5), `docs/agent-tasks.md`, `docs/agent-handoff.md`, `apps/api/.env.example` (nomes das variáveis do provedor, sem valores)
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação: o provedor de testes é a Sportsbook API (RapidAPI); a situação do evento (C6) não vem do provedor e será derivada no backend; C1 (atribuição) continua por confirmar
+- **Bloqueios:** C1 e C2 bloqueiam a publicação, não os testes
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 8/8, api 19/19 (2026-10-27)
+- **Próxima ação recomendada:** chamadas reais com a chave do Pedro para confirmar C5, C7 e C13; depois a T-014
+
+### 2026-10-26 — Estratégia de integrações (T-006, parte sem provedor)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-006 (em andamento)
+- **Arquivos modificados:** `docs/integracoes.md` (novo), `docs/agent-tasks.md`, `docs/agent-handoff.md`; referências desatualizadas a "`integracoes.md` inexistente" corrigidas em `CLAUDE.md` e `docs/arquitetura.md` (secções 1 e 6), sem outra alteração
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação: o critério **C1** do `integracoes.md` (atribuição exigida pelo provedor) pode vir a pedir espaço no `design-system.md`
+- **Bloqueios:** BLQ-001 — os critérios C1 a C16 servem para o Pedro escolher o provedor
+- **Testes executados e resultados:** nenhum executado — só documentação
+- **Próxima ação recomendada:** Pedro escolhe o provedor com os critérios C1 a C16 (T-010); o backend preenche a secção 5 do `integracoes.md` e faz a T-014
+
+### 2026-10-26 — Convenções da T-004 acordadas e implementadas
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-004 (concluída)
+- **Arquivos modificados:** `packages/contracts/` (`package.json`, `tsconfig.json`, `tsconfig.build.json`, `src/index.ts`, `src/envelope.ts`, `src/primitives.ts`, `test/envelope.test.ts`); `apps/api/` (`package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `src/app.ts`, `src/shared/errors.ts`, `test/errors.test.ts`, `test/health.test.ts`); **partilhado:** `pnpm-lock.yaml` (+3 linhas); `docs/api-contract.md` (secções 2.2, 8 e 9.1), `docs/agent-handoff.md`, `docs/agent-tasks.md`
+- **Contratos ou interfaces alterados:** convenções PC-001 a PC-015 resolvidas, exceto o número de casas da PC-006 e a apresentação da PC-010. Os erros da api passam ao formato `{ error: { code, message, retryable, details? } }`
+- **Pendências para o outro agente:** pontos 10 a 12 da secção de integração
+- **Bloqueios:** BLQ-001
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 8/8, api 19/19 · `pnpm build` → ok · `node dist/server.js` e `pnpm dev:api` → `GET /api/nada` devolve `404 {"error":{"code":"NOT_FOUND","message":"route not found","retryable":false}}`
+- **Próxima ação recomendada:** Pedro aprova o commit e integra-o na `main`; depois o `frontend` faz `git merge main` e instala o `apps/web`. O backend segue para a T-006 (estratégia em `integracoes.md`) até o provedor chegar
 
 ### 2026-10-26 — Proposta de convenções (T-004) e cliente HTTP para provedores
 
@@ -190,7 +234,7 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 **Nenhuma integração iniciada.** Não há rotas definidas nem interface que as consuma.
 
-- **Contratos acordados:** nenhum. Forma decidida (DT-001): `apps/web` consome `apps/api` por HTTP; tipos e esquemas em `packages/contracts/`, escritos pelo `backend`
+- **Contratos acordados:** as **convenções** da T-004 (secções 8 e 9.1 do contrato), já em `packages/contracts/`. Nenhuma rota de domínio. Forma decidida (DT-001): `apps/web` consome `apps/api` por HTTP, em desenvolvimento através do encaminhamento `/api` do Vite
 - **Divergências abertas entre agentes:** nenhuma. As divergências **documentais** DIV-001 a DIV-003 estão em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md#divergências-documentais-abertas) e são do Pedro
 - **Bloqueios de integração:** BLQ-001 (provedor esportivo); PD-003 a PD-008; T-013 (monorepo)
 - **Próxima ação recomendada:** não definir rotas antes da T-010 e da T-009; mudanças de contrato seguem a revisão cruzada (DT-005, seção 4.5 do protocolo)
@@ -341,6 +385,26 @@ Registado aqui pelo `frontend`, com a origem explícita: **esta informação che
 `git merge main` **recusou** e abortou sem alterar nada, porque tenho alterações não commitadas em dois ficheiros que o `fcbe8fd` também altera: `docs/agent-handoff.md` e `docs/agent-tasks.md`. Mensagem exata: *"Your local changes to the following files would be overwritten by merge."* A minha worktree continua em `6a4ebd3`, com `docs/design-system.md` ainda não commitado e à espera da aprovação do Pedro. **Não usei `stash`, `reset`, `checkout` nem `rebase`**, conforme a secção 7 do protocolo. Por isso li a secção 9 do contrato com `git show main:...`, que não toca na worktree. O merge fica para depois de o Pedro aprovar o commit do meu trabalho; quando acontecer, haverá conflito nestes dois ficheiros — ficheiro de dono compartilhado, logo levo a resolução ao Pedro (DT-004), notando que na prática o `backend` escreveu na secção dele e eu na minha, e os dois acrescentámos à de integração.
 
 **Desfecho, no mesmo dia:** o Pedro aprovou o commit (`a5da2e6`) e autorizou a resolução do conflito, limitada ao quadro. `git merge main` passou a correr: este ficheiro **auto-fundiu-se sem conflito** e o conflito ficou só em `docs/agent-tasks.md`, em dois pontos — a tabela de resumo e o status da T-004. Resolvidos sem apagar nem reescrever registo do `backend`: na tabela ficou o estado combinado, e na T-004 a linha de status do `backend` ficou **intacta**, com a minha linha de revisão cruzada acrescentada por baixo.
+
+### Confirmação do `backend` à revisão da T-004 — registada pelo `backend` em 2026-10-26
+
+Confirmo aqui, por escrito, o que chegou ao `frontend` através do Pedro:
+
+- **A1 a A8 aceites**, incluindo os pedidos secundários: `retryAfterSeconds` no corpo do 429, `null` para uma odd indisponível, `?q=` como parâmetro de busca e `meta.origin` agregado opcional. A regra final de cada um está na **secção 9.1** de [`docs/api-contract.md`](api-contract.md); a secção 8 marca as PC como resolvidas.
+- **DIV-F01 resolvida a favor do `frontend`:** a secção 2.2 do contrato já diz que `message` é só técnica e nunca é mostrada.
+- **DIV-F02:** registada no contrato como aberta, sem mudança; a resolução do `frontend` fica como está.
+- **Ficam pendentes:** a PC-006 (número de casas, BLQ-001 e PD-007) e a apresentação da PC-010 (DIV-001, Pedro).
+- **Já implementado** em `packages/contracts/src/` (`envelope.ts`, `primitives.ts`), com testes. A api devolve todos os erros neste formato.
+
+### Pendências para o agente `frontend` — registadas pelo `backend` em 2026-10-26 (contratos)
+
+10. **Ordem do `pnpm install` — o `backend` vai primeiro.** Este commit do `backend` altera o `pnpm-lock.yaml` (3 linhas: a api passa a depender de `@blbet/contracts` com `workspace:*`). Depois de o Pedro o integrar na `main`, fazes `git merge main` e **só então** crias o `apps/web/` e corres `pnpm install`. Assim o lockfile muda num lado de cada vez e não há conflito para resolver.
+11. **Como importar `@blbet/contracts` no `apps/web`.** O pacote exporta com a condição `source` (`./src/index.ts`) e, por omissão, o `dist` compilado. Para o Vite e o Vitest usarem o código-fonte sem build:
+    - no `vite.config.ts`: `resolve.conditions` com `'source'` à frente das condições por omissão (`defaultClientConditions` de `'vite'`), porque definir a lista substitui a de omissão;
+    - no `apps/web/tsconfig.json`: `customConditions: ["source"]`.
+
+    Sem isto, o Vite resolve para `dist/`, que só existe depois de `pnpm --filter @blbet/contracts build`. A config da api serve de exemplo: `apps/api/vitest.config.ts` e `apps/api/tsconfig.json`.
+12. **Tolerância a valores desconhecidos (R1):** os esquemas de `packages/contracts` são estritos, porque validam o que o servidor envia. A recuperação para um valor neutro que descreveste fica do teu lado, ao consumir os esquemas, por exemplo com `.catch(...)` num esquema derivado.
 
 ### Divergências técnicas abertas
 
