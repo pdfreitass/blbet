@@ -41,7 +41,7 @@
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
-| **Git** | `main` em `d337f1f` (documentação), sem push |
+| **Git** | `main` em `6adaeb0` (fundação + convenções da T-004), sem push |
 | **Tarefas em andamento** | T-003, T-007, T-008, T-013 |
 | **Tarefas concluídas** | T-001, T-002, T-011, T-012 |
 
@@ -58,11 +58,33 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 - **Arquivos modificados:** ver o histórico abaixo
 - **Contratos ou interfaces alterados:** nenhum contrato de domínio. Só existe `GET /health`, que é operacional e não pertence ao contrato
 - **Pendências para o agente `frontend`:** ver a seção de integração
-- **Bloqueios:** BLQ-001 (provedor esportivo não identificado) para a T-014 e a T-015
+- **Bloqueios:** BLQ-001 resolvido em parte pela DT-009 (Sportsbook API, só testes). A T-014 e a T-015 esperam a chave do Pedro e chamadas reais
 - **Testes executados e resultados:** ver o histórico abaixo
-- **Próxima ação recomendada:** Pedro aprova o commit da fundação e integra-o na `main`; depois, a parte de estratégia da T-006 e a T-004
+- **Próxima ação recomendada:** com a chave no `apps/api/.env`, confirmar C5, C7 e C13 com chamadas reais e avançar para a T-014
 
 ### Histórico
+
+### 2026-10-27 — Provedor esportivo de testes escolhido (DT-009)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-010 (em andamento), T-006 (secção 5 do `integracoes.md`)
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-009), `docs/integracoes.md` (secção 5), `docs/agent-tasks.md`, `docs/agent-handoff.md`, `apps/api/.env.example` (nomes das variáveis do provedor, sem valores)
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação: o provedor de testes é a Sportsbook API (RapidAPI); a situação do evento (C6) não vem do provedor e será derivada no backend; C1 (atribuição) continua por confirmar
+- **Bloqueios:** C1 e C2 bloqueiam a publicação, não os testes
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 8/8, api 19/19 (2026-10-27)
+- **Próxima ação recomendada:** chamadas reais com a chave do Pedro para confirmar C5, C7 e C13; depois a T-014
+
+### 2026-10-26 — Estratégia de integrações (T-006, parte sem provedor)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-006 (em andamento)
+- **Arquivos modificados:** `docs/integracoes.md` (novo), `docs/agent-tasks.md`, `docs/agent-handoff.md`; referências desatualizadas a "`integracoes.md` inexistente" corrigidas em `CLAUDE.md` e `docs/arquitetura.md` (secções 1 e 6), sem outra alteração
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação: o critério **C1** do `integracoes.md` (atribuição exigida pelo provedor) pode vir a pedir espaço no `design-system.md`
+- **Bloqueios:** BLQ-001 — os critérios C1 a C16 servem para o Pedro escolher o provedor
+- **Testes executados e resultados:** nenhum executado — só documentação
+- **Próxima ação recomendada:** Pedro escolhe o provedor com os critérios C1 a C16 (T-010); o backend preenche a secção 5 do `integracoes.md` e faz a T-014
 
 ### 2026-10-26 — Convenções da T-004 acordadas e implementadas
 

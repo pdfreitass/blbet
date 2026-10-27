@@ -22,8 +22,8 @@
 | Status | Quantidade | Tarefas |
 |---|---|---|
 | Concluída | 8 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012 |
-| Em andamento | 2 | T-007, T-013 |
-| Não iniciada | 4 | T-006, T-009, T-010, T-016 |
+| Em andamento | 4 | T-006, T-007, T-010, T-013 |
+| Não iniciada | 2 | T-009, T-016 |
 | Bloqueada | 2 | T-014, T-015 |
 
 **Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
@@ -78,7 +78,7 @@
 - **Descrição:** documentar a estratégia de integração (adaptadores, conversão para o modelo interno, segredos no servidor, validação de resposta) e, quando a T-010 terminar, o provedor esportivo real. **Sem inventar provedor, endpoint ou contrato.**
 - **Responsável:** `backend`
 - **Dependências:** T-001 (concluída) para a estratégia; **T-010** para a parte do provedor
-- **Status:** **não iniciada** — a parte da estratégia já pode ser feita
+- **Status:** **em andamento** — 2026-10-26, pelo `backend`: estratégia, critérios C1 a C16 para escolher o provedor, estrutura do adaptador e convenção das credenciais em `docs/integracoes.md`. **Falta a parte do provedor**, que depende da T-010
 - **Critérios de conclusão:** o ficheiro existe; a estratégia está descrita; os dados do provedor vêm citados da documentação oficial, com a respetiva fonte; o que não estiver documentado fica marcado como pendente.
 
 ### T-007 — Definir ferramentas e cobertura de teste
@@ -110,7 +110,7 @@
 - **Descrição:** escolher o provedor esportivo e reunir a sua documentação oficial: autenticação, endpoints, parâmetros, campos, formatos, limites, termos de uso (a exibição é permitida? exige atribuição?) e ambiente de testes. Resolve o **BLQ-001**.
 - **Responsável:** **Pedro** (escolha e credenciais) · `backend` (análise e registo em `docs/integracoes.md`)
 - **Dependências:** nenhuma
-- **Status:** **não iniciada**
+- **Status:** **em andamento** — 2026-10-26: Pedro escolheu a Sportsbook API (RapidAPI, plano gratuito) para testes (DT-009); avaliação C1 a C16 na secção 5 do `docs/integracoes.md`. **Falta:** chave do Pedro fora do repositório; chamadas reais para confirmar C5, C7 e C13; resposta do provedor a C1 e C2 antes de publicar
 - **Critérios de conclusão:** provedor nomeado pelo Pedro; documentação oficial disponível no repositório ou ligada por URL oficial; resumo técnico em `docs/integracoes.md` com a fonte de cada informação; credenciais obtidas e guardadas **fora do repositório**; nada presumido.
 
 ### T-011 — Mudar o repositório para fora do OneDrive
