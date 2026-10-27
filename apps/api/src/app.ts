@@ -1,14 +1,22 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ErrorCode } from '@blbet/contracts';
 import type { AppConfig } from './config/env.js';
+import type { SportsCatalog } from './modules/sports/sports-catalog.js';
 import { healthRoutes } from './routes/health.js';
+import { sportsRoutes } from './routes/sports.js';
 import { AppError, errorBody, statusOf } from './shared/errors.js';
 import { UpstreamError } from './shared/http/fetch-json.js';
 
 // Cabeçalhos que podem levar credenciais nunca chegam aos logs.
 const REDACTED_PATHS = ['req.headers.authorization', 'req.headers.cookie', 'req.headers["x-api-key"]'];
 
-export function buildApp(config: AppConfig): FastifyInstance {
+export interface AppDeps {
+  /** Ausente sem provedor configurado: as rotas de esportes respondem 503. */
+  readonly sports?: SportsCatalog | undefined;
+  readonly now?: () => Date;
+}
+
+export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance {
   const app = Fastify({
     logger: { level: config.LOG_LEVEL, redact: REDACTED_PATHS },
   });
@@ -32,6 +40,7 @@ export function buildApp(config: AppConfig): FastifyInstance {
   app.setNotFoundHandler((_request, reply) => reply.status(404).send(errorBody('NOT_FOUND', 'route not found')));
 
   app.register(healthRoutes);
+  app.register(sportsRoutes, { sports: deps.sports, now: deps.now ?? (() => new Date()) });
 
   return app;
 }

@@ -1,0 +1,36 @@
+{
+  "competitions": [
+    {
+      "key": "Xa0f-wjcs-tANp",
+      "slug": "english-premier-league",
+      "name": "English Premier League",
+      "shortName": "EPL",
+      "sport": "SOCCER",
+      "category": "MENS_PROFESSIONAL"
+    },
+    {
+      "key": "H9PU-wlct-DJ8j",
+      "slug": "italian-serie-a",
+      "name": "Italian Serie A",
+      "shortName": "SERIE_A",
+      "sport": "SOCCER",
+      "category": "MENS_PROFESSIONAL"
+    },
+    {
+      "key": "d791-wddv-30fU",
+      "slug": "national-basketball-association",
+      "name": "National Basketball Association",
+      "shortName": "NBA",
+      "sport": "BASKETBALL",
+      "category": "MENS_PROFESSIONAL"
+    },
+    {
+      "key": "UqE7-wlct-9mU2",
+      "slug": "spanish-la-liga",
+      "name": "Spanish La Liga",
+      "shortName": "LA_LIGA",
+      "sport": "SOCCER",
+      "category": "MENS_PROFESSIONAL"
+    }
+  ]
+}
