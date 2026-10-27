@@ -28,12 +28,12 @@ A home é o ponto de entrada e dá acesso às duas áreas do produto.
 - Permite filtrar ou alternar entre esportes e competições disponíveis.
 - A ordenação da listagem é previsível e documentada no código.
 
-### RF-003 — Visualização de mercados e odds fictícias
+### RF-003 — Visualização de mercados e odds informativas
 
 - No detalhe de um evento, exibe os mercados disponíveis e suas opções.
-- Cada opção apresenta um valor de odd **fictício**, em formato de exibição consistente em toda a aplicação.
+- Cada opção apresenta um valor de odd vindo da fonte externa, **meramente informativo**, em formato de exibição consistente em toda a aplicação (DT-013).
 - As odds são **somente leitura**: não existe seleção que componha aposta, cupom, bilhete ou valor a apostar (RN-003).
-- Deixa explícito que os valores são fictícios (RN-002).
+- Deixa explícito que as odds são informativas e que não há apostas (RN-002).
 
 ### RF-004 — Navegação pelo catálogo de cassino
 
@@ -129,7 +129,7 @@ Não existe depósito, saque, pagamento, transferência, saldo real ou crédito.
 
 ### RN-002 — Dados demonstrativos identificados
 
-Todo dado exibido é fictício e deve ser identificável como tal na interface (RNF-008). Nenhum dado é apresentado como informação real de evento, resultado, cotação ou conta.
+Os dados esportivos (eventos, competições e cotações) vêm de fonte externa real e são **meramente informativos**. O cassino e todos os restantes valores (perfil, conta, prêmios) são fictícios e identificáveis como tais na interface (RNF-008). A interface declara de forma permanente que é uma plataforma demonstrativa, sem apostas nem transações. Redação revista pela [DT-013](decisoes-tecnicas.md#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios), 2026-10-27.
 
 ### RN-003 — Odds sem composição de aposta
 
@@ -177,7 +177,7 @@ Condições verificáveis. "Verificável" significa demonstrável por teste auto
 - **CA-003.1** O detalhe do evento exibe pelo menos um mercado com suas opções e odds.
 - **CA-003.2** O formato de exibição das odds é idêntico em todas as telas onde aparecem.
 - **CA-003.3** Nenhum elemento da interface permite selecionar uma odd para compor aposta, cupom ou valor.
-- **CA-003.4** A natureza fictícia das odds está indicada na tela.
+- **CA-003.4** A tela indica que as odds vêm de fonte externa, são meramente informativas e não permitem apostas (DT-013).
 
 ### RF-004 — Catálogo de cassino
 

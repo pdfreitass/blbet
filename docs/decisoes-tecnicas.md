@@ -43,6 +43,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-009](#dt-009--sportsbook-api-como-provedor-esportivo-de-testes) | Sportsbook API (RapidAPI, plano gratuito) como provedor esportivo de desenvolvimento e testes | BLQ-001 em parte | aprovada, só para testes |
 | [DT-010](#dt-010--âmbito-inicial-dos-dados-esportivos) | Mercados, formato das odds, fonte única e só jogos futuros | PD-004, PD-007, PC-006 | aprovada |
 | [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
+| [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
 
 ---
 
@@ -251,7 +252,7 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 
 | # | Divergência | Documentos afetados | Impacto | Quem resolve |
 |---|---|---|---|---|
-| **DIV-001** | A DT-002 integra uma API esportiva real. Os requisitos e a visão assumem que **todo** dado é fictício | RN-002, RF-003, CA-003.4, RNF-008 ([`requisitos.md`](requisitos.md)); seções 8 e 9 ([`visao.md`](visao.md)); Fase 4 ([`roadmap.md`](roadmap.md)), que admite provedor real só "em ambiente autorizado de demonstração" e com "autorização formal do provedor" | Identificação na interface de dados reais de terceiros; modelo de dados (DP-004, PC-010); ordem das fases | Pedro |
+| **DIV-001** — **resolvida em parte pela [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios)** (RN-002, RF-003, CA-003.4) | A DT-002 integra uma API esportiva real. Os requisitos e a visão assumem que **todo** dado é fictício | Em aberto: seções 8 e 9 ([`visao.md`](visao.md)); Fase 4 ([`roadmap.md`](roadmap.md)), que admite provedor real só "em ambiente autorizado de demonstração" e com "autorização formal do provedor" | Marcação item a item de dado real vs. fictício (DP-004, PC-010, opções A/B do `design-system.md`); ordem das fases | Pedro |
 | **DIV-002** | [`roadmap.md`](roadmap.md) desatualizado: "4 de 6 documentos", DP-001 como bloqueio, `decisoes-tecnicas.md` inexistente, Fase 4 a pressupor dados locais antes do provedor | `roadmap.md` | Ordem e estado das fases mostram informação velha | Pedro |
 | **DIV-003** | PD-010 de [`requisitos.md`](requisitos.md) diz "depende de `docs/arquitetura.md`"; as ferramentas de teste estão agora definidas na DT-001, mas a cobertura mínima continua aberta | `requisitos.md` | Baixo | Pedro |
 
@@ -329,3 +330,31 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 - Se o provedor falhar e houver dados em cache, servem-se os dados antigos; sem cache, a rota dá `503 UPSTREAM_UNAVAILABLE`.
 - A fonte fixa da DT-010 é `BET_PARX` (cobertura completa de 1X2 e mais/menos na amostra), configurável.
 - Competições, frequência e fonte são variáveis de ambiente. Com o plano pago, sobem sem mudar código.
+
+---
+
+### DT-013 — Dados esportivos reais informativos e restantes dados fictícios
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `backend`
+- **Resolve:** DIV-001, em parte (RN-002, RF-003, CA-003.4)
+
+**Contexto** — Com a T-015, as cotações esportivas vêm da Sportsbook API (DT-002, DT-009). A faixa permanente da interface dizia "Todos os valores exibidos são fictícios", o que deixou de ser verdade. O `frontend` reescreveu a faixa ao ligar as telas às rotas reais e pediu a decisão do Pedro.
+
+**Decisão** — o Pedro aceitou a nova redação da faixa:
+
+> **Plataforma demonstrativa.** Não há apostas, depósitos, saques nem pagamentos. As cotações esportivas vêm de uma fonte externa e são meramente informativas; o cassino e os restantes valores são fictícios.
+
+A RN-002 passa a ter esta regra: **os dados esportivos (eventos, competições e cotações) vêm de fonte externa real e são só informativos; o cassino e todos os restantes valores são fictícios**. Mantêm-se a RN-001, a RN-003 e a RN-004: não há apostas, transações nem jogos executáveis.
+
+**Alternativas consideradas** — manter "todos os valores são fictícios" (falso desde a T-015).
+
+**Consequências**
+
+- `requisitos.md`: RN-002, RF-003 e CA-003.4 com a nova redação.
+- O `frontend` commita a faixa com a ligação às rotas reais.
+- A RNF-008 continua a valer para os dados fictícios.
+
+**Pendências** — a marcação item a item (opções A/B do `design-system.md`, DP-004, PC-010) continua aberta; a interface usa a opção A por agora, só com a marca do dado fictício. As secções 8 e 9 do `visao.md` e a Fase 4 do `roadmap.md` continuam desatualizadas (DIV-001, DIV-002). C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a publicação.

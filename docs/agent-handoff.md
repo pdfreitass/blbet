@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-27 — Faixa demonstrativa aceite; RN-002 revista (DT-013)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** registo de decisão do Pedro (DIV-001, em parte)
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md` (DT-013, índice, DIV-001), `docs/requisitos.md` (RN-002, RF-003, CA-003.4), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:** o Pedro **aceitou** a nova redação da `FaixaDemonstrativa` e autorizou o commit: commitar a migração e a ligação às rotas, com caminhos explícitos. Numeração: **DT-013** usado pelo `backend` (a DT-011 continua reservada para a decisão de tema)
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** só documentação; nada a correr
+- **Próxima ação recomendada:** o `frontend` commita; o Pedro integra na `main`; o `backend` faz merge e fecha a T-014
+
 ### 2026-10-27 — Rotas de esportes reais (T-015)
 
 - **Agente responsável:** backend
