@@ -1,8 +1,8 @@
 import estilos from './Etiqueta.module.css';
 
 /**
- * Variantes de design-system 9.8. A variante `real` existira apenas se o Pedro
- * escolher a opcao B da DIV-001 -- nao esta aqui.
+ * Variantes de design-system 9.8. A variante `real` **nao existe e nao e para criar**:
+ * a DT-014 escolheu a opcao A -- marca-se so o dado ficticio.
  */
 export type VarianteEtiqueta =
   | 'neutra'

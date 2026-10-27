@@ -12,7 +12,7 @@
 
 | Decide | Deixa em aberto |
 |---|---|
-| Direção estética e seus princípios (§1) | **DIV-001** — tratamento de dados reais de terceiros: duas opções em §7, **decisão do Pedro** |
+| Direção estética e seus princípios (§1) | **PD-009 resolvida** em §6; a **DIV-001** foi decidida pelo Pedro (opção A, [DT-014](decisoes-tecnicas.md)) e §7 passou a registar a escolha |
 | Tokens de cor, tipografia, espaçamento, raio, elevação, movimento e breakpoints (§3) | **PD-002** — público-alvo: o risco assumido está em §10 |
 | Tema (§2) | **PD-003 a PD-008** — escopo da busca, mercados, categorias, campos do perfil, formato das odds, idioma e formatos |
 | Tratamento visual do dado demonstrativo, resolvendo **PD-009** (§6) | Conteúdo de marca: nome visual, logotipo e símbolo — a visão explicitamente não os define |
@@ -76,9 +76,9 @@ Justificação:
 
 **Implementação prevista:** as custom properties são declaradas em `:root`, com `color-scheme: dark` para que os controles nativos do navegador acompanhem. Um tema claro futuro entra como bloco de redefinição sob `[data-theme="light"]`, mais `prefers-color-scheme` se e quando for decidido. Nenhum componente lê valor literal de cor.
 
-**A registar:** se aprovada, esta é uma decisão técnica que deve virar registo em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md) — próximo identificador livre: **DT-011**. Não a registei por iniciativa própria; fica como proposta.
+**Aprovada e registada** pelo Pedro em 2026-10-27, como [**DT-011**](decisoes-tecnicas.md#dt-011--tema-escuro-único-com-tokens-semânticos). Deixa de ser proposta: o tema escuro único é a decisão vigente, e um tema claro só entra se a **PD-002** mostrar que é preciso — o risco está registado como R2 em §10.
 
-> **Correção de 2026-10-27, atualizada no mesmo dia.** Este documento reservava o **DT-009** para a decisão de tema. O `backend` registou a DT-009 para o provedor esportivo e, pouco depois, a **DT-010** para o âmbito dos dados esportivos. Nenhuma das duas é alterada; a decisão de tema passa a **DT-011**. Aconteceu duas vezes: está proposto no quadro que o número seja reservado aí antes de ser usado.
+> **Nota de numeração.** Esta decisão foi reservada como **DT-009** quando esta secção foi escrita, e renumerada duas vezes no mesmo dia: o `backend` registou a DT-009 (provedor esportivo) e depois a DT-010 (âmbito dos dados esportivos). Nenhuma delas foi alterada; a decisão de tema ficou em **DT-011**. Para evitar uma terceira colisão, está proposto no quadro que o número seja reservado aí antes de ser usado.
 
 ---
 
@@ -329,27 +329,30 @@ Em todas as áreas, sem exceção e sem variação: odds e mercados (RF-003, CA-
 
 ---
 
-## 7. Dados reais de terceiros — DIV-001, pendente de decisão do Pedro
+## 7. Dados reais de terceiros — **resolvido: opção A** (DIV-001, DT-014)
 
-**Este ponto não é resolvido aqui.** A DT-002 traz dados esportivos reais de um provedor; RN-002, RF-003 e RNF-008 dizem que **todo** dado é fictício e identificado como tal. É contradição documental já registada como **DIV-001**, cuja resolução é do Pedro. As duas opções abaixo são propostas de tratamento visual, não uma escolha.
+**Decidido pelo Pedro em 2026-10-27 e registado como [DT-014](decisoes-tecnicas.md#dt-014--marcar-só-o-dado-fictício-opção-a): opção A.** O dado fictício leva a marca demonstrativa de §6; o dado real de terceiros **não leva selo**. A contradição documental que esta secção registava — RN-002 dizia que *todo* dado era fictício, enquanto a DT-002 traz dados reais — foi resolvida antes, pela [DT-013](decisoes-tecnicas.md), que reescreveu a RN-002, a RF-003 e a CA-003.4.
 
-### Opção A — Marcar só o fictício (inversão do ónus)
+**O que isto fixa na implementação:**
 
-O campo tracejado de §6 marca o dado demonstrativo; o dado real **não recebe marca** e leva apenas a atribuição da fonte no rodapé do bloco, se o provedor a exigir.
+- o componente de procedência tem **uma só variante**, `demonstrativo`. A variante `real` **não é para criar** — nem esboçada, nem comentada, nem desativada;
+- a decisão de marcar ou não é tomada **num só lugar** (`ValorDeDado`), a partir do `origin` do contrato (`demo` ou `provider`, obrigatório por A8). Nenhum componente que mostre um valor decide isto por si;
+- quem explica *de que tipo* é cada área é a faixa permanente da DT-013, não uma marca por item: esportes vêm de fonte externa e são informativos, cassino e perfil são fictícios;
+- a RNF-008 continua satisfeita, porque o dado fictício está sempre marcado da mesma forma, em todas as áreas.
 
-- **A favor:** sinal mais limpo; o tracejado mantém-se raro e por isso continua a significar algo; é o mínimo de ruído num produto denso; é o único tratamento implementável **hoje**, porque não depende de saber o nome do provedor (BLQ-001).
-- **Contra:** o dado real fica silencioso, e "sem marca" é ambíguo — quem não conhece a convenção não distingue "é real" de "ainda não foi marcado". Contraria a leitura literal de RNF-008, que pede identificação consistente, não identificação por ausência.
+### Por que não a opção B
 
-### Opção B — Marcar os dois, com selo de procedência
+A opção B — marcar os dois, com um selo `● ao vivo · <fonte>` no dado real — foi rejeitada por agora, com três razões registadas na DT-014:
 
-Cada bloco de dados declara a sua origem: `◇ demonstrativo` com contorno tracejado, ou `● ao vivo · <fonte>` com contorno contínuo em `--color-border-interactive` e o nome do provedor.
+- **o selo seria falso:** as odds podem ter até uma hora de atraso por causa da cache (DT-012), e "ao vivo" afirmaria o contrário;
+- **a fonte nomeada seria a errada:** o provedor atual é só de testes (DT-009) e vai ser trocado;
+- **acrescentaria ruído** em listagem densa e sobretudo em mobile, contra o princípio P1 e o requisito RNF-001.
 
-- **A favor:** nada é ambíguo; cobre desde já uma eventual exigência de atribuição nos termos de uso do provedor, que é pendência explícita da DT-002 e da T-010; é a leitura mais fiel de RNF-008.
-- **Contra:** mais ruído e mais espaço vertical, o que pesa em listagem densa e sobretudo em mobile; e **não é implementável agora**, porque o texto de atribuição exige o nome do provedor, que não existe (BLQ-001).
+### O que fica em aberto, e já tem lugar previsto
 
-### Como avanço enquanto a decisão não existir
+Se os termos do provedor definitivo exigirem **atribuição** (C1 e C2 da DT-009), ela entra como texto de fonte no **rodapé do bloco** — que a opção A já previa e que a listagem já usa para a nota de procedência. Não é preciso marca por item para isso.
 
-Implemento a Opção A **restrita ao dado demonstrativo**, que é o único tipo de dado que existirá em `apps/web/` nesta etapa. A estrutura prevista é um componente único de marcação de procedência, com a variante `demonstrativo` implementada e a variante `real` ausente — não esboçada, não comentada, não desativada. Se o Pedro escolher a Opção B, acrescenta-se a variante sem alterar os componentes que a consomem. **Nenhum dado real é exibido até haver contrato aprovado**, pelo que esta escolha não bloqueia a T-016.
+Quando o provedor for definitivo, pode propor-se ao contrato um campo com o instante da última atualização, para a interface poder dizer "cotações às HH:MM" em vez de sugerir tempo real. Isso **seria** mudança de contrato e exige revisão cruzada (DT-005).
 
 ---
 
@@ -429,7 +432,7 @@ Componente único usado pelo estado de evento, pela categoria de jogo e pela mar
 |---|---|---|---|
 | R1 | **Densidade de informação alta** — a direção assume um utilizador confortável com listagem densa e leitura de tabela numérica | **PD-002** aberto; derivado de H1 e H4 da visão, que são hipóteses não validadas | Se o público for de baixa familiaridade com o tema, a densidade e o tratamento tabular precisam de baixar: muda a escala tipográfica (§3.2), o espaçamento de item de lista (§3.3) e o arranjo do cartão de evento (§9.2). Os tokens de cor e o tratamento de §6 sobrevivem. **Assumido como risco, por instrução: não invento o público** |
 | R2 | **Tema escuro único** | §2, com PD-002 aberto | Se o acesso predominante for diurno em ambiente claro, entra um tema claro. O custo está contido pela nomenclatura semântica (§2) |
-| R3 | **Tratamento de dado real** | **DIV-001**, pendente do Pedro | Opção B de §7 acrescenta selo de procedência a todos os blocos de dados: mexe no espaço vertical de §9.2, §9.3 e §9.4 |
+| ~~R3~~ | ~~**Tratamento de dado real**~~ | ~~**DIV-001**~~ | **Fechado** em 2026-10-27 pela **DT-014**: opção A. O selo de procedência da opção B, que mexeria no espaço vertical de §9.2, §9.3 e §9.4, não é para criar |
 | R4 | **Formato das odds** | **PD-007**, **PC-006** | Contido pela função única de formatação de §9.3 |
 | R5 | **Marca visual inexistente** — não há nome visual, logotipo nem símbolo aprovados | A visão não os define, por decisão própria | O lima-LED de §3.1 pode não sobreviver a uma identidade de marca posterior. Contido: é um token, e muda num só lugar |
 | R6 | **Tipografia** — Inter e JetBrains Mono são escolha minha, sem licença verificada nem decisão de marca | Nenhum documento define tipografia | As duas são de licença aberta (SIL OFL), mas **não verifiquei os termos** e não o afirmo. A verificar antes de servir as fontes; a pilha de recurso do sistema garante que nenhuma tela depende delas |
@@ -440,9 +443,9 @@ Componente único usado pelo estado de evento, pela categoria de jogo e pela mar
 
 | # | Pendência | Quem resolve |
 |---|---|---|
-| **DIV-001** | Opção A ou Opção B para dados reais de terceiros (§7) | **Pedro** |
-| **DP-006** | Confirmar CSS Modules + custom properties (§8) | **Pedro** |
-| **DT-011** | Registar a decisão de tema (§2) em `docs/decisoes-tecnicas.md`, se aprovada. Era DT-009 e depois DT-010; renumerada duas vezes em 2026-10-27, porque o `backend` registou a DT-009 (provedor esportivo) e a DT-010 (âmbito dos dados esportivos) | **Pedro** aprova; `frontend` registaria |
+| ~~**DIV-001**~~ | ~~Opção A ou Opção B para dados reais de terceiros (§7)~~ | **Resolvida** — opção A, [DT-014](decisoes-tecnicas.md), 2026-10-27 |
+| ~~**DP-006**~~ | ~~Confirmar CSS Modules + custom properties (§8)~~ | **Resolvida** — aprovada pelo Pedro em 2026-10-26 e em uso desde então |
+| ~~**DT-011**~~ | ~~Registar a decisão de tema (§2)~~ | **Registada** em `docs/decisoes-tecnicas.md` em 2026-10-27, depois da aprovação do Pedro. O número mudou duas vezes (era DT-009, depois DT-010) porque o `backend` usou ambos entretanto |
 | **PD-002** | Público-alvo — ver R1 | **Pedro** |
 | **PD-007** | Formato de exibição das odds (§9.3) | **Pedro** (T-009) |
 | **PD-003**, **PD-005**, **PD-006 (requisitos)**, **PD-008** | Escopo da busca, categorias de cassino, campos do perfil, idioma e formatos | **Pedro** (T-009) |

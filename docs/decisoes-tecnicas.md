@@ -42,6 +42,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-008](#dt-008--worktrees-e-versões-da-fundação) | Worktrees em pastas irmãs; versões da fundação | PA-006 | aprovada |
 | [DT-009](#dt-009--sportsbook-api-como-provedor-esportivo-de-testes) | Sportsbook API (RapidAPI, plano gratuito) como provedor esportivo de desenvolvimento e testes | BLQ-001 em parte | aprovada, só para testes |
 | [DT-010](#dt-010--âmbito-inicial-dos-dados-esportivos) | Mercados, formato das odds, fonte única e só jogos futuros | PD-004, PD-007, PC-006 | aprovada |
+| [DT-011](#dt-011--tema-escuro-único-com-tokens-semânticos) | Tema escuro único nesta fase, com tokens semânticos para um tema claro posterior | decisão de tema do `design-system.md` | aprovada |
 | [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
 | [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
 | [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a) | Marcar só o dado fictício (opção A do `design-system.md`); o dado real não leva selo | DIV-001 (interface), DP-004, PC-010 | aprovada |
@@ -310,6 +311,36 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 - A situação do evento (A4) tem, por agora, um único valor: `scheduled`. Valores novos entram como mudança compatível (PC-014).
 - A fonte fixa é configuração do backend e **não** vai no contrato. Se a fonte não tiver odd para um resultado, o valor é `null` (A5).
 - O frontend não precisa de lógica de escolha de casa nem de comparação de odds.
+
+---
+
+### DT-011 — Tema escuro único, com tokens semânticos
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `frontend`
+- **Resolve:** a decisão de tema proposta na secção 2 do [`design-system.md`](design-system.md)
+
+**Contexto** — A secção 2 do `design-system.md` propôs, na T-005, um tema escuro único em vez de dois temas. O Pedro aprovou a direção visual em 2026-10-26 e a decisão de tema em 2026-10-27, comunicada pelo `backend` no quadro. Fica registada aqui porque uma decisão aprovada que vive só num documento de desenho não é encontrável por quem procura decisões.
+
+**Decisão** — **tema escuro como tema canónico e único nesta fase.** As custom properties são declaradas em `:root` com `color-scheme: dark`. Os nomes dos tokens são **semânticos** (`surface-raised`, `text-secondary`), não literais (`cinza-900`), precisamente para que um tema claro posterior seja uma redefinição de valores sob um seletor, sem tocar em componente nenhum.
+
+**Alternativas consideradas** — dois temas desde o início, rejeitada por três razões registadas na secção 2:
+
+- dois temas **duplicam a verificação**: cada par de cor tem de ser recalculado contra a WCAG 2.2 AA e cada tela revista duas vezes;
+- **nenhum requisito pede tema claro.** A RNF-002 pede contraste, não escolha de tema;
+- a **PD-002** (público-alvo) está aberta, e sem saber os dispositivos e as condições de acesso predominantes, prometer dois temas é escolher sem informação.
+
+**Consequências**
+
+- Os 28 pares de contraste calculados na secção 4 do `design-system.md` continuam a ser o conjunto a verificar; não duplicam.
+- Acrescentar um tema claro passa a ser redefinir valores sob `[data-theme="light"]`, mais `prefers-color-scheme` se for decidido. É a razão técnica de a nomenclatura ser semântica.
+- Nenhum componente lê valor literal de cor — já é regra da secção 5 do `design-system.md` e está verificada por varredura a cada entrega.
+
+**Pendências** — se a **PD-002** vier a mostrar acesso predominantemente diurno em ambiente claro, o tema claro entra e esta decisão é revista. O risco está registado como R2 na secção 10 do `design-system.md`.
+
+**Nota de numeração** — esta decisão foi reservada como DT-009 na T-005 e depois renumerada para DT-010, porque o `backend` usou ambos os números entretanto (provedor esportivo e âmbito dos dados esportivos). Ficou em **DT-011**. Para evitar uma terceira colisão, está proposto no quadro que o número seja reservado aí antes de ser usado.
 
 ---
 

@@ -240,24 +240,46 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (paginação por cursor)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (DIV-001 e DT-011 registadas)
 
 ### Situação
 
-**Paginação por cursor na listagem e na busca (PC-008, A6).** A página seguinte vem por um botão explícito, não por rolagem: rolagem infinita torna o rodapé inalcançável e gasta pedidos sem intenção, e o plano tem 150 por dia. O fim da lista é dito, em vez de a lista acabar em silêncio.
+**As pendências do `design-system.md` estão fechadas.** A **DIV-001** foi decidida pelo Pedro (opção A, DT-014) e o §7 passou a registar a escolha e as razões de ter sido rejeitada a opção B. A **DT-011** (tema escuro único) está registada em `docs/decisoes-tecnicas.md`, na ordem numérica e no índice. A **DP-006** também fica fechada no documento: estava aprovada desde 26/10 e em uso.
 
-- **Arquivos modificados:** `shared/api/useListaPaginada.ts`, `shared/componentes/MaisResultados.tsx` (novos) e os respetivos testes; `App.tsx` e `App.test.tsx`
-- **Contratos ou interfaces alterados:** nenhum — a paginação já estava acordada
-- **Três decisões com consequência:** falhar a carregar mais **não** apaga o que já está na tela; um cursor obsoleto (`invalid_cursor`, A6) **recomeça a lista** em vez de mostrar um erro que o utilizador não provocou; mudar o termo de busca recomeça a paginação e cancela o pedido em curso
-- **DIV-F02:** os eventos da segunda página juntam-se ao grupo de competição que já estava — verificado no navegador, um só cabeçalho
+- **Arquivos modificados:** `docs/design-system.md`, `docs/decisoes-tecnicas.md`, e os comentários de quatro componentes de `shared/componentes/`
+- **Contratos ou interfaces alterados:** nenhum
+- **O código já cumpria a opção A**; o que estava errado eram os comentários, que ainda descreviam a decisão como pendente. `ValorDeDado` continua a ser o único lugar que decide a marcação, e não existe variante `real` em parte nenhuma
 - **Pendências para o agente `backend`:** nenhuma
-- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main`
+- **Pendências para o Pedro:** nenhuma das que estavam abertas. Fica a publicação da `main` quando quiser
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **118 testes em 12 ficheiros**, todos passam; build passa (331.39 kB de JS, 100.67 kB gzip). No navegador, com respostas **injetadas no separador** (a api sem chave só dá `503`): duas páginas acumuladas, um só grupo, fim da lista anunciado
-- **Por confirmar:** a paginação **contra a Sportsbook API**. Os cursores que usei foram inventados; os reais passam pelo adaptador do `backend`. Quem tiver a chave deve percorrer duas páginas reais
-- **Próxima ação recomendada:** confirmar a paginação com dados reais; depois, telas de detalhe, que precisam de uma decisão de roteamento
+- **Testes executados e resultados:** typecheck passa; **118 testes em 12 ficheiros**, todos passam; build passa
+- **Por confirmar ainda:** a **paginação com cursores reais**. O `backend` confirmou o caminho de sucesso (`8b4b778`), mas com 20 eventos e `limit=30` a segunda página nunca foi pedida
+- **Próxima ação recomendada:** telas de detalhe, que precisam de uma **decisão de roteamento**: hoje a navegação é estado local e um detalhe sem URL não é partilhável nem suporta o botão "voltar"
 
 ### Histórico
+
+### 2026-10-27 — DIV-001 fechada no `design-system.md` e DT-011 registada
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** registo das decisões do Pedro (DT-014 e DT-011) nos documentos do `frontend`
+- **Arquivos modificados:** `docs/design-system.md` (§2, §7, §0, §10 e §11), `docs/decisoes-tecnicas.md` (DT-011 acrescentada), `apps/web/src/shared/componentes/` (comentários de `Etiqueta.tsx`, `ValorDeDado.tsx`, `ValorDemonstrativo.tsx` e `FaixaDemonstrativa.tsx`)
+- **Contratos ou interfaces alterados:** **nenhum.** A DT-014 confirma que o `origin` (A8) continua a ser o que decide a marca; não muda nada no contrato
+- **`main` integrada:** `git merge main`, sem conflitos, trazendo `8b4b778` e `c13e21d`
+
+**§7 do `design-system.md` reescrito.** Deixou de ser "duas opções à espera de decisão" e passa a registar a escolha: **opção A**, marca-se só o dado fictício. Guardei as três razões pelas quais a opção B foi rejeitada — o selo "ao vivo" seria falso com até uma hora de cache (DT-012), a fonte nomeada seria a de um provedor só de testes (DT-009), e o ruído pesaria em listagem densa — porque daqui a seis meses a pergunta "porque não marcámos o dado real?" vai voltar.
+
+**Três pendências do documento fechadas de uma vez**, por já estarem decididas e o documento não o refletir: a **DIV-001** (DT-014), a **DP-006** (CSS Modules, aprovada a 26/10 e em uso desde então) e a **DT-011**. O risco **R3** de §10, que previa o custo da opção B no espaço vertical de §9.2, §9.3 e §9.4, está fechado com a razão.
+
+**DT-011 registada em `docs/decisoes-tecnicas.md`.** Tema escuro único, com tokens semânticos. Pus a decisão **na ordem numérica** do ficheiro, entre a DT-010 e a DT-012, e acrescentei a linha ao índice do topo — a primeira tentativa deixou-a no fim, fora de ordem e sem entrada no índice, onde ninguém a encontraria. A nota de numeração ficou lá: foi reservada como DT-009, renumerada para DT-010 e fixada em DT-011, por o `backend` ter usado ambos entretanto.
+
+**O código já cumpria a opção A; o que estava errado eram os comentários.** Verifiquei que `ValorDeDado` é o único lugar que decide a marcação (`grep` por `origin ===` fora dele devolve nada) e que não existe variante `real` em lado nenhum. Mas quatro componentes ainda descreviam a decisão como pendente — "existirá apenas se o Pedro escolher a opção B", "enquanto o Pedro não decidir". Um comentário que descreve uma decisão já tomada engana quem o ler a seguir, por isso passaram a dizer que a DT-014 decidiu e que a variante `real` **não é para criar**.
+
+- **Pendências para o agente `backend`:** nenhuma
+- **Pendências para o Pedro:** nenhuma das três que estavam abertas — **DIV-001**, **PD-006** e **DT-011** estão todas resolvidas e registadas. Fica a publicação da `main` quando quiser
+- **Bloqueios:** nenhum
+- **Registo do que o `backend` verificou, para não se perder:** em `8b4b778`, o caminho de sucesso com dados reais foi confirmado no navegador com a chave — EPL, La Liga e Serie A, 20 eventos, odds e hora local corretas, faixa com o texto da DT-013. **Era a verificação que me faltava desde ontem.** Continua por confirmar a **paginação** com cursores reais: 20 eventos com `limit=30` cabem numa página, por isso a segunda página nunca chegou a ser pedida
+- **Testes executados e resultados — reais:** `pnpm --filter @blbet/web typecheck` → **passa**; `test` → **118 testes em 12 ficheiros, todos passam**; `build` → **passa** em 356ms. As alterações foram de documentação e de comentários, mas corri tudo para garantir que não mexi em nada a sério
+- **Próxima ação recomendada:** telas de detalhe de evento e de jogo, que precisam de uma **decisão de roteamento** ainda por tomar: hoje a navegação é estado local, sem URL própria, e um detalhe sem URL não é partilhável nem suporta o botão "voltar" do navegador
 
 ### 2026-10-27 — T-016: paginação por cursor na listagem e na busca (PC-008, A6)
 

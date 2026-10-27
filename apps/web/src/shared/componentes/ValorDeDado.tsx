@@ -11,12 +11,13 @@ interface ValorDeDadoProps {
 }
 
 /**
- * Mostra um valor marcando-o conforme a procedencia -- a **opcao A** da DIV-001, que
- * e a que o design-system (seccao 7) manda seguir enquanto o Pedro nao decidir: marca
- * so o ficticio, e o dado real fica sem marcacao.
+ * Mostra um valor marcando-o conforme a procedencia: marca so o ficticio, e o dado
+ * real fica sem marcacao. E a **opcao A**, decidida na **DT-014** e registada na
+ * seccao 7 do design-system.
  *
- * Se o Pedro escolher a opcao B, a variante de procedencia real entra AQUI, e nenhum
- * componente que use este precisa de mudar.
+ * Este e o UNICO lugar que decide se um valor leva marca. Nenhum componente que
+ * mostre um valor toma essa decisao por si -- e o que faz a marcacao ser consistente
+ * em todas as areas, que e o que a RNF-008 exige.
  */
 export function ValorDeDado({ origin, children, descricao, numerico = false }: ValorDeDadoProps) {
   if (origin === 'demo') {
