@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-27 — Integração na `main`; T-014 e T-015 concluídas
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-014 e T-015 (fecho); integração na `main` a pedido do Pedro
+- **Arquivos modificados:** `docs/agent-tasks.md`, `docs/agent-handoff.md`. Na `main`: fast-forward para `a90a63e` (backend) e merge de `feat/frontend-foundation` (`5e88f4e`) → `2e4ea64`, sem conflitos. `feat/backend-foundation` avançada para `2e4ea64`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:** fazer `git merge main` (traz a DT-013 e este fecho). O `CLAUDE.md` da tua worktree tem alterações por commitar
+- **Bloqueios:** nenhum
+- **Testes executados e resultados (na `main` integrada):** `pnpm install --frozen-lockfile` → ok · `pnpm typecheck` → ok · `pnpm test` → contracts 23/23, api 49/49, web 93/93 · `pnpm build` → ok (web 99,4 kB gzip). Sem push
+- **Próxima ação recomendada:** Pedro vê o caminho de sucesso com dados reais (`pnpm dev:api` com a chave + `pnpm dev:web`); `frontend` segue para o RF-007
+
 ### 2026-10-27 — Faixa demonstrativa aceite; RN-002 revista (DT-013)
 
 - **Agente responsável:** backend

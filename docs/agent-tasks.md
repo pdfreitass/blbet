@@ -21,12 +21,12 @@
 
 | Status | Quantidade | Tarefas |
 |---|---|---|
-| Concluída | 8 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012 |
-| Em andamento | 8 | T-006, T-007, T-009, T-010, T-013, T-014, T-015, T-016 |
+| Concluída | 10 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012, T-014, T-015 |
+| Em andamento | 6 | T-006, T-007, T-009, T-010, T-013, T-016 |
 | Não iniciada | 0 | — |
 | Bloqueada | 0 | — |
 
-**Ordem crítica:** T-014 com a revisão cruzada do `frontend` entregue e os ajustes T14-A1 a T14-A4 aplicados pelo `backend` (`247706d`); segue para a T-015. A T-016 avança em paralelo com o que não depende do contrato. Falta integrar na `main` os commits do `frontend` e a conferência do `pnpm-lock.yaml` pelo `backend`.
+**Ordem crítica:** T-014 e T-015 concluídas e integradas na `main` (`2e4ea64`): a interface consome as rotas reais de esportes. A T-016 segue (RF-007, perfil demonstrativo). `pnpm install --frozen-lockfile` passou na `main` integrada, o que confere o `pnpm-lock.yaml`.
 
 ---
 
@@ -159,7 +159,7 @@
 - **Descrição:** modelar eventos, competições, mercados e odds no modelo interno e definir as rotas de esportes em `packages/contracts/` e em [`docs/api-contract.md`](api-contract.md), com base no que o provedor **realmente** fornece.
 - **Responsável:** `backend` · revisão cruzada do `frontend` (DT-005)
 - **Dependências:** **T-010**, **T-013**, T-004, T-009 (PD-004, PD-007)
-- **Status:** **em andamento** — 2026-10-27, pelo `backend`: âmbito decidido (DT-010); proposta em `packages/contracts/src/sports.ts` (com testes) e na secção 7.1 do `api-contract.md`. **Falta:** revisão cruzada do `frontend` e aprovação do Pedro
+- **Status:** **concluída** — 2026-10-27, pelo `backend`. Esquemas em `packages/contracts/src/sports.ts` e secção 7.1 do `api-contract.md`; revisão cruzada do `frontend` registada (T14-A1 a T14-A4, `247706d`); tipos migrados no `frontend` (`5e88f4e`); integrado na `main` com aprovação do Pedro (`2e4ea64`)
 - **Critérios de conclusão:** esquemas Zod em `packages/contracts/` e rotas documentadas segundo a seção 5.1 do contrato; cada campo rastreável até à documentação do provedor ou a um requisito; revisão do `frontend` registada no quadro; aprovação do Pedro antes da integração.
 
 ### T-015 — Preparar o backend para a integração real
@@ -167,7 +167,7 @@
 - **Descrição:** implementar em `apps/api/` o adaptador do provedor esportivo e as rotas da T-014: credenciais em variáveis de ambiente, validação das respostas, tratamento de erros e de limites.
 - **Responsável:** `backend`
 - **Dependências:** **T-010**, **T-013**, **T-014**, T-006; DP-009 (cache e forma de atualização)
-- **Status:** **em andamento** — 2026-10-27, pelo `backend`: adaptador, cache (DT-012) e as 3 rotas da secção 7.1 implementados em `apps/api/src/modules/sports/` e `src/routes/sports.ts`, testados com fixtures tirados de respostas reais e com chamadas reais. **Falta:** aprovação do Pedro; a T-014 fechar (migração dos tipos no `frontend`)
+- **Status:** **concluída** — 2026-10-27, pelo `backend`: adaptador, cache (DT-012) e as 3 rotas da secção 7.1 em `apps/api/src/modules/sports/` e `src/routes/sports.ts`, testados com fixtures tirados de respostas reais e com chamadas reais; integrado na `main` com aprovação do Pedro (`2e4ea64`). Na `main` integrada: typecheck ok, testes 23 + 49 + 93 a passar, build ok
 - **Critérios de conclusão:** o adaptador chama o provedor real com credenciais fora do repositório; os testes usam exemplos de resposta retirados da documentação oficial; nenhuma resposta inventada apresentada como real; tipos, lint e testes a passar, com os resultados reais registados.
 
 ### T-016 — Iniciar o desenvolvimento visual do frontend em paralelo
