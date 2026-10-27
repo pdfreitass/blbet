@@ -11,5 +11,4 @@ export const ORIGINS = ['demo', 'provider'] as const;
 export const originSchema = z.enum(ORIGINS);
 export type Origin = z.infer<typeof originSchema>;
 
-// PC-006 (odds): a forma está acordada (texto decimal, com ponto, sem separador de milhares,
-// casas fixas), mas o número de casas depende do provedor (BLQ-001). Não há esquema ainda.
+// PC-006 (odds): esquema em `sports.ts` (`oddSchema`), com 2 casas (DT-010).

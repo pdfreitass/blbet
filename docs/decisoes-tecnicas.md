@@ -41,6 +41,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-007](#dt-007--repositório-fora-do-onedrive) | Repositório fora do OneDrive antes de instalar dependências | — | aprovada, executada (T-011) |
 | [DT-008](#dt-008--worktrees-e-versões-da-fundação) | Worktrees em pastas irmãs; versões da fundação | PA-006 | aprovada |
 | [DT-009](#dt-009--sportsbook-api-como-provedor-esportivo-de-testes) | Sportsbook API (RapidAPI, plano gratuito) como provedor esportivo de desenvolvimento e testes | BLQ-001 em parte | aprovada, só para testes |
+| [DT-010](#dt-010--âmbito-inicial-dos-dados-esportivos) | Mercados, formato das odds, fonte única e só jogos futuros | PD-004, PD-007, PC-006 | aprovada |
 
 ---
 
@@ -279,3 +280,30 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 **Pendências** — C1 e C2 (licença de exibição e uso sem apostas) **bloqueiam a publicação**; C5, C7 e C13 confirmam-se com chamadas reais.
 
 **Cobertura brasileira (C3, PD-004) — decisão do Pedro, 2026-10-27:** a falta do Brasileirão **não bloqueia** o desenvolvimento. Desenvolve-se com as competições disponíveis; quando o produto estiver pronto, o Pedro contrata um provedor pago com o futebol brasileiro e faz-se a troca. Consequência: o modelo interno e os contratos **não podem depender** de chaves, nomes ou formatos da Sportsbook API — tudo passa pelo adaptador (secção 3 do [`integracoes.md`](integracoes.md)).
+
+---
+
+### DT-010 — Âmbito inicial dos dados esportivos
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `backend`
+- **Resolve:** PD-004, PD-007, número de casas da PC-006
+
+**Contexto** — As chamadas reais à Sportsbook API (secção 5 do [`integracoes.md`](integracoes.md)) mostraram cinco tipos de mercado, odds decimais com precisão variável, até 12 fontes por mercado e nenhuma situação do evento (C6).
+
+**Decisão**
+
+1. **Mercados (PD-004):** só **resultado final** (casa, empate, fora — `MONEYLINE_3WAY`) e **mais/menos golos** (`POINT_TOTAL`), ambos no tempo regulamentar. Ficam de fora: golos por equipa, *handicap*, ambas marcam e mercados de 1.ª parte.
+2. **Formato das odds (PD-007, PC-006):** **decimal com 2 casas** (`"1.94"`), sem alternância de formato.
+3. **Fontes:** **uma odd por resultado, de uma fonte fixa** escolhida no backend. Não se mostram várias casas nem qual paga melhor (RN-003).
+4. **Situação do evento:** só **jogos futuros**. Um jogo deixa de aparecer quando começa.
+
+**Alternativas consideradas** — mostrar todos os mercados; mostrar todas as fontes ou um valor agregado; mostrar jogos em curso sem placar. Rejeitadas pelo Pedro.
+
+**Consequências**
+
+- A situação do evento (A4) tem, por agora, um único valor: `scheduled`. Valores novos entram como mudança compatível (PC-014).
+- A fonte fixa é configuração do backend e **não** vai no contrato. Se a fonte não tiver odd para um resultado, o valor é `null` (A5).
+- O frontend não precisa de lógica de escolha de casa nem de comparação de odds.

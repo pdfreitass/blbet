@@ -34,6 +34,15 @@ describe('apiErrorSchema', () => {
   });
 });
 
+describe('event_started (T14-A1)', () => {
+  it('é um issue válido no 404 de um evento já começado', () => {
+    const body = {
+      error: { code: 'NOT_FOUND', message: 'event started', retryable: false, details: [{ field: 'path.id', issue: 'event_started' }] },
+    };
+    expect(apiErrorSchema.parse(body)).toEqual(body);
+  });
+});
+
 describe('sucesso e paginação', () => {
   it('coleção vazia é sucesso válido', () => {
     const schema = paginatedSchema(z.object({ id: z.string() }));

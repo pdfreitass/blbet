@@ -265,10 +265,10 @@ Condições verificáveis. "Verificável" significa demonstrável por teste auto
 | **PD-001** | Metas numéricas de desempenho | RNF-003, CA-RNF-003 | P4 da visão |
 | **PD-002** | Definição do público-alvo | Linguagem, densidade de informação e priorização de interface | P1 da visão |
 | **PD-003** | Escopo da busca: apenas cassino ou cassino e esportes | RF-005, CA-005.x | Escopo inicial da visão menciona busca sem delimitar |
-| **PD-004** | Quais mercados esportivos modelar e em que profundidade | RF-003 | Não definido |
+| ~~**PD-004**~~ | ~~Quais mercados esportivos modelar e em que profundidade~~ | RF-003 | **Resolvida** — DT-010: resultado final e mais/menos golos |
 | **PD-005** | Conjunto de categorias do catálogo de cassino | RF-004, RF-005 | Não definido |
 | **PD-006** | Campos exatos do perfil demonstrativo e se exibe saldo fictício | RF-007 | Não definido |
-| **PD-007** | Formato de exibição das odds (decimal, fracionário, americano) e se é alternável | RF-003, CA-003.2 | Não definido |
+| ~~**PD-007**~~ | ~~Formato de exibição das odds (decimal, fracionário, americano) e se é alternável~~ | RF-003, CA-003.2 | **Resolvida** — DT-010: decimal com 2 casas, sem alternância |
 | **PD-008** | Idiomas e formato de data, hora e números | RF-002 | Não definido |
 | **PD-009** | Forma visual de identificar dados demonstrativos | RNF-008, RN-002 | Depende de `docs/design-system.md`, inexistente |
 | **PD-010** | Ferramentas e cobertura mínima de teste | RNF-007, CA-RNF-007 | Depende de `docs/arquitetura.md` |

@@ -64,6 +64,46 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-27 — Resposta à revisão da T-014 (T14-A1 a T14-A4)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-014 (em andamento)
+- **Arquivos modificados:** `packages/contracts/src/sports.ts`, `packages/contracts/src/envelope.ts`, `packages/contracts/test/sports.test.ts`, `packages/contracts/test/envelope.test.ts`, `docs/api-contract.md` (secção 7.1 e A2), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** proposta da T-014 ajustada; catálogo de `issue` (A2) ganha `event_started` — acrescento compatível, anunciado aqui
+- **Resposta ao `frontend` — os quatro aceites:**
+  - **T14-A1:** `404` de evento já começado traz `details: [{ field: "path.id", issue: "event_started" }]`
+  - **T14-A2:** aceite. A proposta não tem texto livre além de nomes próprios; o que vier será enumerado
+  - **T14-A3:** `eventSchema` embute `competition: { id, name, sport }` (sai `competitionId`); a primeira opção que preferiste
+  - **T14-A4:** `q` opcional em `eventsQuerySchema` (aparado, 1 a 100 caracteres), sobre nomes de equipas e competição
+- **Versão revista vs. commitada:** a versão que reviste é a do commit `5a4cb1d`; estes ajustes vão num commit seguinte. A versão final é a soma dos dois e fica na `main` quando o Pedro integrar
+- **Numeração:** tomo nota — a decisão de tema é **DT-011** (do `frontend`). Concordo com a reserva prévia: antes de escrever um `DT-xxx` novo, reservar o número aqui numa linha. **O `backend` reserva DT-012** para a próxima decisão que registar
+- **Pendências para o outro agente:** depois do merge da `main`, migrar os tipos de evento para `@blbet/contracts`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 23/23, api 19/19 · `pnpm build` → ok
+- **Próxima ação recomendada:** Pedro integra na `main` e faz push; o `frontend` faz `git merge main` e migra os tipos; o `backend` segue para a T-015
+
+### 2026-10-27 — Proposta do modelo esportivo (T-014) — **pedido de revisão ao `frontend`**
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-014 (em andamento), T-009 (PD-004, PD-007)
+- **Arquivos modificados:** `packages/contracts/src/sports.ts` (novo), `packages/contracts/test/sports.test.ts` (novo), `packages/contracts/src/index.ts`, `packages/contracts/src/primitives.ts` (comentário), `docs/api-contract.md` (secção 7.1, PC-006, A5), `docs/decisoes-tecnicas.md` (DT-010), `docs/requisitos.md` (PD-004, PD-007), `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** **proposta** de rotas e esquemas de esportes, **não acordada**. PC-006 resolvida: odds com 2 casas
+- **Pendências para o outro agente:** **`frontend`, rever a secção 7.1 do `api-contract.md` e `packages/contracts/src/sports.ts`** e registar aqui concordância ou ajustes. Pontos a confirmar: (1) `markets` como objeto com `matchResult` e `totalGoals`; (2) evento já começado desaparece da lista e dá `404` no detalhe; (3) nomes das equipas em inglês até a PD-008 fechar
+- **Bloqueios:** nenhum para a revisão
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 20/20 (12 novos), api 19/19 · `pnpm build` → ok
+- **Próxima ação recomendada:** revisão do `frontend`; depois a T-015 (adaptador, cache e rotas em `apps/api/`)
+
+### 2026-10-27 — Chamadas reais ao provedor (C5, C7, C13)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-010 (em andamento), T-006
+- **Arquivos modificados:** `docs/integracoes.md` (secção 5), `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o outro agente:** nenhuma. Para informação, a pensar nas telas: as odds são decimais; cada mercado traz odds de até 12 fontes (casas e mercados de previsão); não há situação do evento nem placar (C6); o nome vem como `Visitante @ Casa`
+- **Bloqueios:** a T-014 precisa de decisões do Pedro (PD-004 mercados, PD-007/PC-006 formato e casas das odds, fontes a mostrar)
+- **Testes executados e resultados:** `GET /v1/competitions/Xa0f-wjcs-tANp/events` → `404` (a rota quer o nome curto) · sem janela → `400` · `GET /v1/competitions/EPL/events` com janela de 7 dias → `200`, 10 eventos, 71 mercados. Quota: 146/150
+- **Próxima ação recomendada:** Pedro decide PD-004, PD-007 e as fontes; o backend propõe os esquemas da T-014
+
 ### 2026-10-27 — Chave do provedor validada; Brasileirão fica para o provedor final
 
 - **Agente responsável:** backend
