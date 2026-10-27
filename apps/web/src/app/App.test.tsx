@@ -381,3 +381,59 @@ describe('App — perfil (RF-007)', () => {
     expect(container.querySelectorAll('main a, main button, main input')).toHaveLength(0);
   });
 });
+
+describe('App — paginação por cursor (PC-008)', () => {
+  it('oferece carregar mais quando a api diz que há mais página', async () => {
+    responderSempre(200, {
+      data: [EVENTO_COMPLETO],
+      meta: { nextCursor: 'cursor-2' },
+    });
+    render(<App />);
+
+    expect(await screen.findByRole('button', { name: 'Carregar mais jogos' })).toBeTruthy();
+  });
+
+  it('acrescenta a página seguinte à lista, sem substituir a primeira', async () => {
+    instalarServidorFalso((url) =>
+      url.includes('cursor=cursor-2')
+        ? { estado: 200, corpo: { data: [EVENTO_SEM_MERCADOS], meta: { nextCursor: null } } }
+        : { estado: 200, corpo: { data: [EVENTO_COMPLETO], meta: { nextCursor: 'cursor-2' } } },
+    );
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Carregar mais jogos' }));
+
+    expect(await screen.findByLabelText('Real Madrid contra Barcelona')).toBeTruthy();
+    // A primeira página continua lá.
+    expect(screen.getByLabelText(JOGO_DESCRICAO)).toBeTruthy();
+  });
+
+  it('diz que a lista acabou, em vez de terminar em silêncio', async () => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+    render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    expect(screen.getByText('Fim da lista de jogos.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Carregar mais/ })).toBeNull();
+  });
+
+  it('junta os eventos da segunda página ao grupo da competição que já estava', async () => {
+    instalarServidorFalso((url) =>
+      url.includes('cursor=cursor-2')
+        ? { estado: 200, corpo: { data: [EVENTO_COMPLETO], meta: { nextCursor: null } } }
+        : { estado: 200, corpo: { data: [EVENTO_COMPLETO], meta: { nextCursor: 'cursor-2' } } },
+    );
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Carregar mais jogos' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /Carregar mais/ })).toBeNull(),
+    );
+
+    // Um só cabeçalho de competição, apesar de os eventos virem de páginas diferentes
+    // (DIV-F02: agrupa-se o que foi recebido).
+    expect(screen.getAllByRole('heading', { name: 'English Premier League' })).toHaveLength(1);
+  });
+});

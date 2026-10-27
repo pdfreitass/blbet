@@ -218,24 +218,53 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (`main` com o RF-007 integrada)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (paginação por cursor)
 
 ### Situação
 
-**RF-007 integrado; a branch está alinhada com a `main`.** Fiz `git merge main` (merge `fe9c0bf`), sem conflitos, e as verificações continuam verdes depois dele. As cinco áreas de RF-001 estão construídas e integradas.
+**Paginação por cursor na listagem e na busca (PC-008, A6).** A página seguinte vem por um botão explícito, não por rolagem: rolagem infinita torna o rodapé inalcançável e gasta pedidos sem intenção, e o plano tem 150 por dia. O fim da lista é dito, em vez de a lista acabar em silêncio.
 
-- **Arquivos modificados:** nenhum ficheiro de código — só este quadro: a tabela partilhada "Estado atual do projeto", atualizada com factos verificados no disco, e esta secção
-- **Contratos ou interfaces alterados:** nenhum
-- **Dois pontos verificados no disco, que o quadro não dizia:**
-  - **`origin/main` está em `ad3b8c5`**, não em `928843f`: o `928843f` (RF-007) e o `7400b27` existem só na `main` local, **sem push**. Quem clonar o repositório hoje não recebe o perfil
-  - A secção `Backend` deste quadro descrevia um estado anterior à T-014 e à T-015. **Assinalei em vez de corrigir**, por ser a secção do outro agente, e o `backend` atualizou-a em `5c50a52` — confirmado por leitura desse commit. **Pendência fechada**
-- **Pendências para o agente `backend`:** **nenhuma.** O `backend` também não tem nenhuma para mim (`5c50a52`)
-- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main` (`git push`), que está dois commits à frente do remoto
+- **Arquivos modificados:** `shared/api/useListaPaginada.ts`, `shared/componentes/MaisResultados.tsx` (novos) e os respetivos testes; `App.tsx` e `App.test.tsx`
+- **Contratos ou interfaces alterados:** nenhum — a paginação já estava acordada
+- **Três decisões com consequência:** falhar a carregar mais **não** apaga o que já está na tela; um cursor obsoleto (`invalid_cursor`, A6) **recomeça a lista** em vez de mostrar um erro que o utilizador não provocou; mudar o termo de busca recomeça a paginação e cancela o pedido em curso
+- **DIV-F02:** os eventos da segunda página juntam-se ao grupo de competição que já estava — verificado no navegador, um só cabeçalho
+- **Pendências para o agente `backend`:** nenhuma
+- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main`
 - **Bloqueios:** nenhum
-- **Testes executados e resultados — depois do merge:** `pnpm install` → já atualizado; typecheck → **passa**; `vitest run` → **106 testes em 11 ficheiros, todos passam**; build → **passa** em 310ms
-- **Próxima ação recomendada:** paginação por cursor na listagem, que o contrato suporta (`meta.nextCursor`) e a interface ainda não usa
+- **Testes executados e resultados:** typecheck passa; **118 testes em 12 ficheiros**, todos passam; build passa (331.39 kB de JS, 100.67 kB gzip). No navegador, com respostas **injetadas no separador** (a api sem chave só dá `503`): duas páginas acumuladas, um só grupo, fim da lista anunciado
+- **Por confirmar:** a paginação **contra a Sportsbook API**. Os cursores que usei foram inventados; os reais passam pelo adaptador do `backend`. Quem tiver a chave deve percorrer duas páginas reais
+- **Próxima ação recomendada:** confirmar a paginação com dados reais; depois, telas de detalhe, que precisam de uma decisão de roteamento
 
 ### Histórico
+
+### 2026-10-27 — T-016: paginação por cursor na listagem e na busca (PC-008, A6)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (sétima entrega)
+- **Arquivos modificados:** `apps/web/src/shared/api/useListaPaginada.ts` e `useListaPaginada.test.tsx` (criados), `apps/web/src/shared/componentes/MaisResultados.tsx` e `.module.css` (criados), `apps/web/src/app/App.tsx` e `App.test.tsx`
+- **Contratos ou interfaces alterados:** **nenhum.** A paginação já estava acordada em PC-008 e A6; a interface passou a usá-la
+
+**A página seguinte vem por ação explícita, não por rolagem.** Rolagem infinita torna o rodapé inalcançável por teclado e dispara pedidos sem intenção — e o plano do provedor tem 150 por dia (DT-009). Um botão gasta um pedido quando o utilizador o pede. O fim da lista é dito (“Fim da lista de jogos.”) em vez de a lista simplesmente acabar: sem isso, não se distingue “vi tudo” de “faltou carregar”.
+
+**Três comportamentos que exigiram decisão:**
+
+1. **Falhar a carregar mais não apaga o que já está na tela.** A falha fica no rodapé, junto ao botão, e os jogos já lidos continuam legíveis. Uma falha da **primeira** página é outra coisa — essa substitui a lista pelo estado de erro de RF-008.
+2. **Um cursor obsoleto não é erro para o utilizador.** A regra **A6** diz que um cursor fora de prazo dá `VALIDATION_FAILED` com `issue: 'invalid_cursor'`. Mostrar “o pedido não é válido” a quem só carregou num botão seria incompreensível: a lista **recomeça do início**, que é o que a pessoa faria à mão. Tem teste.
+3. **Mudar o termo de busca recomeça a paginação e cancela o pedido em curso.** Sem isso, uma página pedida antes da mudança chegaria depois e acrescentaria resultados do termo antigo à lista do novo. O teste verifica que nenhum pedido do termo novo leva o cursor do antigo.
+
+**O agrupamento aguenta a paginação.** A **DIV-F02** avisava que uma página pode cortar um grupo de competição ao meio. Como os itens se acumulam e o agrupamento é por nome, os eventos da segunda página juntam-se ao grupo que já estava: verificado no navegador, dois jogos de páginas diferentes sob **um só** cabeçalho. Continua a não haver contagem por grupo, que seria enganadora.
+
+- **Pendências para o agente `backend`:** nenhuma
+- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **118 testes em 12 ficheiros, todos passam** (eram 106). Doze são novos: oito do hook e quatro da integração
+  - `pnpm --filter @blbet/web build` → **passa**; 331.39 kB de JS (100.67 kB gzip) e 17.99 kB de CSS (3.64 kB gzip)
+  - **Navegador:** com a api sem chave só se chega ao `503`, por isso substituí `window.fetch` **no separador** por duas páginas de exemplo — respostas conformes ao contrato, injetadas no navegador, **não vindas da api**. Com elas: a lista mostrou a primeira página com o botão; carregar trouxe a segunda sem apagar a primeira; o cabeçalho de competição ficou **um só**; o botão desapareceu e deu lugar a "Fim da lista de jogos.". O `fetch` foi reposto a seguir, confirmado por `window.fetch.toString()`
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **O que isto NÃO prova:** que a paginação funciona contra a Sportsbook API. Os cursores foram inventados por mim; os do provedor passam pelo adaptador do `backend` e podem comportar-se de outra forma — sobretudo o `invalid_cursor`, que nunca vi acontecer a sério. **Quem tiver a chave deve percorrer duas páginas reais**, e é a primeira coisa a fazer quando a houver
+- **Próxima ação recomendada:** confirmar a paginação com dados reais; depois, telas de detalhe, que precisam de uma decisão de roteamento ainda por tomar
 
 ### 2026-10-27 — T-016: perfil demonstrativo (RF-007) e correção de uma falha de repetição
 

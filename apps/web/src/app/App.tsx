@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { obterEventos } from '../shared/api/esportes';
-import { useRecurso } from '../shared/api/useRecurso';
+import { useListaPaginada } from '../shared/api/useListaPaginada';
 import { useTermoAdiado } from '../shared/api/useTermoAdiado';
 import { CampoBusca } from '../shared/componentes/CampoBusca';
 import {
@@ -11,6 +11,7 @@ import {
   NadaEncontrado,
 } from '../shared/componentes/Estados';
 import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
+import { MaisResultados } from '../shared/componentes/MaisResultados';
 import { NavegacaoPrincipal, type IdDestino } from '../shared/componentes/NavegacaoPrincipal';
 import { FavoritosProvider } from '../shared/favoritos/contexto';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
@@ -81,28 +82,38 @@ const EVENTOS_POR_PAGINA = 30;
 
 function Esportes() {
   const carregar = useCallback(
-    (opcoes: { signal: AbortSignal }) => obterEventos({ limit: EVENTOS_POR_PAGINA }, opcoes),
+    (cursor: string | undefined, opcoes: { signal: AbortSignal }) =>
+      obterEventos({ limit: EVENTOS_POR_PAGINA, ...(cursor === undefined ? {} : { cursor }) }, opcoes),
     [],
   );
-  const { carregando, dados, falha, repetir } = useRecurso(carregar, []);
+  const lista = useListaPaginada(carregar, []);
 
   return (
     <>
       <h1 className={estilos.titulo}>Esportes</h1>
-      {carregando ? <EsqueletoLista descricao="os jogos" linhas={4} /> : null}
+      {lista.carregando ? <EsqueletoLista descricao="os jogos" linhas={4} /> : null}
 
-      {!carregando && falha !== null ? (
-        <EstadoErro mensagem={falha.mensagem} {...(repetir === null ? {} : { onTentarNovamente: repetir })} />
+      {!lista.carregando && lista.falha !== null ? (
+        <EstadoErro
+          mensagem={lista.falha.mensagem}
+          {...(lista.repetir === null ? {} : { onTentarNovamente: lista.repetir })}
+        />
       ) : null}
 
-      {!carregando && falha === null && dados !== null ? (
-        dados.data.length === 0 ? (
+      {!lista.carregando && lista.falha === null ? (
+        lista.itens.length === 0 ? (
           // Sem busca aplicada: o conjunto esta mesmo vazio (CA-008.3). Acontece
           // quando a fonte nao tem jogos futuros nas competicoes disponiveis.
           <NadaCadastrado conjunto="jogos" />
         ) : (
           <>
-            <ListaEventos eventos={dados.data} />
+            <ListaEventos eventos={lista.itens} />
+            <MaisResultados
+              carregarMais={lista.carregarMais}
+              carregando={lista.carregandoMais}
+              falha={lista.falhaAoCarregarMais}
+              conjunto="jogos"
+            />
             <p className={estilos.rodapeBloco}>
               Cotações meramente informativas, de uma fonte externa. Não há apostas: nada
               aqui pode ser jogado nem pago.
@@ -124,27 +135,35 @@ function Busca({ termo, onAlterar }: BuscaProps) {
   const procurado = useTermoAdiado(termo).trim();
 
   const carregar = useCallback(
-    (opcoes: { signal: AbortSignal }) =>
-      obterEventos({ q: procurado, limit: EVENTOS_POR_PAGINA }, opcoes),
+    (cursor: string | undefined, opcoes: { signal: AbortSignal }) =>
+      obterEventos(
+        { q: procurado, limit: EVENTOS_POR_PAGINA, ...(cursor === undefined ? {} : { cursor }) },
+        opcoes,
+      ),
     [procurado],
   );
-  const { carregando, dados, falha, repetir } = useRecurso(carregar, [procurado]);
-
-  const encontrados = dados?.data ?? [];
+  const lista = useListaPaginada(carregar, [procurado]);
 
   return (
     <>
       <h1 className={estilos.titulo}>Busca</h1>
-      <CampoBusca termo={termo} onAlterar={onAlterar} contagem={encontrados.length} />
+      {/*
+        A contagem e a dos resultados JA CARREGADOS, nao a do total: `meta.total` e
+        opcional (A6) e a interface nao depende dele.
+      */}
+      <CampoBusca termo={termo} onAlterar={onAlterar} contagem={lista.itens.length} />
 
-      {carregando ? <EsqueletoLista descricao="os resultados" linhas={3} /> : null}
+      {lista.carregando ? <EsqueletoLista descricao="os resultados" linhas={3} /> : null}
 
-      {!carregando && falha !== null ? (
-        <EstadoErro mensagem={falha.mensagem} {...(repetir === null ? {} : { onTentarNovamente: repetir })} />
+      {!lista.carregando && lista.falha !== null ? (
+        <EstadoErro
+          mensagem={lista.falha.mensagem}
+          {...(lista.repetir === null ? {} : { onTentarNovamente: lista.repetir })}
+        />
       ) : null}
 
-      {!carregando && falha === null ? (
-        encontrados.length === 0 && procurado !== '' ? (
+      {!lista.carregando && lista.falha === null ? (
+        lista.itens.length === 0 && procurado !== '' ? (
           // Termo bem formado sem correspondencia: `200` com lista vazia (regra A7),
           // e nao erro.
           <NadaEncontrado
@@ -152,10 +171,18 @@ function Busca({ termo, onAlterar }: BuscaProps) {
             rotuloLimpar="Ver todos os jogos"
             onLimpar={() => onAlterar('')}
           />
-        ) : encontrados.length === 0 ? (
+        ) : lista.itens.length === 0 ? (
           <NadaCadastrado conjunto="jogos" />
         ) : (
-          <ListaEventos eventos={encontrados} />
+          <>
+            <ListaEventos eventos={lista.itens} />
+            <MaisResultados
+              carregarMais={lista.carregarMais}
+              carregando={lista.carregandoMais}
+              falha={lista.falhaAoCarregarMais}
+              conjunto="resultados"
+            />
+          </>
         )
       ) : null}
     </>

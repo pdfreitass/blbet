@@ -1,0 +1,60 @@
+/*
+ * Fim da lista: accao de carregar mais, ou a razao por que nao da.
+ * A pagina seguinte vem por accao explicita, nao por rolagem (ver useListaPaginada).
+ */
+
+.area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+}
+
+.botao {
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-brand);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease-standard);
+}
+
+.botao:hover:not(:disabled) {
+  background-color: var(--color-surface-overlay);
+}
+
+/*
+ * Desativado SO enquanto o pedido esta em curso, e com o texto a dizer porque: e um
+ * estado momentaneo da propria accao, nao uma afordancia proibida (a regra de
+ * CA-003.3 e sobre selecionar odds).
+ */
+.botao:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.falha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  max-width: var(--layout-measure);
+}
+
+.mensagem {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-danger);
+}
+
+.fim {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
