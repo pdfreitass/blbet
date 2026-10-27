@@ -196,7 +196,44 @@ Procedimento obrigatório, do `backend`:
 
 ## 7. Rotas definidas
 
-**Nenhuma.**
+**Nenhuma acordada.** As rotas de esportes estão **propostas** na secção 7.1, à espera da revisão do `frontend` (DT-005).
+
+### 7.1 Proposta do `backend` — rotas de esportes (T-014, 2026-10-27)
+
+**Estado:** proposta, **não acordada**. Esquemas em `packages/contracts/src/sports.ts`. Âmbito: DT-010.
+
+| Rota | Resposta `200` | Erros |
+|---|---|---|
+| `GET /api/competitions` | `paginatedSchema(competitionSchema)` — competições com jogos, ordenadas por nome | `UPSTREAM_UNAVAILABLE`, `RATE_LIMITED`, `INTERNAL_ERROR` |
+| `GET /api/events?competitionId=&limit=&cursor=` | `paginatedSchema(eventSchema)` — só jogos futuros, por `startsAt` ascendente | os anteriores + `VALIDATION_FAILED` (query inválida, cursor obsoleto) |
+| `GET /api/events/{id}` | `successSchema(eventSchema)` | os anteriores + `NOT_FOUND` (inexistente **ou já começado**) |
+
+**Exemplo de evento:**
+
+```json
+{
+  "id": "OVc2-Alcu-Ynsy",
+  "competitionId": "Xa0f-wjcs-tANp",
+  "startsAt": "2026-11-02T20:00:00Z",
+  "status": "scheduled",
+  "homeTeam": { "id": "MIuT-wjcs-m2L0", "name": "Newcastle United" },
+  "awayTeam": { "id": "WPB8-wjcs-P0WD", "name": "Everton" },
+  "markets": {
+    "matchResult": { "home": "1.94", "draw": "3.60", "away": null },
+    "totalGoals": [{ "line": "2.50", "over": "1.78", "under": "2.05" }]
+  },
+  "origin": "provider"
+}
+```
+
+**Regras da proposta**
+
+- `markets.matchResult` é `null` quando a fonte não tem o mercado; cada odd pode ser `null` sozinha (A5). `totalGoals` pode ser `[]`.
+- Odds e linhas em texto com 2 casas (`"1.94"`, `"2.50"`). A formatação para o ecrã é do `frontend`.
+- O nome da casa de apostas **não** vem na resposta (DT-010, C1). Os nomes das equipas vêm como o provedor os dá, em inglês (C15, PD-008 aberta).
+- `status` só tem `scheduled` por agora (A4); um valor novo é anunciado no quadro (PC-014).
+- **Aviso (A3):** os `id` derivam das chaves do provedor, cuja estabilidade **não está garantida** (C5). Trocar de provedor (DT-009) muda todos os `id` — é uma mudança incompatível e será anunciada antes.
+- Valores desconhecidos na query (`sort`, filtros não listados) dão `VALIDATION_FAILED` com `unknown_field`.
 
 Primeira rota só pode ser definida após:
 
@@ -219,7 +256,7 @@ Acordo de 2026-10-26 (T-004): proposta do `backend` (secção 9), revisão do `f
 | ~~**PC-003**~~ | ~~Formato do detalhamento de erro por campo~~ | **Resolvida** — secção 9 + A2 |
 | ~~**PC-004**~~ | ~~Formato de identificador~~ | **Resolvida** — secção 9 + A3 |
 | ~~**PC-005**~~ | ~~Formato de data, hora e fuso~~ | **Resolvida** — secção 9 + A4 |
-| **PC-006** | Representação de decimais e odds | **Forma resolvida** (A5); **número de casas pendente** de BLQ-001 e PD-007 |
+| ~~**PC-006**~~ | ~~Representação de decimais e odds~~ | **Resolvida** — A5 + DT-010: odds em texto decimal com **2 casas** (`"1.94"`) |
 | ~~**PC-007**~~ | ~~Convenção de nomes de campos~~ | **Resolvida** — `camelCase` |
 | ~~**PC-008**~~ | ~~Formato de paginação e limites~~ | **Resolvida** — secção 9 + A6 |
 | ~~**PC-009**~~ | ~~Formato de ordenação e filtros~~ | **Resolvida** — secção 9 + A7 |
@@ -264,7 +301,7 @@ Acordo de 2026-10-26 (T-004): proposta do `backend` (secção 9), revisão do `f
 | **A2** (PC-003) | Os valores de `issue` são um catálogo **estável**, como os `code`: `required`, `invalid_type`, `invalid_value`, `invalid_format`, `too_small`, `too_big`, `unknown_field`, `invalid_cursor`. Acrescentar um valor é anunciado no quadro (PC-014) |
 | **A3** (PC-004) | O identificador de um recurso é **estável ao longo do tempo**: deriva do identificador estável da origem e nunca é gerado por pedido. Se um provedor não o garantir, o `backend` avisa no quadro antes, e é uma mudança incompatível. O frontend aplica `encodeURIComponent` ao montar as rotas |
 | **A4** (PC-005) | A situação de um evento é um **campo do modelo**, decidido pelo servidor. Nunca é deduzida da data no cliente |
-| **A5** (PC-006) | Texto decimal com **ponto**, sem separador de milhares, sem sinal e sem notação científica, e com **número fixo de casas por campo**. O `backend` normaliza; o número de casas fecha-se com BLQ-001 e PD-007. Uma odd indisponível é `null`, nunca texto vazio |
+| **A5** (PC-006) | Texto decimal com **ponto**, sem separador de milhares, sem sinal e sem notação científica, e com **número fixo de casas por campo**. O `backend` normaliza. Odds com **2 casas** (DT-010). Uma odd indisponível é `null`, nunca texto vazio |
 | **A6** (PC-008) | `meta.total` é **opcional**; a interface não depende dele. Um cursor obsoleto ou usado com filtros diferentes dá `400 VALIDATION_FAILED` com `{ "field": "query.cursor", "issue": "invalid_cursor" }` |
 | **A7** (PC-009) | Um valor que **viola o esquema** dá `400 VALIDATION_FAILED`. Um valor **bem formado sem correspondência** (termo de busca inexistente, categoria válida sem jogos) dá **`200` com `data: []`**. O parâmetro de busca chama-se `?q=`, seja qual for o escopo que a PD-003 vier a definir |
 | **A8** (PC-010) | `origin` é **obrigatório** em todos os recursos, nunca opcional. `meta.origin` agregado é opcional e só vem quando toda a coleção tem a mesma procedência |

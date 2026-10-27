@@ -22,9 +22,9 @@
 | Status | Quantidade | Tarefas |
 |---|---|---|
 | Concluída | 8 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012 |
-| Em andamento | 4 | T-006, T-007, T-010, T-013 |
-| Não iniciada | 2 | T-009, T-016 |
-| Bloqueada | 2 | T-014, T-015 |
+| Em andamento | 6 | T-006, T-007, T-009, T-010, T-013, T-014 |
+| Não iniciada | 1 | T-016 |
+| Bloqueada | 1 | T-015 |
 
 **Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
 
@@ -102,7 +102,7 @@
 - **Descrição:** obter definição para PD-003 (escopo da busca), PD-004 (mercados esportivos), PD-005 (categorias de cassino), PD-006 (campos do perfil), PD-007 (formato das odds) e PD-008 (idioma e formatos).
 - **Responsável:** `compartilhado` — **as definições vêm do Pedro**; os agentes registam
 - **Dependências:** nenhuma. A PD-004 e a PD-007 devem ser compatíveis com o que o provedor fornece (T-010).
-- **Status:** **não iniciada**
+- **Status:** **em andamento** — 2026-10-27: PD-004 e PD-007 resolvidas pela DT-010. Faltam PD-003, PD-005, PD-006 e PD-008
 - **Critérios de conclusão:** cada pendência resolvida e refletida em `docs/requisitos.md`, ou explicitamente aceite como aberta com o impacto registado.
 
 ### T-010 — Identificar a API esportiva e obter a documentação oficial
@@ -110,7 +110,7 @@
 - **Descrição:** escolher o provedor esportivo e reunir a sua documentação oficial: autenticação, endpoints, parâmetros, campos, formatos, limites, termos de uso (a exibição é permitida? exige atribuição?) e ambiente de testes. Resolve o **BLQ-001**.
 - **Responsável:** **Pedro** (escolha e credenciais) · `backend` (análise e registo em `docs/integracoes.md`)
 - **Dependências:** nenhuma
-- **Status:** **em andamento** — 2026-10-26: Pedro escolheu a Sportsbook API (RapidAPI, plano gratuito) para testes (DT-009); avaliação C1 a C16 na secção 5 do `docs/integracoes.md`. **Falta:** chave do Pedro fora do repositório; chamadas reais para confirmar C5, C7 e C13; resposta do provedor a C1 e C2 antes de publicar
+- **Status:** **em andamento** — 2026-10-26: Pedro escolheu a Sportsbook API (RapidAPI, plano gratuito) para testes (DT-009); avaliação C1 a C16 na secção 5 do `docs/integracoes.md`. 2026-10-27: chave em `apps/api/.env` (fora do git), chamadas reais feitas — C7 (odds decimais) e C13 (UTC) confirmados, C5 com evidência parcial. **Falta:** repetir uma chamada noutro dia para C5; resposta do provedor a C1 e C2 antes de publicar
 - **Critérios de conclusão:** provedor nomeado pelo Pedro; documentação oficial disponível no repositório ou ligada por URL oficial; resumo técnico em `docs/integracoes.md` com a fonte de cada informação; credenciais obtidas e guardadas **fora do repositório**; nada presumido.
 
 ### T-011 — Mudar o repositório para fora do OneDrive
@@ -159,7 +159,7 @@
 - **Descrição:** modelar eventos, competições, mercados e odds no modelo interno e definir as rotas de esportes em `packages/contracts/` e em [`docs/api-contract.md`](api-contract.md), com base no que o provedor **realmente** fornece.
 - **Responsável:** `backend` · revisão cruzada do `frontend` (DT-005)
 - **Dependências:** **T-010**, **T-013**, T-004, T-009 (PD-004, PD-007)
-- **Status:** **bloqueada** por T-010 e T-013
+- **Status:** **em andamento** — 2026-10-27, pelo `backend`: âmbito decidido (DT-010); proposta em `packages/contracts/src/sports.ts` (com testes) e na secção 7.1 do `api-contract.md`. **Falta:** revisão cruzada do `frontend` e aprovação do Pedro
 - **Critérios de conclusão:** esquemas Zod em `packages/contracts/` e rotas documentadas segundo a seção 5.1 do contrato; cada campo rastreável até à documentação do provedor ou a um requisito; revisão do `frontend` registada no quadro; aprovação do Pedro antes da integração.
 
 ### T-015 — Preparar o backend para a integração real

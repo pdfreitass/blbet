@@ -90,7 +90,14 @@ Regras:
 - **Página no RapidAPI:** <https://rapidapi.com/sportsbook-api-sportsbook-api-default/api/sportsbook-api2>
 - **Termos:** <https://sportsbookapi.com/terms-of-service/> remete só para <https://rapidapi.com/terms/>. Lidos a 2026-10-26
 - **Plano escolhido para testes:** Basic, $0/mês: **150 pedidos/dia (limite rígido)**, 1000/hora. Outros planos: Pro $10 (1000/dia), Ultra $20 (7000/dia), Mega $100 (100 000/dia)
-- **Rotas úteis:** `GET /v1/competitions/{competition}/events` devolve eventos **com os mercados principais e as odds mais recentes** numa só chamada. `GET /v1/markets/{marketKey}/outcomes/latest` devolve as odds de um mercado. A versão `v0` também existe
+- **Rotas úteis:** `GET /v1/competitions/{competition}/events` devolve eventos **com os mercados principais e as odds mais recentes** numa só chamada. `GET /v1/markets/{marketKey}/outcomes/latest` devolve as odds de um mercado. A versão `v0` também existe e tem o resto das rotas (`/v0/competitions/`, `/v0/events/{eventKey}`…); o RapidAPI marca a `v0` como versão atual
+- **Comportamento confirmado em chamadas reais (2026-10-27):**
+  - em `/v1/competitions/{competition}/events`, `{competition}` é o **nome curto** (`EPL`, `NBA`), não a chave: com a chave devolve `404 Cannot find competition`
+  - sem `startTimeFrom`/`startTimeTo` devolve `400` ("If a startTimeTo is provided a startTimeFrom is required"), embora a especificação diga que são opcionais. **O adaptador envia sempre os dois**
+  - `GET /v1/competitions` não existe (`404`); a lista de competições é `GET /v0/competitions/`
+  - EPL, janela de 7 dias: 10 eventos, 71 mercados, 12 fontes de odds (casas como `BET_MGM`, `DRAFT_KINGS`, `FAN_DUEL` e mercados de previsão como `KALSHI`, `POLYMARKET`). Tipos de mercado: `MONEYLINE_3WAY`, `POINT_SPREAD`, `POINT_TOTAL`, `TEAM_POINT_TOTAL`, `BOTH_TEAMS_TO_SCORE`; segmentos `REGULATION_TIME` e `HALF_1`
+  - o nome do evento vem como `Visitante @ Casa`; a equipa da casa vem em `homeParticipantKey`
+  - pode haver **mercados repetidos** (mesmo tipo e segmento) e mercados **sem `outcomes`** (um com `lastFoundAt` de 8 dias antes): o adaptador tem de os filtrar
 - **Fora de uso:** `/v0/advantages` e `/v1/advantages` (arbitragem, "+EV", *middles*). São conselhos de aposta e contrariam a RN-003
 
 | # | Resposta | Fonte |
@@ -99,15 +106,15 @@ Regras:
 | **C2** uso sem apostas e jurisdição | ⚠️ **Não declarado** | Termos do provedor |
 | **C3** cobertura | Mais de 30 ligas, sobretudo dos EUA (NFL, NBA, MLB, NHL…). Futebol: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, MLS, entre outras. **Brasileirão não está listado** — confirmado com chamada real a `GET /v0/competitions/` em 2026-10-27 (38 competições, nenhuma brasileira). Aceite pelo Pedro para desenvolvimento; o provedor final com futebol brasileiro vem depois (DT-009). "Nem todos os mercados e ligas estão disponíveis em todas as casas"; as odds podem só existir com a liga em época | Página do RapidAPI |
 | **C4** odds e mercados | ✅ Sim. Mercados por evento (`key`, `type`, `segment`) com `outcomes` por casa (`source`) | OpenAPI |
-| **C5** IDs estáveis | ❓ As chaves têm o formato `xxxx-xxxx-xxxx` (ex.: `kXuc-xfma-eRVR`); **a estabilidade não está declarada** | OpenAPI |
+| **C5** IDs estáveis | ⚠️ **Não declarada.** Evidência parcial: a chave da EPL (`Xa0f-wjcs-tANp`) é igual em `/v0/competitions/` e no `competitionKey` dos eventos `v1`; o nome curto (`EPL`) também identifica a competição. Estabilidade ao longo de dias **por confirmar** repetindo a chamada | OpenAPI + chamadas reais 2026-10-27 |
 | **C6** situação do evento | ❌ **Não há campo de situação nem de placar.** Só `startTime`; o resultado `live: boolean` existe por odd, não por evento | OpenAPI |
-| **C7** formato das odds | ⚠️ `payout: number` e `modifier: number` (linha de *spread* ou *total*). **A escala de `payout` não está documentada** (decimal? americano?) | OpenAPI |
+| **C7** formato das odds | ✅ **Decimal.** `payout` entre 1.01 e 5.9 na amostra (ex.: `1.94`, `2.3`). A precisão **não é fixa**: há valores como `1.555556` e `1.0101010101010102` (até 16 casas, resultado de conversões). `modifier` é a linha (`1.5` num *total*, `0` sem linha) | Chamada real 2026-10-27 |
 | **C8** ambiente de testes | ✅ O plano gratuito serve; o Swagger da documentação permite chamar as rotas com a chave | Documentação |
 | **C9** autenticação | ✅ Cabeçalhos `X-RapidAPI-Key` e `X-RapidAPI-Host` (não vai na query string) | Documentação |
 | **C10** limites | 150/dia e 1000/hora no plano gratuito, sem tolerância | Preços no RapidAPI |
 | **C11** atualização | Só consulta (sem *webhooks* nem *streaming* na especificação). Promete odds "up to the minute" | OpenAPI e página do RapidAPI |
-| **C12** paginação | ❓ Nas rotas `v1` de eventos não há paginação, só janela de tempo (`startTimeFrom`, `startTimeTo`) | OpenAPI |
-| **C13** datas | `format: date-time` (ISO 8601); **fuso por confirmar** numa resposta real | OpenAPI |
+| **C12** paginação | ✅ Nas rotas `v1` de eventos não há paginação, só janela de tempo (`startTimeFrom`, `startTimeTo`, obrigatórias na prática). Uma semana de EPL = 10 eventos, ~180 KB | OpenAPI + chamada real |
+| **C13** datas | ✅ ISO 8601 em **UTC** com milissegundos (`2026-11-02T20:00:00.000Z`). Os parâmetros aceitam `YYYY-MM-DDTHH:mm:ssZ` | Chamada real 2026-10-27 |
 | **C14** erros | Corpo `{ ok, status, name, error }`, com 401 e 404 documentados. O 429 da quota vem do RapidAPI | OpenAPI |
 | **C15** idiomas | ❓ Não declarado; os nomes de exemplo estão em inglês | — |
 | **C16** preço | Ver plano acima. A FAQ do RapidAPI fala em cartão de crédito para APIs *freemium*: confirmar na subscrição | Preços no RapidAPI |
@@ -115,7 +122,8 @@ Regras:
 **Consequências para o projeto:**
 
 - **C6 falha.** Pela A4, a situação do evento é um campo decidido pelo servidor. Com este provedor, o servidor só sabe "agendado" (`startTime` no futuro) ou "já começou". "Encerrado", "adiado" e "cancelado" não existem. É preciso decidir: o modelo interno passa a ter só estes dois estados com este provedor, ou junta-se uma segunda fonte de resultados.
-- **C7 por fechar:** a escala de `payout` só se confirma com uma resposta real. Até lá a PC-006 (número de casas) continua aberta.
+- **C7 fechado:** odds decimais com precisão variável. O adaptador **arredonda** antes de chegar ao contrato; o número de casas é a PC-006, ainda por decidir na T-014 (2 casas é o habitual em odds decimais).
+- **Várias fontes por mercado:** cada mercado traz odds de até 12 fontes. O contrato tem de decidir se mostra uma fonte, todas, ou um valor agregado — e, por C1, se pode mostrar o nome da casa.
 - **C1 e C2 bloqueiam a publicação, não os testes.** Antes de publicar é preciso perguntar ao provedor (contacto em <https://sportsbookapi.com/contact/>) se a exibição pública é permitida e com que atribuição, e decidir se mostrar odds com a marca de casas de apostas reais é compatível com um protótipo sem apostas (DIV-001, revisão jurídica da Fase 6).
 - **Com 150 pedidos/dia, a cache é obrigatória** (DP-009). Uma chamada por competição traz eventos e odds. Por exemplo, 3 competições atualizadas de 30 em 30 minutos já gastam 144 pedidos/dia.
 - **Brasileirão ausente:** se a cobertura brasileira for prioritária (PD-004), este provedor não chega.
