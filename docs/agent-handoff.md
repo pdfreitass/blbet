@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-26 — Proposta de convenções (T-004) e cliente HTTP para provedores
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-004 (proposta, em andamento); preparação da T-015 sem provedor
+- **Arquivos modificados:** `docs/api-contract.md` (nova secção 9, proposta), `apps/api/src/shared/http/fetch-json.ts`, `apps/api/test/fetch-json.test.ts`, `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** **nenhum acordado.** A secção 9 do contrato é uma proposta; nada em `packages/contracts/` e nenhuma rota a usa
+- **Pendências para o outro agente:** ver o ponto 8 da secção de integração
+- **Bloqueios:** BLQ-001 para o modelo esportivo e o adaptador; PC-006 e PC-010 dependem também de PD-007 e DIV-001
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → 4 ficheiros, 15 testes a passar · `pnpm build` → ok
+- **Próxima ação recomendada:** esperar pela revisão do `frontend` à secção 9; depois de acordada, implementar os esquemas do envelope e dos erros em `packages/contracts/` e ligá-los ao tratamento de erros da api
+
 ### 2026-10-26 — Mudança para fora do OneDrive, worktrees e fundação do backend
 
 - **Agente responsável:** backend
@@ -99,9 +110,9 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 - **Arquivos modificados:** `docs/design-system.md` (criado), `docs/agent-handoff.md` (esta seção e a de integração), `docs/agent-tasks.md` (status das tarefas do `frontend`)
 - **Contratos ou interfaces alterados:** nenhum. Não editei `docs/api-contract.md` nem `packages/contracts/`: a revisão vai no quadro e quem altera o contrato é o `backend`
 - **Pendências para o agente `backend`:** os ajustes A1 a A8 e as divergências DIV-F01 e DIV-F02 da revisão da T-004, na secção de integração
-- **Bloqueios:** `git merge main` recusado (ver a nota de git na secção de integração): tenho trabalho não commitado em dois ficheiros que o `fcbe8fd` também altera, e o commit precisa da aprovação do Pedro. **DP-001 está aprovada** (DT-001) — a nota anterior desta seção estava errada e fica corrigida. Bloqueios reais: `docs/design-system.md` inexistente (resolvo na T-005); PD-002 (público-alvo) e DIV-001 (dados reais vs. demonstrativos) carregam risco de retrabalho visual; DP-006 (abordagem de estilos) por decidir
+- **Bloqueios:** nenhum. O merge da `main` (`fcbe8fd`) está feito, depois de o Pedro aprovar o commit `a5da2e6`; o conflito ficou só no `docs/agent-tasks.md` e foi resolvido sem apagar registo nenhum do `backend`. **DP-001 está aprovada** (DT-001) — a nota anterior desta seção estava errada e fica corrigida. Bloqueios reais: `docs/design-system.md` inexistente (resolvo na T-005); PD-002 (público-alvo) e DIV-001 (dados reais vs. demonstrativos) carregam risco de retrabalho visual; DP-006 (abordagem de estilos) por decidir
 - **Testes executados e resultados:** nenhum executado — não há código de `apps/web/` nem dependências do frontend instaladas
-- **Próxima ação recomendada:** Pedro aprova o commit, para o merge da `main` deixar de estar bloqueado; escolhe a opção A ou B da DIV-001; depois, T-016 (esqueleto de `apps/web/`)
+- **Próxima ação recomendada:** T-016 — esqueleto de `apps/web/`, com aviso prévio ao Pedro **antes** de instalar dependências, porque o `backend` também vai mexer no `pnpm-lock.yaml`. A opção A ou B da DIV-001 continua a faltar
 
 ### Histórico
 
@@ -151,7 +162,7 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Integração
 
-**Dono:** compartilhado — identificar o agente em cada registro · **Última atualização:** 2026-10-26, por `frontend` (revisão cruzada da T-004)
+**Dono:** compartilhado — identificar o agente em cada registro · **Última atualização:** 2026-10-26, por `frontend` (revisão cruzada da T-004). Registo anterior: 2026-10-26, por `backend`
 
 ### Situação
 
@@ -171,12 +182,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 ### Pendências para o agente `frontend` — registadas pelo `backend` em 2026-10-26 (fundação)
 
 4. **O `frontend` pode começar a primeira entrega visual (T-005, T-016)** na sua worktree `C:\Users\pedro\blbet-frontend`, branch `feat/frontend-foundation`. É dono exclusivo de `apps/web/`.
-5. **A raiz do monorepo ainda não está na branch do `frontend`.** Vive em `feat/backend-foundation` até o Pedro a integrar na `main`. Para não criar um segundo lockfile nem uma segunda configuração da raiz:
+5. ~~**A raiz do monorepo ainda não está na branch do `frontend`.**~~ **Resolvido em 2026-10-26:** a fundação está na `main` (`6a4ebd3`) e a branch do `frontend` já a recebeu. Registo original: Para não criar um segundo lockfile nem uma segunda configuração da raiz:
    - antes de correr `pnpm install`, esperar que o Pedro integre a fundação na `main` e trazer a `main` para a própria branch (merge, nunca rebase);
    - até lá, o trabalho que não dependa de dependências instaladas (T-005, `docs/design-system.md`) pode avançar.
 6. **Ficheiros partilhados da raiz:** `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `tsconfig.base.json`, `.gitignore`, `.gitattributes`. Mudanças são anunciadas aqui **antes**. Instalar dependências em `apps/web` altera o `pnpm-lock.yaml`; um conflito nele resolve-se com aprovação do Pedro (DT-004). Aprovar scripts de instalação (`allowBuilds`) também é uma alteração partilhada.
 7. **Contrato:** `packages/contracts` existe e está vazio de propósito. Não há rotas de domínio nem formato de envelope (PC-001 a PC-015 abertas). A interface usa dados demonstrativos identificados, sem forma de resposta presumida do backend.
-8. **Base de `apps/web/tsconfig`:** pode estender `../../tsconfig.base.json`, que é pensado para Node (`module: NodeNext`, `lib: ES2023`). O `frontend` sobrepõe no seu próprio tsconfig o que o Vite e o DOM exigem, sem alterar a base.
+8. **Revisão cruzada da proposta de convenções (T-004, DT-005)** — ler a secção 9 de [`docs/api-contract.md`](api-contract.md) e registar aqui, para cada PC, se concordas ou o que muda e porquê. Perguntas diretas:
+   - **PC-014:** a interface tolera um valor enumerado desconhecido?
+   - **Comunicação local:** aceitas configurar no Vite o encaminhamento de `/api` para `http://127.0.0.1:3333`, em vez de CORS na api?
+
+   Até haver acordo, a interface continua com dados demonstrativos e não depende destas formas.
+9. **Base de `apps/web/tsconfig`:** pode estender `../../tsconfig.base.json`, que é pensado para Node (`module: NodeNext`, `lib: ES2023`). O `frontend` sobrepõe no seu próprio tsconfig o que o Vite e o DOM exigem, sem alterar a base.
 
 ### Respostas do agente `frontend` às pendências 1 a 8 — registadas pelo `frontend` em 2026-10-26
 
@@ -282,6 +298,15 @@ A proposta diz "um valor fora da lista dá `VALIDATION_FAILED`", o que é corret
 - **A opção alternativa, se um dia incomodar:** uma rota que devolva grupos completos, ou o filtro por competição a fazer o trabalho do agrupamento — RF-002 já pede filtrar ou alternar entre esportes e competições, o que resolve o caso na prática. Fica para quando houver rotas; não decido agora.
 - **Impacto de cada opção:** a minha resolução custa uma funcionalidade pequena, a contagem por grupo, que nenhum critério de aceitação exige. Grupos completos no servidor custariam uma forma de paginação por grupo e complicariam a rota, sem requisito que o justifique.
 
+#### Resposta do `backend` aos ajustes — comunicada pelo Pedro em 2026-10-26
+
+Registado aqui pelo `frontend`, com a origem explícita: **esta informação chegou-me pelo Pedro, não por um registo do `backend` neste quadro.** Fica à espera da confirmação dele no contrato, conforme a secção 4.1 do protocolo — mudança comunicada só em conversa não foi comunicada.
+
+- **Os oito ajustes (A1 a A8) foram aceitos.**
+- **DIV-F01: resolvida a favor da posição do `frontend`.** `error.message` passa a ser **só técnica**, para diagnóstico, e não vai para a tela; o texto que o utilizador lê é meu, mapeado a partir de `error.code`. Deixa de ser divergência.
+- O `backend` registará isto na secção 9 de [`docs/api-contract.md`](api-contract.md) depois de esta branch entrar na `main`. **Até esse registo existir, nenhuma rota ou esquema depende destas formas** e a interface continua com dados demonstrativos locais.
+- **DIV-F02 continua aberta**, e resolvo-a do meu lado como descrito acima: agrupo só o que recebi e não exibo contagem por grupo.
+
 #### O que isto não decide
 
 - **DIV-001** continua do Pedro. A PC-010 não a resolve: dá a forma, não a escolha de apresentação. As duas opções de tratamento visual estão em §7 do `design-system.md`.
@@ -293,9 +318,11 @@ A proposta diz "um valor fora da lista dá `VALIDATION_FAILED`", o que é corret
 
 `git merge main` **recusou** e abortou sem alterar nada, porque tenho alterações não commitadas em dois ficheiros que o `fcbe8fd` também altera: `docs/agent-handoff.md` e `docs/agent-tasks.md`. Mensagem exata: *"Your local changes to the following files would be overwritten by merge."* A minha worktree continua em `6a4ebd3`, com `docs/design-system.md` ainda não commitado e à espera da aprovação do Pedro. **Não usei `stash`, `reset`, `checkout` nem `rebase`**, conforme a secção 7 do protocolo. Por isso li a secção 9 do contrato com `git show main:...`, que não toca na worktree. O merge fica para depois de o Pedro aprovar o commit do meu trabalho; quando acontecer, haverá conflito nestes dois ficheiros — ficheiro de dono compartilhado, logo levo a resolução ao Pedro (DT-004), notando que na prática o `backend` escreveu na secção dele e eu na minha, e os dois acrescentámos à de integração.
 
+**Desfecho, no mesmo dia:** o Pedro aprovou o commit (`a5da2e6`) e autorizou a resolução do conflito, limitada ao quadro. `git merge main` passou a correr: este ficheiro **auto-fundiu-se sem conflito** e o conflito ficou só em `docs/agent-tasks.md`, em dois pontos — a tabela de resumo e o status da T-004. Resolvidos sem apagar nem reescrever registo do `backend`: na tabela ficou o estado combinado, e na T-004 a linha de status do `backend` ficou **intacta**, com a minha linha de revisão cruzada acrescentada por baixo.
+
 ### Divergências técnicas abertas
 
-**Duas, abertas pelo `frontend` em 2026-10-26**, na revisão da T-004 acima: **DIV-F01** (`error.message` é texto para o utilizador ou diagnóstico?) e **DIV-F02** (paginação por cursor contra o agrupamento por esporte e competição de CA-002.1). As duas estão descritas acima com a posição do `frontend` e o impacto de cada opção. Nenhuma bloqueia trabalho hoje: não há rotas e a interface usa dados demonstrativos. Enquanto estiverem abertas, vale o acordo vigente — a secção 2.2 do contrato e a forma de paginação propostas, como estão.
+**Uma aberta.** Foram duas, abertas pelo `frontend` em 2026-10-26 na revisão da T-004 acima: a **DIV-F01** (`error.message` é texto para o utilizador ou diagnóstico?) está **resolvida** a favor da posição do `frontend` — `message` passa a ser só técnica — conforme a resposta do `backend` comunicada pelo Pedro e ainda por registar no contrato. Continua aberta a **DIV-F02** (paginação por cursor contra o agrupamento por esporte e competição de CA-002.1). As duas estão descritas acima com a posição do `frontend` e o impacto de cada opção. Nenhuma bloqueia trabalho hoje: não há rotas e a interface usa dados demonstrativos. Enquanto estiverem abertas, vale o acordo vigente — a secção 2.2 do contrato e a forma de paginação propostas, como estão.
 
 Registrar aqui, conforme a seção 5 do protocolo: ponto em disputa, posição de cada agente, impacto de cada opção. Enquanto aberta, o acordo vigente continua válido.
 

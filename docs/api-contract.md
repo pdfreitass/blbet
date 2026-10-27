@@ -229,3 +229,27 @@ Primeira rota só pode ser definida após:
 | **PC-015** | Uso de `422` ou apenas `400` para erro semântico | Seção 5.3 |
 
 > Pendência aberta não autoriza decisão por omissão durante a implementação. Resolver, registrar no quadro e atualizar este documento.
+
+---
+
+## 9. Proposta do `backend` para a T-004 — **aguarda revisão do `frontend`**
+
+**Estado:** proposta de 2026-10-26. **Não está acordada.** Nenhum esquema destas convenções existe em `packages/contracts/` e nenhuma rota de domínio as usa até o `frontend` registar a sua análise no quadro (DT-005) e o Pedro aprovar a integração. Quando houver acordo, cada PC passa para "Resolvida" na secção 8.
+
+| # | Proposta | Motivo |
+|---|---|---|
+| **PC-001** | Sucesso: `{ "data": <carga>, "meta": { … } }`, com `meta` presente só quando houver metadados. Erro: `{ "error": { "code", "message", "details"? } }`. Um corpo tem sempre `data` **ou** `error`, nunca os dois | Separa a carga dos metadados (secção 2.1); o frontend distingue sucesso de erro pela chave, não pela forma |
+| **PC-002** | Catálogo inicial: `VALIDATION_FAILED` (400), `NOT_FOUND` (404), `RATE_LIMITED` (429), `INTERNAL_ERROR` (500), `UPSTREAM_UNAVAILABLE` (503, provedor externo indisponível ou com resposta inválida). Códigos em `MAIÚSCULAS_COM_SUBLINHADO`, nunca reutilizados | Cobre os estados de RF-008: recuperável (`RATE_LIMITED`, `UPSTREAM_UNAVAILABLE`, `INTERNAL_ERROR`), definitivo (`VALIDATION_FAILED`, `NOT_FOUND`) |
+| **PC-003** | `details: [{ "field": "query.limit", "issue": "too_big" }]`. `field` = localização (`path`, `query`, `body`) + caminho com pontos. `issue` = código estável, não um texto | O frontend associa o erro ao campo sem analisar mensagens |
+| **PC-004** | Identificadores são **texto opaco**: o frontend não os interpreta, não os ordena nem os converte | O formato dos IDs do provedor é desconhecido (BLQ-001); texto serve para qualquer formato |
+| **PC-005** | ISO 8601 em UTC com `Z`, por exemplo `"2026-10-26T22:00:00Z"`. Conversão para a hora local só no frontend | Sem ambiguidade de fuso; o formato de exibição depende da PD-008 |
+| **PC-006** | **Dependente de BLQ-001 e PD-007.** Proposta provisória: odds em texto decimal (`"1.85"`) para não perder precisão; a formatação de exibição é feita no frontend | A forma como o provedor entrega as odds é desconhecida; só se fecha com a documentação real |
+| **PC-007** | `camelCase` em todos os campos | Nativo de TypeScript nos dois lados; o adaptador converte o formato do provedor |
+| **PC-008** | `?limit=` (padrão 20, máximo 100) e `?cursor=` opaco; `meta: { "nextCursor": "<texto>" \| null }` | O cursor serve tanto para um provedor paginado como para dados locais, sem expor deslocamentos |
+| **PC-009** | Filtro = parâmetro com o nome do campo; vários valores repetem o parâmetro (`?sport=a&sport=b`). Ordenação: `?sort=campo` (ascendente) ou `?sort=-campo` (descendente). Campos aceites documentados por rota; um valor fora da lista dá `VALIDATION_FAILED` | Previsível e fácil de validar com Zod |
+| **PC-010** | **Dependente de DIV-001 (decisão do Pedro).** Proposta provisória: cada recurso tem `origin: "demo" \| "provider"` | Permite misturar dados reais e demonstrativos e testar a sinalização (RNF-008) |
+| **PC-013** | Mantém-se sem versão na URL (secção 4.1). Rotas de domínio com o prefixo `/api` (ex.: `/api/eventos`); rotas operacionais (`/health`) sem prefixo | Separa o domínio da operação e permite que o servidor de desenvolvimento do frontend encaminhe `/api` |
+| **PC-014** | *Pergunta ao `frontend`:* a interface trata um valor enumerado desconhecido sem quebrar (ex.: mostra-o como "outro")? | Se sim, acrescentar um valor passa a ser uma mudança compatível |
+| **PC-015** | Só `400` (`VALIDATION_FAILED`) para entradas inválidas, sem `422` | Uma regra única é mais simples de tratar; o `details` já diz o que falhou |
+
+**Comunicação local entre web e api (pendência da T-013):** proposta — o servidor de desenvolvimento do Vite encaminha `/api` para `http://127.0.0.1:3333`, no ficheiro de configuração do `frontend`. A api não precisa de CORS em desenvolvimento. CORS só entra se a web e a api forem publicadas em origens diferentes (DP-008).

@@ -59,8 +59,8 @@
 - **Descrição:** completar as convenções `PC-xxx` de [`docs/api-contract.md`](api-contract.md) — identificador, data e hora, decimais, paginação, erro — sem definir rotas.
 - **Responsável:** `backend`
 - **Dependências:** T-001 (concluída). A PC-006 (odds) depende também da T-010.
-- **Status:** **do `backend`** — não o altero (uma tarefa é atualizada pelo seu responsável). A cópia desta branch está em `6a4ebd3` e pode estar atrasada: o `fcbe8fd` da `main` traz a proposta de convenções na secção 9 do contrato, e o merge está bloqueado (ver a nota de git no quadro)
-- **Revisão cruzada do `frontend` (DT-005): feita** — 2026-10-26, registada na secção de integração de [`docs/agent-handoff.md`](agent-handoff.md). 6 concordâncias plenas, 8 com ajuste, 0 discordâncias; PC-014 respondida; duas divergências abertas (DIV-F01, DIV-F02). Este critério de conclusão fica cumprido pelo meu lado; os restantes são do `backend`
+- **Status:** **em andamento** — proposta do `backend` na secção 9 de `docs/api-contract.md` (2026-10-26); **aguarda a revisão do `frontend`** (ponto 8 do quadro)
+- **Revisão cruzada do `frontend` (DT-005): feita** — 2026-10-26, registada na secção de integração de [`docs/agent-handoff.md`](agent-handoff.md). 6 concordâncias plenas, 8 com ajuste, 0 discordâncias; PC-014 respondida; duas divergências abertas (DIV-F01, DIV-F02). O status acima é do `backend` e **não o alterei**: a revisão que ele aguardava está entregue, e este critério de conclusão fica cumprido pelo lado do `frontend`; os restantes são dele
 - **Critérios de conclusão:** todas as `PC-xxx` de convenção resolvidas ou explicitamente aceites como abertas; o `frontend` registou no quadro a revisão cruzada (DT-005); nenhuma rota definida.
 
 ### T-005 — Criar `docs/design-system.md`
