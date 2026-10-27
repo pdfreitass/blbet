@@ -49,18 +49,18 @@
 
 ## Seção Backend
 
-**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-26
+**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-27
 
 ### Situação
 
-Fundação técnica do backend commitada em `feat/backend-foundation` e integrada na `main` com aprovação do Pedro.
+T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbook API, cache e rotas `GET /api/competitions`, `/api/events`, `/api/events/{id}`) **concluídas e integradas**. O RF-007 do `frontend` (`7400b27`) foi revisto e integrado pelo `backend` na `main` local em `928843f`. O `origin/main` está em `ad3b8c5`: o push do `928843f` espera aprovação do Pedro.
 
 - **Arquivos modificados:** ver o histórico abaixo
-- **Contratos ou interfaces alterados:** nenhum contrato de domínio. Só existe `GET /health`, que é operacional e não pertence ao contrato
-- **Pendências para o agente `frontend`:** ver a seção de integração
-- **Bloqueios:** BLQ-001 resolvido em parte pela DT-009 (Sportsbook API, só testes). A T-014 e a T-015 esperam a chave do Pedro e chamadas reais
-- **Testes executados e resultados:** ver o histórico abaixo
-- **Próxima ação recomendada:** com a chave no `apps/api/.env`, confirmar C5, C7 e C13 com chamadas reais e avançar para a T-014
+- **Contratos ou interfaces alterados:** rotas de esportes da secção 7.1 do `api-contract.md`, acordadas (T-014). Sem alterações pendentes
+- **Pendências para o agente `frontend`:** nenhuma
+- **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
+- **Testes executados e resultados:** na `main` em `928843f`: typecheck ok · contracts 23/23, api 49/49, web 106/106 · build ok
+- **Próxima ação recomendada:** Pedro decide o push e vê os jogos reais no ecrã (`pnpm dev:api` com a chave + `pnpm dev:web`); depois, próxima tarefa do `backend` segundo o `agent-tasks.md`
 
 ### Histórico
 
