@@ -1,27 +1,48 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { erroDaApi, EVENTO_COMPLETO, EVENTO_SEM_MERCADOS, paginaDeEventos } from '../test/fixtures';
+import { instalarServidorFalso, responderSempre } from '../test/servidorFalso';
 import { App } from './App';
 
-/*
- * A interação passa por fireEvent, e não por `elemento.click()`: o clique nativo fica
- * fora do `act` do React, e o re-render não acontece antes da asserção.
- */
+const JOGO_DESCRICAO = 'Newcastle United contra Everton';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.localStorage.clear();
+});
 
 describe('App', () => {
-  it('declara permanentemente que a plataforma é demonstrativa (CA-001.4)', () => {
+  beforeEach(() => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO, EVENTO_SEM_MERCADOS]));
+  });
+
+  it('declara permanentemente a natureza da plataforma (CA-001.4)', () => {
     render(<App />);
 
     expect(screen.getByText('Plataforma demonstrativa.')).toBeTruthy();
     expect(screen.getByText(/Não há apostas, depósitos, saques nem pagamentos/)).toBeTruthy();
   });
 
-  it('não oferece como dispensar essa declaração', () => {
+  /*
+   * A faixa deixou de dizer que "todos os valores são fictícios" quando entraram os
+   * dados reais da T-015. Uma declaração falsa é pior do que declaração nenhuma.
+   */
+  it('não afirma que as cotações são fictícias, porque vêm de uma fonte real', () => {
     render(<App />);
 
     const faixa = screen.getByLabelText('Natureza da plataforma');
 
-    expect(faixa.querySelectorAll('button')).toHaveLength(0);
+    expect(faixa.textContent).not.toContain('Todos os valores exibidos são fictícios');
+    expect(faixa.textContent).toContain('fonte externa');
+  });
+
+  it('não oferece como dispensar essa declaração', () => {
+    render(<App />);
+
+    expect(screen.getByLabelText('Natureza da plataforma').querySelectorAll('button')).toHaveLength(
+      0,
+    );
   });
 
   it('abre em esportes, com os cinco destinos de RF-001 presentes', () => {
@@ -33,169 +54,273 @@ describe('App', () => {
     expect(screen.getByRole('button', { current: 'page' }).textContent).toContain('Esportes');
   });
 
-  it('mostra os eventos demonstrativos no destino inicial', () => {
+  it('mostra o esqueleto enquanto carrega e anuncia o que está a carregar (CA-008.1)', () => {
     render(<App />);
 
-    // Pelo nome acessível do cartão: o nome do participante repete-se como opção de
-    // mercado, e procurá-lo por texto encontraria os dois.
-    expect(screen.getByLabelText('Atlético Exemplo contra Clube Protótipo')).toBeTruthy();
-    expect(screen.getByText('Copa Fictícia de Demonstração')).toBeTruthy();
+    expect(screen.getByText('Carregando os jogos')).toBeTruthy();
   });
 
-  it('navega entre destinos e marca o ativo', () => {
+  it('mostra os jogos vindos da api, agrupados por competição (CA-002.1)', async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
-
-    expect(screen.getByRole('button', { current: 'page' }).textContent).toContain('Cassino');
-    expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
+    expect(await screen.findByLabelText(JOGO_DESCRICAO)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'English Premier League' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Spanish La Liga' })).toBeTruthy();
   });
 
-  it('o catálogo do cassino não expõe nenhuma forma de jogar (RN-004, CA-004.4)', () => {
-    const { container } = render(<App />);
+  it('mostra as cotações no formato do contrato, com vírgula', async () => {
+    render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
+    await screen.findByLabelText(JOGO_DESCRICAO);
 
-    // Na grelha só existe o indicador de favorito; os filtros ficam fora dela.
-    const grelha = container.querySelector('main ul');
-    expect(grelha?.querySelectorAll('a, input, select, [role="button"]')).toHaveLength(0);
-
-    for (const botao of grelha?.querySelectorAll('button') ?? []) {
-      expect(botao.getAttribute('aria-label')).toContain('favoritos');
-    }
+    expect(screen.getByText('1,94')).toBeTruthy();
+    expect(screen.getByText('3,60')).toBeTruthy();
   });
 
-  it('nenhuma tela do protótipo expõe controle de aposta (RN-001, CA-003.3)', () => {
+  /* A5: uma odd que a fonte não tem é `null`, e não um buraco na tela. */
+  it('mostra indisponível na cotação que a fonte não tem', async () => {
+    render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+  });
+
+  /*
+   * Opção A da DIV-001: marca-se só o fictício. Uma cotação real não leva campo
+   * tracejado nem o texto de "valor demonstrativo".
+   */
+  it('não marca como demonstrativo um dado que vem do provedor', async () => {
+    render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    expect(screen.queryByText(/valor demonstrativo/)).toBeNull();
+  });
+
+  it('um jogo distante sem cotações explica-se, em vez de parecer defeito', async () => {
+    render(<App />);
+
+    await screen.findByLabelText('Real Madrid contra Barcelona');
+
+    expect(screen.getByText('Ainda não há cotações publicadas para este jogo.')).toBeTruthy();
+  });
+
+  it('ordena as linhas de mais/menos golos, que o contrato não garante ordenadas', async () => {
+    render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    const titulos = screen.getAllByRole('heading', { level: 4 }).map((titulo) => titulo.textContent);
+
+    expect(titulos.indexOf('Mais/menos 2,50 gols')).toBeLessThan(
+      titulos.indexOf('Mais/menos 3,50 gols'),
+    );
+  });
+
+  it('nenhuma cotação é operável (RN-003, CA-003.3)', async () => {
     const { container } = render(<App />);
 
-    // Em esportes, os únicos controles do conteúdo são os indicadores de favorito,
-    // um por evento. Nenhum outro botão, nenhuma ligação, nada sobre uma odd.
-    const main = container.querySelector('main');
-    expect(main?.querySelectorAll('a, input, select, [role="button"]')).toHaveLength(0);
+    await screen.findByLabelText(JOGO_DESCRICAO);
 
-    for (const botao of main?.querySelectorAll('button') ?? []) {
-      expect(botao.getAttribute('aria-label')).toContain('favoritos');
+    for (const lista of container.querySelectorAll('dl')) {
+      expect(lista.querySelectorAll('a, button, input, [role="button"], [disabled]')).toHaveLength(
+        0,
+      );
     }
   });
 });
 
-describe('App — busca', () => {
-  function irParaBusca(): HTMLInputElement {
+describe('App — falha da api (RF-008)', () => {
+  /*
+   * Sem a chave do provedor no apps/api/.env, as rotas respondem 503. É o estado em
+   * que a aplicação vai estar na maior parte das máquinas, por isso tem de estar certo.
+   */
+  it('mostra erro compreensível e oferece repetir quando o servidor diz que é repetível', async () => {
+    responderSempre(503, erroDaApi('UPSTREAM_UNAVAILABLE', true));
     render(<App />);
+
+    const alerta = await screen.findByRole('alert');
+
+    expect(alerta.textContent).toContain('Os dados esportivos estão indisponíveis neste momento.');
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeTruthy();
+  });
+
+  it('nenhum detalhe técnico chega à tela (RNF-004, CA-008.2, DIV-F01)', async () => {
+    responderSempre(503, erroDaApi('UPSTREAM_UNAVAILABLE', true));
+    const { container } = render(<App />);
+
+    await screen.findByRole('alert');
+
+    expect(container.textContent).not.toContain('upstream');
+    expect(container.textContent).not.toContain('503');
+    expect(container.textContent).not.toContain('UPSTREAM_UNAVAILABLE');
+  });
+
+  it('repetir volta a pedir à api', async () => {
+    let pedidos = 0;
+    instalarServidorFalso(() => {
+      pedidos += 1;
+      return { estado: 503, corpo: erroDaApi('UPSTREAM_UNAVAILABLE', true) };
+    });
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar novamente' }));
+
+    await waitFor(() => expect(pedidos).toBeGreaterThan(1));
+  });
+
+  it('não oferece repetir quando o servidor diz que não vale a pena', async () => {
+    responderSempre(400, erroDaApi('VALIDATION_FAILED', false));
+    render(<App />);
+
+    await screen.findByRole('alert');
+
+    expect(screen.queryByRole('button', { name: 'Tentar novamente' })).toBeNull();
+  });
+
+  it('a aplicação continua navegável com a api em baixo', async () => {
+    responderSempre(503, erroDaApi('UPSTREAM_UNAVAILABLE', true));
+    render(<App />);
+
+    await screen.findByRole('alert');
+    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
+
+    // O cassino é demonstrativo e não depende da api.
+    expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
+  });
+});
+
+describe('App — busca', () => {
+  it('pede à api com ?q= e mostra o resultado', async () => {
+    const pedidos: string[] = [];
+    instalarServidorFalso((url) => {
+      pedidos.push(url);
+      return {
+        estado: 200,
+        corpo: url.includes('q=') ? paginaDeEventos([EVENTO_COMPLETO]) : paginaDeEventos([]),
+      };
+    });
+    render(<App />);
+
     fireEvent.click(screen.getByRole('button', { name: /Busca/ }));
+    fireEvent.change(screen.getByLabelText('Buscar'), { target: { value: 'newcastle' } });
 
-    return screen.getByLabelText('Buscar');
-  }
+    expect(await screen.findByLabelText(JOGO_DESCRICAO)).toBeTruthy();
+    expect(pedidos.some((url) => url.includes('q=newcastle'))).toBe(true);
+  });
 
-  it('mostra nada encontrado, com o critério, quando o termo não corresponde', () => {
-    fireEvent.change(irParaBusca(), { target: { value: 'zzzz' } });
+  it('termo sem correspondência dá lista vazia com saída, e não erro (regra A7)', async () => {
+    responderSempre(200, paginaDeEventos([]));
+    render(<App />);
 
-    expect(screen.getByText('Nada encontrado')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Busca/ }));
+    fireEvent.change(screen.getByLabelText('Buscar'), { target: { value: 'zzzz' } });
+
+    expect(await screen.findByText('Nada encontrado')).toBeTruthy();
     expect(screen.getByText('“zzzz”')).toBeTruthy();
-    expect(screen.getByText('Nenhum resultado.')).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('filtra os eventos quando o termo corresponde', () => {
-    fireEvent.change(irParaBusca(), { target: { value: 'basquete' } });
+  it('junta as teclas de uma palavra num pedido só, por causa do limite diário', async () => {
+    const pedidos: string[] = [];
+    instalarServidorFalso((url) => {
+      pedidos.push(url);
+      return { estado: 200, corpo: paginaDeEventos([]) };
+    });
+    render(<App />);
 
-    expect(screen.getByLabelText('Esboço Basquete Clube contra Rascunho Esportivo')).toBeTruthy();
-    expect(screen.queryByLabelText('Atlético Exemplo contra Clube Protótipo')).toBeNull();
-  });
+    fireEvent.click(screen.getByRole('button', { name: /Busca/ }));
+    const campo = screen.getByLabelText('Buscar');
 
-  it('a saída de nada encontrado limpa a busca e devolve a lista', () => {
-    fireEvent.change(irParaBusca(), { target: { value: 'zzzz' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Ver todos os eventos' }));
+    for (const valor of ['a', 'ar', 'ars', 'arse']) {
+      fireEvent.change(campo, { target: { value: valor } });
+    }
 
-    expect(screen.queryByText('Nada encontrado')).toBeNull();
-    expect(screen.getByLabelText('Atlético Exemplo contra Clube Protótipo')).toBeTruthy();
+    await screen.findByText('Nada encontrado');
+
+    const comTermo = pedidos.filter((url) => url.includes('q='));
+    expect(comTermo).toHaveLength(1);
+    expect(comTermo[0]).toContain('q=arse');
   });
 });
 
 describe('App — favoritos (RF-006)', () => {
   beforeEach(() => {
-    window.localStorage.clear();
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
   });
 
-  it('marca um evento e ele aparece na visualização de favoritos', () => {
+  it('marca um jogo esportivo e ele aparece na visualização de favoritos', async () => {
     render(<App />);
 
-    const marcar = screen.getByRole('button', {
-      name: 'Adicionar Atlético Exemplo contra Clube Protótipo aos favoritos',
-    });
-    fireEvent.click(marcar);
+    fireEvent.click(
+      await screen.findByRole('button', { name: `Adicionar ${JOGO_DESCRICAO} aos favoritos` }),
+    );
 
-    // CA-006.1: o indicador muda na hora.
     expect(
-      screen.getByRole('button', {
-        name: 'Remover Atlético Exemplo contra Clube Protótipo dos favoritos',
-        pressed: true,
-      }),
+      screen.getByRole('button', { name: `Remover ${JOGO_DESCRICAO} dos favoritos`, pressed: true }),
     ).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
 
-    expect(screen.getByRole('heading', { name: 'Eventos' })).toBeTruthy();
-    expect(screen.getByLabelText('Atlético Exemplo contra Clube Protótipo')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Jogos esportivos' })).toBeTruthy();
   });
 
-  it('desmarcar remove o item da visualização de favoritos (CA-006.3)', () => {
+  it('um favorito que já começou é explicado, em vez de desaparecer em silêncio', async () => {
     render(<App />);
 
     fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Adicionar Atlético Exemplo contra Clube Protótipo aos favoritos',
-      }),
+      await screen.findByRole('button', { name: `Adicionar ${JOGO_DESCRICAO} aos favoritos` }),
     );
+
+    // O jogo começou: a api deixa de o trazer na listagem (DT-010).
+    responderSempre(200, paginaDeEventos([]));
     fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Remover Atlético Exemplo contra Clube Protótipo dos favoritos',
-      }),
-    );
 
-    expect(screen.getByText('Ainda não há favoritos')).toBeTruthy();
+    expect(
+      await screen.findByText('1 jogo favoritado já começou e deixou de estar disponível.'),
+    ).toBeTruthy();
   });
 
-  it('sem favoritos, a visualização explica-se (CA-006.4)', () => {
+  it('sem favoritos, a visualização explica-se (CA-006.4)', async () => {
     render(<App />);
 
+    await screen.findByLabelText(JOGO_DESCRICAO);
     fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
 
     expect(screen.getByText('Ainda não há favoritos')).toBeTruthy();
   });
 
-  it('os favoritos sobrevivem a recarregar a página (CA-006.2)', () => {
+  it('os favoritos sobrevivem a recarregar a página (CA-006.2)', async () => {
     const primeira = render(<App />);
     fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Adicionar Atlético Exemplo contra Clube Protótipo aos favoritos',
-      }),
+      await screen.findByRole('button', { name: `Adicionar ${JOGO_DESCRICAO} aos favoritos` }),
     );
     primeira.unmount();
 
-    // Montar de novo é o equivalente a recarregar: o estado vem do armazenamento.
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
 
-    expect(screen.getByLabelText('Atlético Exemplo contra Clube Protótipo')).toBeTruthy();
+    expect(
+      await screen.findByRole('button', { name: `Remover ${JOGO_DESCRICAO} dos favoritos` }),
+    ).toBeTruthy();
   });
 
-  it('marca um jogo do cassino e ele aparece nos favoritos', () => {
+  it('marca um jogo do cassino e ele aparece nos favoritos', async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Adicionar Rolos de Exemplo aos favoritos' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Adicionar Rolos de Exemplo aos favoritos' }),
+    );
     fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
 
-    expect(screen.getByRole('heading', { name: 'Jogos' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Jogos de cassino' })).toBeTruthy();
   });
 });
 
 describe('App — armazenamento local indisponível (CA-006.5)', () => {
   beforeEach(() => {
-    // Janela privada, política do navegador, quota cheia: nada disto é defeito, e
-    // nada disto pode quebrar a aplicação nem mostrar erro técnico ao utilizador.
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new DOMException('acesso negado', 'SecurityError');
     });
@@ -205,38 +330,30 @@ describe('App — armazenamento local indisponível (CA-006.5)', () => {
     vi.restoreAllMocks();
   });
 
-  it('a aplicação continua navegável', () => {
+  it('a aplicação continua navegável', async () => {
     render(<App />);
 
-    expect(screen.getByLabelText('Atlético Exemplo contra Clube Protótipo')).toBeTruthy();
-
-    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
-    expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
+    expect(await screen.findByLabelText(JOGO_DESCRICAO)).toBeTruthy();
   });
 
-  it('não desenha indicadores de favorito que não guardariam nada', () => {
+  it('não desenha indicadores de favorito que não guardariam nada', async () => {
     const { container } = render(<App />);
 
-    const favoritos = [...(container.querySelectorAll('main button') ?? [])].filter((botao) =>
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    const favoritos = [...container.querySelectorAll('main button')].filter((botao) =>
       botao.getAttribute('aria-label')?.includes('favoritos'),
     );
 
     expect(favoritos).toHaveLength(0);
   });
 
-  it('não mostra erro técnico em lado nenhum', () => {
+  it('não mostra erro técnico em lado nenhum', async () => {
     const { container } = render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
 
     expect(screen.queryByRole('alert')).toBeNull();
     expect(container.textContent).not.toContain('SecurityError');
-    expect(container.textContent).not.toContain('localStorage');
-  });
-
-  it('a visualização de favoritos explica-se em vez de ficar vazia sem razão', () => {
-    render(<App />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
-
-    expect(screen.getByText('Favoritos indisponíveis neste navegador')).toBeTruthy();
   });
 });

@@ -1,19 +1,24 @@
 /*
  * Formatacao de data e hora de evento -- ponto unico, pela mesma razao de odd.ts.
  *
- * O fuso horario NAO e forcado: usa-se o do dispositivo, que e o que o utilizador
- * espera ver. Quando o provedor esportivo existir (BLQ-001) e devolver instantes em
- * UTC, continua a ser este o unico lugar que decide a apresentacao.
+ * A ENTRADA e o texto do contrato: ISO 8601 em UTC com `Z` (PC-005). A conversao para
+ * a hora local acontece aqui e so aqui, que e o que o contrato manda.
+ *
+ * O fuso NAO e forcado: usa-se o do dispositivo, que e o que o utilizador espera ver.
  */
 
-/**
- * Hora curta, 24 horas: `19:45`.
- *
- * Instante invalido devolve cadeia vazia, para que o componente decida o que mostrar
- * em vez de imprimir "Invalid Date" na tela.
- */
-export function formatarHora(instante: Date): string {
-  if (Number.isNaN(instante.getTime())) {
+/** Converte o texto do contrato num instante, ou `null` se nao for legivel. */
+function instanteDe(iso: string): Date | null {
+  const instante = new Date(iso);
+
+  return Number.isNaN(instante.getTime()) ? null : instante;
+}
+
+/** Hora curta, 24 horas: `19:45`. Texto invalido devolve cadeia vazia. */
+export function formatarHora(iso: string): string {
+  const instante = instanteDe(iso);
+
+  if (instante === null) {
     return '';
   }
 
@@ -24,9 +29,11 @@ export function formatarHora(instante: Date): string {
   }).format(instante);
 }
 
-/** Dia e mes curtos: `03/11`. Mesma regra para instante invalido. */
-export function formatarDiaMes(instante: Date): string {
-  if (Number.isNaN(instante.getTime())) {
+/** Dia e mes curtos: `03/11`. Mesma regra para texto invalido. */
+export function formatarDiaMes(iso: string): string {
+  const instante = instanteDe(iso);
+
+  if (instante === null) {
     return '';
   }
 
@@ -37,8 +44,10 @@ export function formatarDiaMes(instante: Date): string {
 }
 
 /** Forma longa e legivel, para o nome acessivel do cartao de evento. */
-export function descreverInstante(instante: Date): string {
-  if (Number.isNaN(instante.getTime())) {
+export function descreverInstante(iso: string): string {
+  const instante = instanteDe(iso);
+
+  if (instante === null) {
     return 'data indisponível';
   }
 

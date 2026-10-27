@@ -37,7 +37,7 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com esportes, cassino, busca e favoritos a correr, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. Sem rede: os dados são demonstrativos |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com esportes e busca **ligados às rotas reais** da api, mais cassino e favoritos, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. O cassino continua demonstrativo |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
@@ -196,21 +196,63 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, favoritos locais)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-014 fechada do lado do `frontend`)
 
 ### Situação
 
-**T-016 em andamento, terceira entrega: favoritos locais (RF-006).** A `main` com o modelo esportivo está integrada (merge `0f52812`) e os quatro ajustes da minha revisão foram aceites pelo `backend` em `247706d`. `apps/web/` tem agora esportes, cassino, busca e favoritos.
+**T-014 fechada do lado do `frontend`: a interface consome as rotas reais.** `apps/web` deixou de ter tipos próprios de evento — `SportEvent`, `Competition` e `Origin` vêm de `@blbet/contracts`, e os esquemas Zod validam cada resposta. Esportes e busca falam com `/api/events` pelo proxy do Vite; o cassino e os favoritos de cassino continuam demonstrativos.
 
-- **Arquivos modificados:** `apps/web/src/shared/favoritos/` e `apps/web/src/modules/favoritos/` (novos), `IndicadorFavorito`, os dois cartões, `App.tsx`, `src/test/render.tsx` e os testes afetados
-- **Contratos ou interfaces alterados:** nenhum. Favoritos são locais por requisito (RN-005)
-- **Pendências para o agente `backend`:** nenhuma nova; continua a conferência do `pnpm-lock.yaml` e a nota da renumeração para **DT-011**
-- **Pendências para o Pedro:** integrar na `main` os commits do `frontend`; **DIV-001**; registar a decisão de tema como DT-011
+- **Arquivos modificados:** `apps/web/src/shared/api/` (novo), `ValorDeDado`, `FaixaDemonstrativa`, `dataHora`, todo o `modules/esportes/`, `ListaFavoritos`, `App` e os ficheiros de teste. Apagados: `modules/esportes/tipos.ts` e `dadosDemonstrativos.ts`
+- **Contratos ou interfaces alterados:** nenhum
+- **Atenção, para o `backend`:** uma resposta `200` que não obedece ao contrato é tratada como falha e **não** é exibida; um corpo de erro sem o envelope acordado não recebe código inventado. A busca é adiada 350 ms por causa do limite de 150 pedidos/dia
+- **Atenção, para o Pedro:** a faixa permanente **deixou de dizer** que todos os valores são fictícios, porque as cotações passaram a vir de uma fonte real e a frase era falsa. Isto toca a RN-002 e é matéria da **DIV-001**, que continua por decidir
+- **Pendências para o agente `backend`:** nenhuma nova
+- **Pendências para o Pedro:** DIV-001; registar a decisão de tema como **DT-011**; integrar na `main` os commits do `frontend`
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **77 testes em 10 ficheiros**, todos passam; build passa (235.68 kB de JS, 15.19 kB de CSS). No navegador: favorito marcado, página recarregada, favorito preservado (CA-006.2 verificada a sério); zero erros na consola num separador limpo
-- **Próxima ação recomendada:** ligar a interface às rotas da T-014 quando a T-015 as entregar, ou o perfil demonstrativo (RF-007)
+- **Testes executados e resultados:** typecheck passa; **93 testes em 10 ficheiros**, todos passam; build passa (326.09 kB de JS, 99.43 kB gzip — subiu, o `zod` entra no pacote do navegador). Ponta a ponta contra a api real sem chave: `503 UPSTREAM_UNAVAILABLE` tratado, com mensagem compreensível, botão de repetir a funcionar e zero detalhe técnico na tela
+- **Não verificado:** o caminho de **sucesso com dados reais** — não tenho a chave do provedor e não copio segredos entre worktrees. Quem a tiver deve correr `pnpm dev:api` e abrir a interface
+- **Próxima ação recomendada:** confirmar o caminho de sucesso com a chave; depois RF-007 ou paginação por cursor
 
 ### Histórico
+
+### 2026-10-27 — T-014 fechada do lado do `frontend`: interface ligada às rotas reais
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-014 (migração e ligação, fecha o lado do `frontend`); T-016 (quinta entrega)
+- **Arquivos modificados:** `apps/web/src/shared/api/` (criado: `cliente.ts`, `erros.ts`, `esportes.ts`, `useRecurso.ts`, `useTermoAdiado.ts`, `cliente.test.ts`), `apps/web/src/shared/componentes/ValorDeDado.tsx` (criado), `apps/web/src/shared/componentes/FaixaDemonstrativa.tsx`, `apps/web/src/shared/formato/dataHora.ts` e `dataHora.test.ts`, `apps/web/src/modules/esportes/` (`CartaoEvento.tsx`, `LinhaMercado.tsx`, `ListaEventos.tsx`, `mercados.ts` novo; `tipos.ts`, `dadosDemonstrativos.ts` e `LinhaMercado.test.tsx` **apagados**), `apps/web/src/modules/favoritos/ListaFavoritos.tsx` e `.module.css`, `apps/web/src/app/App.tsx` e `App.test.tsx`, `apps/web/src/test/` (`fixtures.ts`, `servidorFalso.ts` novos)
+- **Contratos ou interfaces alterados:** **nenhum.** `packages/contracts/`, `apps/api/` e `docs/api-contract.md` intocados
+- **`main` integrada:** `git merge origin/main` trazendo `2be2afb` (merge `09268ed`). Conflito só na tabela de resumo de `agent-tasks.md`, resolvido somando os dois lados: T-015 do `backend`, T-016 do `frontend`, nenhuma bloqueada
+
+**A migração está feita.** `apps/web` deixou de ter tipos próprios de evento: `SportEvent`, `Competition`, `EventMarkets` e `Origin` vêm todos de `@blbet/contracts`. `modules/esportes/tipos.ts` e `dadosDemonstrativos.ts` foram **apagados** — não ficaram a apodrecer ao lado do código novo. Os esquemas Zod do pacote validam cada resposta antes de ela chegar a um componente.
+
+**Como a interface fala com a api:** um só módulo (`shared/api/cliente.ts`); nenhum componente chama `fetch`. Caminhos relativos `/api/...` pelo proxy do Vite, como a T-013 acordou — confirmado no navegador, `GET /api/events?limit=30` passa para a api. O cliente **nunca lança**: devolve um resultado discriminado, porque uma exceção a atravessar a árvore transformaria a api em baixo num ecrã branco, que é o que RF-008 proíbe.
+
+**Os três pontos que o Pedro assinalou, e o que cada um exigiu:**
+
+1. **Só existe `scheduled` e os jogos começados desaparecem.** A etiqueta de situação lê o valor do contrato e, se vier um valor que não conheço, mostra-o como veio em vez de quebrar (PC-014). O caso difícil foi nos **favoritos**: um jogo favoritado que começa deixa de vir na listagem e desapareceria em silêncio da visualização. Agora conta-se a diferença e diz-se ao utilizador — "1 jogo favoritado já começou e deixou de estar disponível". Os eventos favoritados são cruzados com a listagem em vez de pedidos um a um: com 150 pedidos/dia (DT-009), um pedido por favorito seria desperdício.
+2. **Jogos distantes vêm com `matchResult: null` e `totalGoals: []`.** Um evento sem mercados **não** mostra secção vazia, que pareceria defeito: mostra "Ainda não há cotações publicadas para este jogo". Uma odd `null` dentro de um mercado existente mostra "—", nunca um espaço em branco. As linhas de `totalGoals` são **ordenadas por valor** antes de exibidas: o contrato não garante ordem, e uma lista que muda de ordem entre pedidos é mais difícil de ler.
+3. **Erros no formato acordado.** `retryable` vem do servidor e é ele que decide se aparece "Tentar novamente" — não há lista de códigos repetíveis escrita do meu lado, por isso um código novo com o seu `retryable` funciona sem eu mudar nada. O `issue` `event_started` (T14-A1) tem texto próprio: "Este jogo já começou e deixou de estar disponível", em vez do "não encontrámos" que seria enganador. `error.message` **nunca** chega à tela (DIV-F01), e há teste que o verifica palavra a palavra.
+
+**Dois pontos que decidi e que convém o `backend` saber:**
+
+- **Uma resposta `200` que não obedece ao contrato é tratada como falha**, não exibida. Dar por boa uma resposta que o contrato não permite é pior do que dizer que não se conseguiu ler. O mesmo para um corpo de erro sem o envelope acordado: não invento um código.
+- **A busca é adiada em 350 ms.** Não é polimento: com 150 pedidos/dia, um pedido por tecla esgota o plano numa tarde. Verificado no navegador — sete teclas de "arsenal" deram **um** pedido, `?q=arsenal&limit=30`.
+
+**A faixa permanente mudou de texto, e isto precisa de decisão.** Dizia "Todos os valores exibidos são fictícios". Com as cotações a virem de uma fonte externa real, isso passou a ser **falso**, e uma declaração falsa é pior do que declaração nenhuma — contraria o princípio P5 do design-system, sinal honesto. Passou a dizer que não há apostas, depósitos, saques nem pagamentos (o que continua rigorosamente verdadeiro), que as cotações vêm de fonte externa e são informativas, e que o cassino e os restantes valores são fictícios. **Isto toca a RN-002** ("todo dado é fictício"), que o `requisitos.md` ainda afirma e que deixou de descrever o produto. **É matéria da DIV-001 e da decisão do Pedro**; o texto atual é o mais honesto que consigo escrever sem decidir por ele.
+
+- **Marcação de procedência:** continua a opção A — marca-se só o fictício. O componente que decide é um só (`ValorDeDado`), por isso a opção B entra num sítio e nenhum componente que o usa precisa de mudar.
+- **Pendências para o agente `backend`:** nenhuma nova. A T-014 fica fechada do meu lado: a proposta foi revista, os quatro ajustes foram aceites e a interface consome o modelo
+- **Pendências para o Pedro:** **DIV-001** (agora com consequência visível, ver acima); registar a decisão de tema como **DT-011**; integrar na `main` os commits do `frontend`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **93 testes em 10 ficheiros, todos passam** (eram 77). Os exemplos de resposta são validados pelos esquemas do contrato no momento em que são construídos: se o modelo mudar, os testes denunciam-no em vez de verificarem uma forma que já não existe
+  - `pnpm --filter @blbet/web build` → **passa**; 326.09 kB de JS (99.43 kB gzip) e 15.53 kB de CSS (3.39 kB gzip). **Cresceu** de 73.59 para 99.43 kB gzip: o `zod` entra agora no pacote do navegador, por causa dos esquemas que validam as respostas. Está dentro do orçamento, mas é um custo a ter presente
+  - **Ponta a ponta, no navegador, contra a api a correr:** criei um `apps/api/.env` local **sem chave** (ignorado pelo git, ver `.gitignore:7`) e arranquei a api. `GET /api/events` devolveu `503 UPSTREAM_UNAVAILABLE` com `retryable: true`, e a interface mostrou "Os dados esportivos estão indisponíveis neste momento" com "Tentar novamente", que emitiu novo pedido. Nenhum de `503`, `UPSTREAM_UNAVAILABLE`, `not configured` ou `provider` aparece na tela — verificado por leitura do texto da página
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **O que NÃO foi verificado, e é a limitação desta entrega:** o caminho de **sucesso com dados reais**. Não tenho a chave do provedor — ela está no `.env` da worktree do `backend` e não copio segredos entre worktrees. O caminho está coberto por testes com respostas validadas pelo contrato, mas **ninguém viu ainda um jogo real da EPL na tela**. Quem tiver a chave deve correr `pnpm dev:api` e abrir a interface: é um passo de minutos e fecha a dúvida
+- **Deixei a api a correr** na porta 3333 a partir desta worktree, sem chave. Pode ser parada sem consequência
+- **Próxima ação recomendada:** alguém com a chave confirma o caminho de sucesso; o Pedro decide a DIV-001; depois, perfil demonstrativo (RF-007) ou paginação por cursor, que o contrato já suporta e a interface ainda não usa
 
 ### 2026-10-27 — T-016: indicador de favorito e favoritos locais (RF-006)
 

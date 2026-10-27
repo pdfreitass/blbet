@@ -1,25 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
+import { obterEventos } from '../shared/api/esportes';
+import { useRecurso } from '../shared/api/useRecurso';
+import { useTermoAdiado } from '../shared/api/useTermoAdiado';
 import { CampoBusca } from '../shared/componentes/CampoBusca';
-import { NadaCadastrado, NadaEncontrado } from '../shared/componentes/Estados';
+import {
+  EsqueletoLista,
+  EstadoErro,
+  NadaCadastrado,
+  NadaEncontrado,
+} from '../shared/componentes/Estados';
 import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { NavegacaoPrincipal, type IdDestino } from '../shared/componentes/NavegacaoPrincipal';
 import { FavoritosProvider } from '../shared/favoritos/contexto';
-import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
-import { EVENTOS_DEMONSTRATIVOS } from '../modules/esportes/dadosDemonstrativos';
-import { ListaFavoritos } from '../modules/favoritos/ListaFavoritos';
+import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
-import type { EventoDemonstrativo } from '../modules/esportes/tipos';
+import { ListaFavoritos } from '../modules/favoritos/ListaFavoritos';
 import estilos from './App.module.css';
 
-/**
- * Casca da aplicacao: faixa permanente, cabecalho, conteudo do destino ativo e
- * navegacao principal.
- *
- * O destino ativo e estado local porque nao ha roteamento decidido -- ver o comentario
- * de NavegacaoPrincipal. Quando houver, o estado passa a vir da rota e o resto fica.
- */
 export function App() {
   return (
     <FavoritosProvider>
@@ -29,14 +28,15 @@ export function App() {
 }
 
 /**
- * O conteudo, separado do provedor: assim o estado dos favoritos vive acima de tudo o
- * que o consome, incluindo os cartoes dentro das listas.
+ * Casca da aplicacao: faixa permanente, cabecalho, conteudo do destino ativo e
+ * navegacao principal.
+ *
+ * O destino ativo e estado local porque nao ha roteamento decidido. Quando houver,
+ * passa a vir da rota e o resto fica.
  */
 function Aplicacao() {
   const [destino, setDestino] = useState<IdDestino>('esportes');
   const [termo, setTermo] = useState('');
-
-  const encontrados = useMemo(() => filtrarEventos(EVENTOS_DEMONSTRATIVOS, termo), [termo]);
 
   return (
     <div className={estilos.aplicacao}>
@@ -45,41 +45,10 @@ function Aplicacao() {
         <span className={estilos.marca}>blbet</span>
         <span className={estilos.subtitulo}>protótipo demonstrativo</span>
       </header>
-      {/* A navegacao vem ANTES do <main> no DOM: e a ordem que o leitor de tela
-          percorre, e `position: sticky` so prende ao topo um elemento que ja esta no
-          topo do fluxo. Abaixo de 600px ela e `fixed` no fundo, onde a posicao no
-          DOM nao conta. */}
       <NavegacaoPrincipal destinoAtivo={destino} onNavegar={setDestino} />
       <main className={estilos.conteudo}>
-        {destino === 'esportes' ? (
-          <>
-            <h1 className={estilos.titulo}>Esportes</h1>
-            <ListaEventos eventos={EVENTOS_DEMONSTRATIVOS} />
-            <p className={estilos.rodapeBloco}>
-              Conjunto demonstrativo: participantes, competições, datas e cotações são
-              fictícios e não correspondem a eventos reais.
-            </p>
-          </>
-        ) : null}
-
-        {destino === 'busca' ? (
-          <>
-            <h1 className={estilos.titulo}>Busca</h1>
-            <CampoBusca termo={termo} onAlterar={setTermo} contagem={encontrados.length} />
-            {termo.length > 0 && encontrados.length === 0 ? (
-              <NadaEncontrado
-                criterio={`“${termo}”`}
-                // Nome diferente do "Limpar a busca" do campo, de proposito: dois
-                // controles com o mesmo nome acessivel na mesma tela sao
-                // indistinguiveis para quem navega por lista de botoes.
-                rotuloLimpar="Ver todos os eventos"
-                onLimpar={() => setTermo('')}
-              />
-            ) : (
-              <ListaEventos eventos={termo.length > 0 ? encontrados : EVENTOS_DEMONSTRATIVOS} />
-            )}
-          </>
-        ) : null}
+        {destino === 'esportes' ? <Esportes /> : null}
+        {destino === 'busca' ? <Busca termo={termo} onAlterar={setTermo} /> : null}
 
         {destino === 'cassino' ? (
           <>
@@ -91,7 +60,7 @@ function Aplicacao() {
         {destino === 'favoritos' ? (
           <>
             <h1 className={estilos.titulo}>Favoritos</h1>
-            <ListaFavoritos eventos={EVENTOS_DEMONSTRATIVOS} jogos={JOGOS_DEMONSTRATIVOS} />
+            <ListaFavoritos jogos={JOGOS_DEMONSTRATIVOS} />
           </>
         ) : null}
 
@@ -106,23 +75,88 @@ function Aplicacao() {
   );
 }
 
-/**
- * Filtra por participante, competicao ou esporte. Sem acentuacao normalizada de
- * proposito nesta etapa: o escopo da busca e PD-003, aberto, e nao decido por omissao
- * o que conta como correspondencia.
- */
-function filtrarEventos(
-  eventos: readonly EventoDemonstrativo[],
-  termo: string,
-): readonly EventoDemonstrativo[] {
-  const procurado = termo.trim().toLocaleLowerCase('pt-BR');
+/** Quantos eventos pedir de uma vez. Abaixo do maximo de 100 do contrato (PC-008). */
+const EVENTOS_POR_PAGINA = 30;
 
-  if (procurado.length === 0) {
-    return eventos;
-  }
+function Esportes() {
+  const carregar = useCallback(
+    (opcoes: { signal: AbortSignal }) => obterEventos({ limit: EVENTOS_POR_PAGINA }, opcoes),
+    [],
+  );
+  const { carregando, dados, falha, repetir } = useRecurso(carregar, []);
 
-  return eventos.filter((evento) => {
-    const campos = [evento.esporte, evento.competicao, ...evento.participantes];
-    return campos.some((campo) => campo.toLocaleLowerCase('pt-BR').includes(procurado));
-  });
+  return (
+    <>
+      <h1 className={estilos.titulo}>Esportes</h1>
+      {carregando ? <EsqueletoLista descricao="os jogos" linhas={4} /> : null}
+
+      {!carregando && falha !== null ? (
+        <EstadoErro mensagem={falha.mensagem} {...(repetir === null ? {} : { onTentarNovamente: repetir })} />
+      ) : null}
+
+      {!carregando && falha === null && dados !== null ? (
+        dados.data.length === 0 ? (
+          // Sem busca aplicada: o conjunto esta mesmo vazio (CA-008.3). Acontece
+          // quando a fonte nao tem jogos futuros nas competicoes disponiveis.
+          <NadaCadastrado conjunto="jogos" />
+        ) : (
+          <>
+            <ListaEventos eventos={dados.data} />
+            <p className={estilos.rodapeBloco}>
+              Cotações meramente informativas, de uma fonte externa. Não há apostas: nada
+              aqui pode ser jogado nem pago.
+            </p>
+          </>
+        )
+      ) : null}
+    </>
+  );
+}
+
+interface BuscaProps {
+  termo: string;
+  onAlterar: (termo: string) => void;
+}
+
+function Busca({ termo, onAlterar }: BuscaProps) {
+  // O termo que chega a api e o adiado; o campo responde a cada tecla.
+  const procurado = useTermoAdiado(termo).trim();
+
+  const carregar = useCallback(
+    (opcoes: { signal: AbortSignal }) =>
+      obterEventos({ q: procurado, limit: EVENTOS_POR_PAGINA }, opcoes),
+    [procurado],
+  );
+  const { carregando, dados, falha, repetir } = useRecurso(carregar, [procurado]);
+
+  const encontrados = dados?.data ?? [];
+
+  return (
+    <>
+      <h1 className={estilos.titulo}>Busca</h1>
+      <CampoBusca termo={termo} onAlterar={onAlterar} contagem={encontrados.length} />
+
+      {carregando ? <EsqueletoLista descricao="os resultados" linhas={3} /> : null}
+
+      {!carregando && falha !== null ? (
+        <EstadoErro mensagem={falha.mensagem} {...(repetir === null ? {} : { onTentarNovamente: repetir })} />
+      ) : null}
+
+      {!carregando && falha === null ? (
+        encontrados.length === 0 && procurado !== '' ? (
+          // Termo bem formado sem correspondencia: `200` com lista vazia (regra A7),
+          // e nao erro.
+          <NadaEncontrado
+            criterio={`“${procurado}”`}
+            rotuloLimpar="Ver todos os jogos"
+            onLimpar={() => onAlterar('')}
+          />
+        ) : encontrados.length === 0 ? (
+          <NadaCadastrado conjunto="jogos" />
+        ) : (
+          <ListaEventos eventos={encontrados} />
+        )
+      ) : null}
+    </>
+  );
 }

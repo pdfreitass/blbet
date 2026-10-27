@@ -1,9 +1,20 @@
 import estilos from './FaixaDemonstrativa.module.css';
 
 /**
- * Declaracao permanente do carater demonstrativo da plataforma (CA-001.4, RN-001,
- * RN-002). Sem botao de fechar, de proposito: o utilizador nao pode dispensar a
- * informacao de que nada aqui e real.
+ * Declaracao permanente da natureza da plataforma (CA-001.4, RN-001). Sem botao de
+ * fechar, de proposito: o utilizador nao pode dispensar esta informacao.
+ *
+ * O TEXTO MUDOU em 2026-10-27, com a entrada dos dados reais da T-015. Antes dizia que
+ * "todos os valores exibidos sao ficticios", o que deixou de ser verdade: as cotacoes
+ * esportivas vêm agora de uma fonte externa real (DT-002, DT-009). Uma faixa que
+ * afirma algo falso e pior do que faixa nenhuma, e contraria o principio P5 do
+ * design-system -- sinal honesto.
+ *
+ * O que continua rigorosamente verdadeiro, e e o que importa: nao ha apostas,
+ * depositos, saques nem pagamentos (RN-001, RN-003, RN-004).
+ *
+ * A forma de distinguir dado real de ficticio item a item depende da **DIV-001**, que
+ * continua por decidir; ate la vale a opcao A -- marca-se so o ficticio.
  */
 export function FaixaDemonstrativa() {
   return (
@@ -13,8 +24,9 @@ export function FaixaDemonstrativa() {
       </span>
       <p>
         <span className={estilos.destaque}>Plataforma demonstrativa.</span>{' '}
-        Não há apostas, depósitos, saques nem pagamentos. Todos os valores exibidos são
-        fictícios e servem apenas para demonstrar a interface.
+        Não há apostas, depósitos, saques nem pagamentos. As cotações esportivas vêm de
+        uma fonte externa e são meramente informativas; o cassino e os restantes valores
+        são fictícios.
       </p>
     </aside>
   );

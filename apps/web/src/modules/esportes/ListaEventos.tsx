@@ -1,31 +1,27 @@
-import { NadaCadastrado } from '../../shared/componentes/Estados';
+import type { SportEvent } from '@blbet/contracts';
+
 import { CartaoEvento } from './CartaoEvento';
 import estilos from './ListaEventos.module.css';
-import type { EventoDemonstrativo } from './tipos';
 
 interface ListaEventosProps {
-  eventos: readonly EventoDemonstrativo[];
+  eventos: readonly SportEvent[];
 }
 
 /**
- * Lista de eventos agrupada por competicao (CA-002.1). O rodape identifica a origem
- * demonstrativa do conjunto, para que a marcacao nao se repita em cada celula
- * (design-system 6.2).
+ * Lista de eventos agrupada por competicao (CA-002.1).
+ *
+ * O agrupamento e so sobre o que esta nesta pagina: com paginacao por cursor, um grupo
+ * pode ficar cortado entre paginas (DIV-F02), e por isso nao se mostra contagem por
+ * grupo, que seria enganadora.
+ *
+ * Esta lista nao trata o caso vazio: quem chama sabe se foi uma busca sem resultados
+ * ou um conjunto vazio, e CA-008.3 exige que os dois sejam textualmente distintos.
  */
 export function ListaEventos({ eventos }: ListaEventosProps) {
-  if (eventos.length === 0) {
-    return <NadaCadastrado conjunto="eventos" />;
-  }
-
-  const porCompeticao = agruparPorCompeticao(eventos);
-
   return (
     <>
-      {porCompeticao.map(([competicao, daCompeticao]) => (
+      {agruparPorCompeticao(eventos).map(([competicao, daCompeticao]) => (
         <section key={competicao} aria-labelledby={idDoGrupo(competicao)}>
-          {/* O titulo do grupo e VISIVEL: com ele oculto, a competicao tinha de se
-              repetir em cada cartao para o utilizador vidente a ver, e passava a
-              aparecer duas vezes na arvore de acessibilidade. */}
           <h3 className={estilos.competicao} id={idDoGrupo(competicao)}>
             {competicao}
           </h3>
@@ -38,25 +34,23 @@ export function ListaEventos({ eventos }: ListaEventosProps) {
   );
 }
 
-/** Identificador estavel do titulo do grupo, para o `aria-labelledby` da secao. */
+/** Identificador estavel do titulo do grupo, para o `aria-labelledby` da seccao. */
 function idDoGrupo(competicao: string): string {
   return `competicao-${competicao.replace(/\s+/g, '-').toLocaleLowerCase('pt-BR')}`;
 }
 
 /**
- * Agrupa preservando a ordem de primeira aparicao da competicao -- a ordem da origem,
- * sem reordenar por nome, que mudaria o significado da lista.
+ * Agrupa preservando a ordem de primeira aparicao da competicao -- a ordem da api, que
+ * e por `startsAt` ascendente, sem reordenar por nome.
  */
-function agruparPorCompeticao(
-  eventos: readonly EventoDemonstrativo[],
-): [string, EventoDemonstrativo[]][] {
-  const grupos = new Map<string, EventoDemonstrativo[]>();
+function agruparPorCompeticao(eventos: readonly SportEvent[]): [string, SportEvent[]][] {
+  const grupos = new Map<string, SportEvent[]>();
 
   for (const evento of eventos) {
-    const existente = grupos.get(evento.competicao);
+    const existente = grupos.get(evento.competition.name);
 
     if (existente === undefined) {
-      grupos.set(evento.competicao, [evento]);
+      grupos.set(evento.competition.name, [evento]);
     } else {
       existente.push(evento);
     }
