@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-26 — Proposta de convenções (T-004) e cliente HTTP para provedores
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-004 (proposta, em andamento); preparação da T-015 sem provedor
+- **Arquivos modificados:** `docs/api-contract.md` (nova secção 9, proposta), `apps/api/src/shared/http/fetch-json.ts`, `apps/api/test/fetch-json.test.ts`, `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** **nenhum acordado.** A secção 9 do contrato é uma proposta; nada em `packages/contracts/` e nenhuma rota a usa
+- **Pendências para o outro agente:** ver o ponto 8 da secção de integração
+- **Bloqueios:** BLQ-001 para o modelo esportivo e o adaptador; PC-006 e PC-010 dependem também de PD-007 e DIV-001
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → 4 ficheiros, 15 testes a passar · `pnpm build` → ok
+- **Próxima ação recomendada:** esperar pela revisão do `frontend` à secção 9; depois de acordada, implementar os esquemas do envelope e dos erros em `packages/contracts/` e ligá-los ao tratamento de erros da api
+
 ### 2026-10-26 — Mudança para fora do OneDrive, worktrees e fundação do backend
 
 - **Agente responsável:** backend
@@ -131,12 +142,17 @@ Sem registros.
 ### Pendências para o agente `frontend` — registadas pelo `backend` em 2026-10-26 (fundação)
 
 4. **O `frontend` pode começar a primeira entrega visual (T-005, T-016)** na sua worktree `C:\Users\pedro\blbet-frontend`, branch `feat/frontend-foundation`. É dono exclusivo de `apps/web/`.
-5. **A raiz do monorepo ainda não está na branch do `frontend`.** Vive em `feat/backend-foundation` até o Pedro a integrar na `main`. Para não criar um segundo lockfile nem uma segunda configuração da raiz:
+5. ~~**A raiz do monorepo ainda não está na branch do `frontend`.**~~ **Resolvido em 2026-10-26:** a fundação está na `main` (`6a4ebd3`) e a branch do `frontend` já a recebeu. Registo original: Para não criar um segundo lockfile nem uma segunda configuração da raiz:
    - antes de correr `pnpm install`, esperar que o Pedro integre a fundação na `main` e trazer a `main` para a própria branch (merge, nunca rebase);
    - até lá, o trabalho que não dependa de dependências instaladas (T-005, `docs/design-system.md`) pode avançar.
 6. **Ficheiros partilhados da raiz:** `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `tsconfig.base.json`, `.gitignore`, `.gitattributes`. Mudanças são anunciadas aqui **antes**. Instalar dependências em `apps/web` altera o `pnpm-lock.yaml`; um conflito nele resolve-se com aprovação do Pedro (DT-004). Aprovar scripts de instalação (`allowBuilds`) também é uma alteração partilhada.
 7. **Contrato:** `packages/contracts` existe e está vazio de propósito. Não há rotas de domínio nem formato de envelope (PC-001 a PC-015 abertas). A interface usa dados demonstrativos identificados, sem forma de resposta presumida do backend.
-8. **Base de `apps/web/tsconfig`:** pode estender `../../tsconfig.base.json`, que é pensado para Node (`module: NodeNext`, `lib: ES2023`). O `frontend` sobrepõe no seu próprio tsconfig o que o Vite e o DOM exigem, sem alterar a base.
+8. **Revisão cruzada da proposta de convenções (T-004, DT-005)** — ler a secção 9 de [`docs/api-contract.md`](api-contract.md) e registar aqui, para cada PC, se concordas ou o que muda e porquê. Perguntas diretas:
+   - **PC-014:** a interface tolera um valor enumerado desconhecido?
+   - **Comunicação local:** aceitas configurar no Vite o encaminhamento de `/api` para `http://127.0.0.1:3333`, em vez de CORS na api?
+
+   Até haver acordo, a interface continua com dados demonstrativos e não depende destas formas.
+9. **Base de `apps/web/tsconfig`:** pode estender `../../tsconfig.base.json`, que é pensado para Node (`module: NodeNext`, `lib: ES2023`). O `frontend` sobrepõe no seu próprio tsconfig o que o Vite e o DOM exigem, sem alterar a base.
 
 ### Divergências técnicas abertas
 

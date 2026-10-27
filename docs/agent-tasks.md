@@ -22,8 +22,8 @@
 | Status | Quantidade | Tarefas |
 |---|---|---|
 | Concluída | 4 | T-001, T-002, T-011, T-012 |
-| Em andamento | 4 | T-003, T-007, T-008, T-013 |
-| Não iniciada | 6 | T-004, T-005, T-006, T-009, T-010, T-016 |
+| Em andamento | 5 | T-003, T-004, T-007, T-008, T-013 |
+| Não iniciada | 5 | T-005, T-006, T-009, T-010, T-016 |
 | Bloqueada | 2 | T-014, T-015 |
 
 **Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
@@ -59,7 +59,7 @@
 - **Descrição:** completar as convenções `PC-xxx` de [`docs/api-contract.md`](api-contract.md) — identificador, data e hora, decimais, paginação, erro — sem definir rotas.
 - **Responsável:** `backend`
 - **Dependências:** T-001 (concluída). A PC-006 (odds) depende também da T-010.
-- **Status:** **não iniciada**
+- **Status:** **em andamento** — proposta do `backend` na secção 9 de `docs/api-contract.md` (2026-10-26); **aguarda a revisão do `frontend`** (ponto 8 do quadro)
 - **Critérios de conclusão:** todas as `PC-xxx` de convenção resolvidas ou explicitamente aceites como abertas; o `frontend` registou no quadro a revisão cruzada (DT-005); nenhuma rota definida.
 
 ### T-005 — Criar `docs/design-system.md`
