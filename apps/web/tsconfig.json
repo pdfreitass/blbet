@@ -1,0 +1,33 @@
+{
+  // Estende a base partilhada (ponto 9 do quadro) e sobrepoe AQUI o que o Vite e o
+  // DOM exigem. A base e pensada para Node (module NodeNext, lib ES2023) e NAO e
+  // alterada: tsconfig.base.json e ficheiro partilhado da raiz.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // O bundler resolve os modulos; o TypeScript so verifica tipos.
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+
+    // DOM, que a base nao inclui.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+
+    // React 19 com a transformacao automatica: nao e preciso importar React no JSX.
+    "jsx": "react-jsx",
+
+    // Resolve @blbet/contracts para o codigo-fonte TypeScript pela condicao
+    // "source" dos seus exports, a mesma que a api usa em dev e em teste.
+    "customConditions": ["source"],
+
+    // Tipos do cliente Vite (import.meta.env, ?url, ?raw).
+    "types": ["vite/client"],
+
+    // Avisos uteis que a base nao liga.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  // vite.config.ts entra aqui para ser verificado. Nao importa modulos de Node,
+  // por isso nao e preciso @types/node nem um segundo tsconfig.
+  "include": ["src", "vite.config.ts"]
+}

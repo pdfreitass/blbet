@@ -1,0 +1,50 @@
+/*
+ * Linha de mercado e odds -- design-system secao 9.3, RF-003, RN-003.
+ * O PONTO MAIS SENSIVEL do sistema.
+ *
+ * Marcacao de lista de descricao, nunca de lista de acoes: nenhum botao, nenhuma
+ * ligacao, nenhum estado de hover, pressionado ou selecionado, e nenhum elemento
+ * desativado que sugira que a selecao seria possivel (CA-003.3). A odd e texto
+ * marcado como dado, e nada mais.
+ */
+
+.mercado {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.nome {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.opcoes {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+.rotulo {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-primary);
+}
+
+.cotacao {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  /* Alinhada a direita em contexto de coluna (principio P1): as odds alinham
+     verticalmente entre linhas e nao deslocam o layout quando mudam. */
+  text-align: right;
+}

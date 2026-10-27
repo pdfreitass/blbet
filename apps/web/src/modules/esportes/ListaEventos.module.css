@@ -1,0 +1,11 @@
+/* Agrupamento por competicao -- CA-002.1. */
+
+.competicao {
+  padding: var(--space-5) var(--space-4) var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}

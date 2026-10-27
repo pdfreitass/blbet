@@ -2,7 +2,7 @@
 
 > Tarefas coordenadas entre os agentes `backend` (terminal) e `frontend` (Desktop). Regras em [`docs/agent-protocol.md`](agent-protocol.md); comunicação em [`docs/agent-handoff.md`](agent-handoff.md); decisões em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md).
 
-**Última atualização:** 2026-10-26 · **Por:** `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
+**Última atualização:** 2026-10-27 · **Por:** `frontend` (T-016 iniciada: `apps/web/` com o primeiro ecrã a correr; parte do `frontend` na T-013 cumprida). Registo anterior: `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
 
 ---
 
@@ -22,11 +22,11 @@
 | Status | Quantidade | Tarefas |
 |---|---|---|
 | Concluída | 7 | T-001, T-002, T-003, T-005, T-008, T-011, T-012 |
-| Em andamento | 3 | T-004, T-007, T-013 |
-| Não iniciada | 4 | T-006, T-009, T-010, T-016 |
+| Em andamento | 4 | T-004, T-007, T-013, T-016 |
+| Não iniciada | 3 | T-006, T-009, T-010 |
 | Bloqueada | 2 | T-014, T-015 |
 
-**Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
+**Ordem crítica:** T-016 (frontend) em andamento; a parte do `frontend` na T-013 está cumprida — falta a conferência do `pnpm-lock.yaml` pelo `backend` e a aprovação do commit pelo Pedro. A T-010 (provedor esportivo) trava a T-014 e a T-015.
 
 ---
 
@@ -149,7 +149,7 @@
 - **Descrição:** criar a raiz do monorepo (manifesto, workspace, configurações base de TypeScript, lint e testes) e o esqueleto vazio de `apps/api/` e `packages/contracts/`. Confirmar as versões e os comandos exatos. Definir a forma de comunicação local entre web e api e a PA-008.
 - **Responsável:** `backend` — raiz, `apps/api/`, `packages/contracts/` · `frontend` — esqueleto de `apps/web/`
 - **Dependências:** **T-011**, **T-012** (concluídas). Os ficheiros da raiz são compartilhados: aviso prévio, um agente de cada vez (seção 2 do protocolo).
-- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. Falta: esqueleto de `apps/web/` (`frontend`); PA-008.
+- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. **Parte do `frontend` cumprida em 2026-10-27**: `apps/web/` existe, instala e corre (typecheck, 41 testes e build a passar). **PA-008 resolvida** — o `pnpm install` correu e alterou o `pnpm-lock.yaml` (+517 linhas, todas de `apps/web`); falta a conferência do diff pelo `backend` antes da integração.
 - **Comunicação local entre web e api: acordada** — 2026-10-26, pelo `frontend`, em resposta à proposta do `backend`: o servidor de desenvolvimento do Vite encaminha `/api` para `http://127.0.0.1:3333`, configurado no `vite.config.ts` do `frontend`, sem CORS na api. Porta confirmada no disco (`apps/api/.env.example`, `apps/api/src/config/env.ts`). Registo na secção de integração do quadro.
 - **Evidência da parte do backend:** `pnpm install` sem erros (pnpm 12.15.0); `pnpm typecheck` passa nos 2 pacotes; `pnpm test` → 3 ficheiros, 7 testes a passar; `pnpm build` passa; servidor em dev respondeu `GET /health` → `200 {"status":"ok"}`; arranque com variáveis inválidas falhou só com os nomes das variáveis. Versões em DT-008.
 - **Critérios de conclusão:** `pnpm install` corre sem erros; os scripts de tipos, lint e testes correm em todos os pacotes, com os resultados reais registados; nenhuma funcionalidade implementada; versões registadas em `docs/decisoes-tecnicas.md`.
@@ -175,5 +175,5 @@
 - **Descrição:** construir os tokens, os componentes-base e as telas em `apps/web/`, usando os contratos aprovados e, enquanto não existirem, dados demonstrativos **claramente identificados como tal**.
 - **Responsável:** `frontend`
 - **Dependências:** a raiz do monorepo da T-013 (pronta na branch do `backend`, ver a seção de integração do quadro); T-005 (`docs/design-system.md`); DP-006 (estilos e componentes)
-- **Status:** **não iniciada** — **o `frontend` pode começar** na sua worktree (`C:\Users\pedro\blbet-frontend`)
+- **Status:** **em andamento** — primeira entrega em 2026-10-27, na worktree `C:\Users\pedro\blbet-frontend`, **por commitar** (aguarda aprovação do Pedro). Entregue: casca da aplicação, faixa demonstrativa permanente (CA-001.4), navegação principal nos dois arranjos (RF-001, CA-001.2), lista de eventos agrupada por competição (CA-002.1), cartão de evento (RF-002), linha de mercado e odds somente leitura (RF-003, RN-003, CA-003.3), campo de busca com filtragem (RF-005), os quatro componentes de estado de RF-008 e o campo tracejado de §6.1 do design-system em todo valor fictício. Dados demonstrativos locais, com clubes e competições inventados; nenhuma chamada de rede e nenhum formato de provedor imitado. **Falta:** cartão de jogo e cassino (RF-004), indicador de favorito (RF-006), tela de detalhe e roteamento
 - **Critérios de conclusão:** definidos pelo `frontend` na Fase 2 e na Fase 3 do roadmap; os dados demonstrativos são substituídos pelos contratos aprovados assim que existirem, sem simular dados do provedor.

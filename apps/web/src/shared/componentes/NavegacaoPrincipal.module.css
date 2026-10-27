@@ -1,0 +1,116 @@
+/*
+ * Navegacao principal -- design-system secao 9.7, RF-001, CA-001.2.
+ * UM conjunto de destinos em DOIS arranjos do mesmo componente, sem duplicacao de
+ * logica (RNF-005): a diferenca e so de layout, nao de marcacao.
+ *
+ * Os breakpoints entram aqui como valores literais: @media nao aceita custom
+ * properties. E a unica excecao a regra 1 da secao 5 do design-system.
+ */
+
+.navegacao {
+  /* < 600px: barra persistente no fundo, sempre ao alcance. */
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1;
+  background-color: var(--color-surface-raised);
+  border-top: 1px solid var(--color-border-subtle);
+  /* Respeita a area segura do dispositivo (secao 9.7). */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.lista {
+  display: flex;
+  margin: 0;
+}
+
+.item {
+  flex: 1;
+}
+
+.destino {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-1);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  cursor: pointer;
+  transition: color var(--duration-quick) var(--ease-standard);
+}
+
+.destino:hover {
+  color: var(--color-text-primary);
+}
+
+.icone {
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+/*
+ * Destino ativo: a MARCA de 2px, e nao so a cor, e o que o identifica (secao 9.7).
+ */
+.destino[aria-current='page'] {
+  color: var(--color-brand);
+}
+
+.destino[aria-current='page']::after {
+  content: '';
+  display: block;
+  width: var(--space-6);
+  height: 2px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-brand);
+}
+
+@media (min-width: 600px) {
+  /* >= 600px: navegacao horizontal no topo. Mesmo componente, outro arranjo. */
+  .navegacao {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 0;
+  }
+
+  .lista {
+    gap: var(--space-2);
+    max-width: var(--layout-max-width);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+  }
+
+  .item {
+    flex: 0 0 auto;
+  }
+
+  .destino {
+    flex-direction: row;
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    position: relative;
+  }
+
+  .icone {
+    font-size: var(--text-md);
+  }
+
+  /* No topo a marca assenta na borda inferior, sobre o divisor. */
+  .destino[aria-current='page']::after {
+    position: absolute;
+    inset-inline: var(--space-2);
+    bottom: 0;
+    width: auto;
+  }
+}

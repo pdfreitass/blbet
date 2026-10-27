@@ -37,12 +37,12 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). Sem lógica de negócio |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com o primeiro ecrã a correr na branch do `frontend` (2026-10-27, **por commitar**). Sem lógica de negócio e sem rede |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
 | **Git** | `main` em `d337f1f` (documentação), sem push |
-| **Tarefas em andamento** | T-003, T-007, T-008, T-013 |
+| **Tarefas em andamento** | T-004, T-007, T-013, T-016 |
 | **Tarefas concluídas** | T-001, T-002, T-011, T-012 |
 
 ---
@@ -101,20 +101,42 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-26 (revisão da T-004)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, primeira entrega de código)
 
 ### Situação
 
-**T-005 aprovada pelo Pedro; revisão cruzada da T-004 entregue.** O Pedro aprovou a direção visual, o tema escuro (DT-009) e a recomendação de estilos (DP-006) em 2026-10-26; a **DIV-001 continua sem escolha entre as opções A e B** de §7 do `design-system.md` e não a decido por omissão. A revisão da proposta de convenções do contrato está registada na secção de integração. Nenhum código escrito ainda.
+**T-016 iniciada e com código a correr.** `apps/web/` deixou de ser esqueleto: tem a casca da aplicação, a navegação principal, a lista de eventos com mercados somente leitura, a busca e os componentes de estado de RF-008, tudo sobre os tokens do `design-system.md`. Verificações reais: typecheck, 41 testes e build passam; verificado no navegador em 375px e em desktop, sem erros na consola.
 
-- **Arquivos modificados:** `docs/design-system.md` (criado), `docs/agent-handoff.md` (esta seção e a de integração), `docs/agent-tasks.md` (status das tarefas do `frontend`)
-- **Contratos ou interfaces alterados:** nenhum. Não editei `docs/api-contract.md` nem `packages/contracts/`: a revisão vai no quadro e quem altera o contrato é o `backend`
-- **Pendências para o agente `backend`:** os ajustes A1 a A8 e as divergências DIV-F01 e DIV-F02 da revisão da T-004, na secção de integração
-- **Bloqueios:** nenhum. O merge da `main` (`fcbe8fd`) está feito, depois de o Pedro aprovar o commit `a5da2e6`; o conflito ficou só no `docs/agent-tasks.md` e foi resolvido sem apagar registo nenhum do `backend`. **DP-001 está aprovada** (DT-001) — a nota anterior desta seção estava errada e fica corrigida. Bloqueios reais: `docs/design-system.md` inexistente (resolvo na T-005); PD-002 (público-alvo) e DIV-001 (dados reais vs. demonstrativos) carregam risco de retrabalho visual; DP-006 (abordagem de estilos) por decidir
-- **Testes executados e resultados:** nenhum executado — não há código de `apps/web/` nem dependências do frontend instaladas
-- **Próxima ação recomendada:** T-016 — esqueleto de `apps/web/`, com aviso prévio ao Pedro **antes** de instalar dependências, porque o `backend` também vai mexer no `pnpm-lock.yaml`. A opção A ou B da DIV-001 continua a faltar
+- **Arquivos modificados:** `apps/web/` (todo o código-fonte e os testes), `apps/web/vite.config.ts`, `.claude/launch.json` (criado), `pnpm-lock.yaml`
+- **Contratos ou interfaces alterados:** nenhum. `apps/api/`, `packages/contracts/` e `docs/api-contract.md` intocados
+- **Pendências para o agente `backend`:** conferir o diff do `pnpm-lock.yaml` antes da integração — o `pnpm install` acrescentou-lhe 517 linhas, todas de `apps/web`
+- **Pendências para o Pedro:** aprovar o commit; **DIV-001** continua por decidir (avancei com a opção A restrita ao dado demonstrativo, como o design-system previa)
+- **Bloqueios:** nenhum para continuar
+- **Testes executados e resultados:** typecheck sem erros; `vitest run` → 41 testes em 6 ficheiros, todos passam; `vite build` → 230.28 kB de JS (72.10 kB gzip) e 11.73 kB de CSS (2.97 kB gzip). Detalhe e o que falhou pelo caminho, no registo de 2026-10-27
+- **Próxima ação recomendada:** cartão de jogo e área de cassino (RF-004), ou indicador de favorito (RF-006)
 
 ### Histórico
+
+### 2026-10-27 — T-016: dependências instaladas e primeiro ecrã de `apps/web/`
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (primeira entrega). T-013 fica cumprida do lado do `frontend`: o esqueleto de `apps/web/` existe e corre
+- **Arquivos modificados:** `apps/web/` inteiro (criado: `src/app/`, `src/shared/componentes/`, `src/shared/formato/`, `src/modules/esportes/`, testes ao lado de cada módulo), `apps/web/vite.config.ts` (corrigido), `.claude/launch.json` (criado), `pnpm-lock.yaml` (**ver pendência abaixo**)
+- **Contratos ou interfaces alterados:** **nenhum.** Não toquei em `apps/api/`, `packages/contracts/` nem `docs/api-contract.md`. Os tipos em `src/modules/esportes/tipos.ts` descrevem **apenas** o conjunto demonstrativo local e estão marcados como tal: não são contrato e são substituídos pelos esquemas Zod aprovados quando existirem
+- **O que foi construído:** casca da aplicação com a faixa demonstrativa permanente (CA-001.4, sem botão de fechar); navegação principal com os cinco destinos de RF-001 nos dois arranjos do mesmo componente (barra no fundo < 600px, topo >= 600px, marca de 2px no ativo); lista de eventos agrupada por competição (CA-002.1); cartão de evento (RF-002); linha de mercado e odds **somente leitura** (RF-003, RN-003); campo de busca (RF-005) com filtragem; os quatro componentes de estado de RF-008 (esqueleto, erro, *nada cadastrado*, *nada encontrado*); campo tracejado de §6.1 do design-system aplicado a **todo** valor fictício; etiqueta de estado de §9.8
+- **Dados:** conjunto demonstrativo local em `src/modules/esportes/dadosDemonstrativos.ts`, com clubes e competições **inventados de propósito** (RN-002). Nenhuma chamada de rede, nenhum formato de provedor imitado (BLQ-001 respeitado)
+- **DIV-001:** implementada a opção A restrita ao dado demonstrativo, como §7 do design-system previu. A variante `real` da etiqueta **não existe** no código — não esboçada, não comentada, não desativada
+- **Dois defeitos corrigidos durante a verificação no navegador**, ambos de acessibilidade: (1) a competição aparecia duas vezes na árvore de acessibilidade — o título do grupo passou a visível e o cartão deixou de a repetir; (2) havia dois controles com o nome acessível "Limpar a busca" na mesma tela — a saída de *nada encontrado* passou a "Ver todos os eventos", e o botão nativo do `input[type=search]`, que desenhava um segundo × sem nome acessível, foi escondido
+- **Pendências para o agente `backend`:** **uma** — o `pnpm install` alterou o `pnpm-lock.yaml` (+517 linhas), ficheiro partilhado. As entradas acrescentadas são todas de `apps/web` (React 19, Vite 8, Vitest 5, Testing Library, jsdom); nada de `apps/api` nem da raiz foi removido ou alterado. **Antes de integrar, o `backend` confere o diff do lock.** Era a PA-008
+- **Bloqueios:** nenhum para continuar. **DIV-001** continua sem decisão do Pedro e **PD-002** (público-alvo) e **PD-003** (escopo da busca) continuam abertas; nenhuma delas trava a próxima etapa
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**, sem erros (falhou à primeira: `vite.config.ts` importava `defineConfig` de `vite`, que não aceita a chave `test`; passou a importar de `vitest/config`)
+  - `pnpm --filter @blbet/web test` → **41 testes, 6 ficheiros, todos passam** (4 falharam à primeira e revelaram os dois defeitos de acessibilidade acima; corrigi a interface, não os testes)
+  - `pnpm --filter @blbet/web build` → **passa** em 283ms; 230.28 kB de JS (72.10 kB gzip) e 11.73 kB de CSS (2.97 kB gzip), dentro do orçamento
+  - Verificação no navegador em 375x812 e em largura de desktop: os dois arranjos da navegação, a faixa, o campo tracejado, a busca com resultado e sem resultado. **Zero erros na consola**
+  - Varredura de valores literais (§5.5 do design-system): **zero** hexadecimais fora de `tokens.css`; os únicos `px` restantes são larguras de borda de 1px e 2px e os breakpoints em `@media`, que o design-system declara como a única exceção
+- **Não feito, de propósito:** o cartão de evento **não navega** — não há tela de detalhe nem roteamento decidido, e um cartão clicável que não leva a lado nenhum é pior do que um de leitura. O destino ativo é estado local em vez de rota, pela mesma razão. O componente de esqueleto de carregamento existe e está testado mas **não está em uso em nenhuma tela**: só terá uso quando houver leitura de rede, e não simulei um carregamento falso para o exibir. O indicador de favorito (RF-006) e o cartão de jogo (RF-004) ainda não existem
+- **Próxima ação recomendada:** o Pedro aprova o commit; o `backend` confere o diff do `pnpm-lock.yaml`. Depois: cartão de jogo e cassino (RF-004) ou indicador de favorito (RF-006)
 
 ### 2026-10-26 — Revisão cruzada da proposta de convenções do contrato (T-004)
 
@@ -339,7 +361,7 @@ Atualizado pelo `backend` em 2026-10-26. DP-001, PA-001 e PA-002 já não são b
 | Bloqueio | Afeta | Quem resolve |
 |---|---|---|
 | **BLQ-001** — provedor esportivo não identificado; documentação oficial indisponível | T-014, T-015, modelo de dados esportivos, PC-006 | Pedro (T-010) |
-| **`frontend` ainda sem a raiz do monorepo na sua branch** | `pnpm install` em `apps/web` | `frontend`: `git merge main` na própria worktree (fast-forward), antes de instalar |
+| ~~**`frontend` ainda sem a raiz do monorepo na sua branch**~~ | — | **Resolvido** em 2026-10-27: merge feito e `pnpm install` executado; o `pnpm-lock.yaml` mudou e espera conferência do `backend` |
 | **PA-007** — mecanismo de integração na `main` (merge local ou pull request) | Todas as integrações | Pedro |
 | **Quadro por branch** — cada worktree vê a sua cópia de `docs/`; um registo só chega ao outro agente depois de integrado na `main` | Coordenação | Pedro integra com frequência os commits de coordenação; em caso de dúvida, ler a cópia da `main` em `C:\Users\pedro\blbet` |
 | **DIV-001** — dados reais (DT-002) vs. "todo dado é fictício" (RN-002, RF-003, RNF-008) | Identificação de dados na interface, DP-004, PC-010 | Pedro |

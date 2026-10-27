@@ -1,0 +1,109 @@
+/*
+ * Carregamento, erro e vazio -- design-system secao 9.1 e RF-008. Componentes de
+ * primeira classe, nao variacoes improvisadas.
+ */
+
+/* --- Carregamento ----------------------------------------------------- */
+
+/*
+ * O esqueleto tem a FORMA E A ALTURA do conteudo que vai substituir: e o que impede
+ * o deslocamento de layout ao concluir (RF-008, principio P1).
+ */
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.barra {
+  height: var(--space-4);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-raised);
+  /* Unica animacao em laco permitida (design-system 3.6, regra 2). Opacidade: fica
+     no compositor e nao provoca recalculo de layout. */
+  animation: pulsar 1200ms var(--ease-standard) infinite;
+}
+
+.barraLonga {
+  width: 60%;
+}
+
+.barraCurta {
+  width: 30%;
+}
+
+@keyframes pulsar {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- Erro e vazio ----------------------------------------------------- */
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--layout-measure);
+}
+
+.marca {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+}
+
+.marcaErro {
+  color: var(--color-danger);
+}
+
+.marcaVazio {
+  color: var(--color-text-muted);
+}
+
+.titulo {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+}
+
+.mensagem {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.criterio {
+  color: var(--color-text-primary);
+  font-weight: var(--weight-medium);
+}
+
+/*
+ * Acao de saida. E o unico controle operavel destes blocos -- e existe para que
+ * nenhuma tela fique sem saida (CA-008.4).
+ */
+.acao {
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-brand);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease-standard);
+}
+
+.acao:hover {
+  background-color: var(--color-surface-overlay);
+}

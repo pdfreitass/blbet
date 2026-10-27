@@ -1,0 +1,64 @@
+/*
+ * Cartao de evento -- design-system secao 9.2, RF-002.
+ * elevation-0 e separacao por divisor: a sombra nunca separa itens de uma mesma
+ * lista (principio P2). A diferenca de plano vem da cor da superficie.
+ */
+
+.cartao {
+  background-color: var(--color-surface-canvas);
+  box-shadow: var(--elevation-0);
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.contexto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.participantes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+}
+
+.instante {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+@media (min-width: 900px) {
+  /*
+   * A partir de --bp-md os participantes e o instante passam a colunas alinhadas.
+   * A densidade de informacao e a MESMA das telas estreitas: muda o arranjo, nao o
+   * conteudo (principio P4, RNF-001, CA-RNF-001).
+   */
+  .cabecalho {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .instante {
+    flex-shrink: 0;
+  }
+}
