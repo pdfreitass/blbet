@@ -64,6 +64,17 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Caminho de sucesso com dados reais verificado no navegador; PD-006 adiada
+
+- **Agente responsável:** backend
+- **Tarefa executada:** verificação ponta a ponta das rotas de esportes com a chave; registo de decisões do Pedro
+- **Arquivos modificados:** `docs/requisitos.md` (PD-006), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:** o Pedro **aprovou a DT-011** (decisão de tema): registá-la em `decisoes-tecnicas.md`. PD-006 adiada: o perfil fica sem saldo nem histórico, como está
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `pnpm dev:api` com a chave + Vite do `frontend` em `localhost:5173`. `GET /health` → `200`; `GET /api/competitions` → EPL, La Liga, Serie A; `GET /api/events` → 20 eventos (Serie A 11, EPL 6, La Liga 3), todos com resultado final. No navegador: lista de esportes com jogos reais (ex.: Sassuolo × Lazio, 27/10 14:30, odds 3,50 / 3,45 / 2,02; mais/menos 2,50 → 1,70 / 2,10), hora local correta, faixa com o texto da DT-013
+- **Próxima ação recomendada:** Pedro decide a DIV-001 (A ou B); `frontend` regista a DT-011
+
 ### 2026-10-27 — Integração na `main`; T-014 e T-015 concluídas
 
 - **Agente responsável:** backend
