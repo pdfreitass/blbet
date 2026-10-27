@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-26 — Convenções da T-004 acordadas e implementadas
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-004 (concluída)
+- **Arquivos modificados:** `packages/contracts/` (`package.json`, `tsconfig.json`, `tsconfig.build.json`, `src/index.ts`, `src/envelope.ts`, `src/primitives.ts`, `test/envelope.test.ts`); `apps/api/` (`package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `src/app.ts`, `src/shared/errors.ts`, `test/errors.test.ts`, `test/health.test.ts`); **partilhado:** `pnpm-lock.yaml` (+3 linhas); `docs/api-contract.md` (secções 2.2, 8 e 9.1), `docs/agent-handoff.md`, `docs/agent-tasks.md`
+- **Contratos ou interfaces alterados:** convenções PC-001 a PC-015 resolvidas, exceto o número de casas da PC-006 e a apresentação da PC-010. Os erros da api passam ao formato `{ error: { code, message, retryable, details? } }`
+- **Pendências para o outro agente:** pontos 10 a 12 da secção de integração
+- **Bloqueios:** BLQ-001
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 8/8, api 19/19 · `pnpm build` → ok · `node dist/server.js` e `pnpm dev:api` → `GET /api/nada` devolve `404 {"error":{"code":"NOT_FOUND","message":"route not found","retryable":false}}`
+- **Próxima ação recomendada:** Pedro aprova o commit e integra-o na `main`; depois o `frontend` faz `git merge main` e instala o `apps/web`. O backend segue para a T-006 (estratégia em `integracoes.md`) até o provedor chegar
+
 ### 2026-10-26 — Proposta de convenções (T-004) e cliente HTTP para provedores
 
 - **Agente responsável:** backend
@@ -168,7 +179,7 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 **Nenhuma integração iniciada.** Não há rotas definidas nem interface que as consuma.
 
-- **Contratos acordados:** nenhum. Forma decidida (DT-001): `apps/web` consome `apps/api` por HTTP; tipos e esquemas em `packages/contracts/`, escritos pelo `backend`
+- **Contratos acordados:** as **convenções** da T-004 (secções 8 e 9.1 do contrato), já em `packages/contracts/`. Nenhuma rota de domínio. Forma decidida (DT-001): `apps/web` consome `apps/api` por HTTP, em desenvolvimento através do encaminhamento `/api` do Vite
 - **Divergências abertas entre agentes:** nenhuma. As divergências **documentais** DIV-001 a DIV-003 estão em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md#divergências-documentais-abertas) e são do Pedro
 - **Bloqueios de integração:** BLQ-001 (provedor esportivo); PD-003 a PD-008; T-013 (monorepo)
 - **Próxima ação recomendada:** não definir rotas antes da T-010 e da T-009; mudanças de contrato seguem a revisão cruzada (DT-005, seção 4.5 do protocolo)
@@ -319,6 +330,26 @@ Registado aqui pelo `frontend`, com a origem explícita: **esta informação che
 `git merge main` **recusou** e abortou sem alterar nada, porque tenho alterações não commitadas em dois ficheiros que o `fcbe8fd` também altera: `docs/agent-handoff.md` e `docs/agent-tasks.md`. Mensagem exata: *"Your local changes to the following files would be overwritten by merge."* A minha worktree continua em `6a4ebd3`, com `docs/design-system.md` ainda não commitado e à espera da aprovação do Pedro. **Não usei `stash`, `reset`, `checkout` nem `rebase`**, conforme a secção 7 do protocolo. Por isso li a secção 9 do contrato com `git show main:...`, que não toca na worktree. O merge fica para depois de o Pedro aprovar o commit do meu trabalho; quando acontecer, haverá conflito nestes dois ficheiros — ficheiro de dono compartilhado, logo levo a resolução ao Pedro (DT-004), notando que na prática o `backend` escreveu na secção dele e eu na minha, e os dois acrescentámos à de integração.
 
 **Desfecho, no mesmo dia:** o Pedro aprovou o commit (`a5da2e6`) e autorizou a resolução do conflito, limitada ao quadro. `git merge main` passou a correr: este ficheiro **auto-fundiu-se sem conflito** e o conflito ficou só em `docs/agent-tasks.md`, em dois pontos — a tabela de resumo e o status da T-004. Resolvidos sem apagar nem reescrever registo do `backend`: na tabela ficou o estado combinado, e na T-004 a linha de status do `backend` ficou **intacta**, com a minha linha de revisão cruzada acrescentada por baixo.
+
+### Confirmação do `backend` à revisão da T-004 — registada pelo `backend` em 2026-10-26
+
+Confirmo aqui, por escrito, o que chegou ao `frontend` através do Pedro:
+
+- **A1 a A8 aceites**, incluindo os pedidos secundários: `retryAfterSeconds` no corpo do 429, `null` para uma odd indisponível, `?q=` como parâmetro de busca e `meta.origin` agregado opcional. A regra final de cada um está na **secção 9.1** de [`docs/api-contract.md`](api-contract.md); a secção 8 marca as PC como resolvidas.
+- **DIV-F01 resolvida a favor do `frontend`:** a secção 2.2 do contrato já diz que `message` é só técnica e nunca é mostrada.
+- **DIV-F02:** registada no contrato como aberta, sem mudança; a resolução do `frontend` fica como está.
+- **Ficam pendentes:** a PC-006 (número de casas, BLQ-001 e PD-007) e a apresentação da PC-010 (DIV-001, Pedro).
+- **Já implementado** em `packages/contracts/src/` (`envelope.ts`, `primitives.ts`), com testes. A api devolve todos os erros neste formato.
+
+### Pendências para o agente `frontend` — registadas pelo `backend` em 2026-10-26 (contratos)
+
+10. **Ordem do `pnpm install` — o `backend` vai primeiro.** Este commit do `backend` altera o `pnpm-lock.yaml` (3 linhas: a api passa a depender de `@blbet/contracts` com `workspace:*`). Depois de o Pedro o integrar na `main`, fazes `git merge main` e **só então** crias o `apps/web/` e corres `pnpm install`. Assim o lockfile muda num lado de cada vez e não há conflito para resolver.
+11. **Como importar `@blbet/contracts` no `apps/web`.** O pacote exporta com a condição `source` (`./src/index.ts`) e, por omissão, o `dist` compilado. Para o Vite e o Vitest usarem o código-fonte sem build:
+    - no `vite.config.ts`: `resolve.conditions` com `'source'` à frente das condições por omissão (`defaultClientConditions` de `'vite'`), porque definir a lista substitui a de omissão;
+    - no `apps/web/tsconfig.json`: `customConditions: ["source"]`.
+
+    Sem isto, o Vite resolve para `dist/`, que só existe depois de `pnpm --filter @blbet/contracts build`. A config da api serve de exemplo: `apps/api/vitest.config.ts` e `apps/api/tsconfig.json`.
+12. **Tolerância a valores desconhecidos (R1):** os esquemas de `packages/contracts` são estritos, porque validam o que o servidor envia. A recuperação para um valor neutro que descreveste fica do teu lado, ao consumir os esquemas, por exemplo com `.catch(...)` num esquema derivado.
 
 ### Divergências técnicas abertas
 

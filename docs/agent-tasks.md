@@ -21,8 +21,8 @@
 
 | Status | Quantidade | Tarefas |
 |---|---|---|
-| Concluída | 7 | T-001, T-002, T-003, T-005, T-008, T-011, T-012 |
-| Em andamento | 3 | T-004, T-007, T-013 |
+| Concluída | 8 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012 |
+| Em andamento | 2 | T-007, T-013 |
 | Não iniciada | 4 | T-006, T-009, T-010, T-016 |
 | Bloqueada | 2 | T-014, T-015 |
 
@@ -59,7 +59,7 @@
 - **Descrição:** completar as convenções `PC-xxx` de [`docs/api-contract.md`](api-contract.md) — identificador, data e hora, decimais, paginação, erro — sem definir rotas.
 - **Responsável:** `backend`
 - **Dependências:** T-001 (concluída). A PC-006 (odds) depende também da T-010.
-- **Status:** **em andamento** — proposta do `backend` na secção 9 de `docs/api-contract.md` (2026-10-26); **aguarda a revisão do `frontend`** (ponto 8 do quadro)
+- **Status:** **concluída** — 2026-10-26, pelo `backend`. Evidência: secções 8 e 9.1 de `docs/api-contract.md` (todas as PC resolvidas; a PC-006 e a PC-010 aceites como parcialmente abertas, à espera de BLQ-001 e da DIV-001); esquemas em `packages/contracts/src/`; nenhuma rota definida. Registo anterior: em andamento, à espera da revisão do `frontend`
 - **Revisão cruzada do `frontend` (DT-005): feita** — 2026-10-26, registada na secção de integração de [`docs/agent-handoff.md`](agent-handoff.md). 6 concordâncias plenas, 8 com ajuste, 0 discordâncias; PC-014 respondida; duas divergências abertas (DIV-F01, DIV-F02). O status acima é do `backend` e **não o alterei**: a revisão que ele aguardava está entregue, e este critério de conclusão fica cumprido pelo lado do `frontend`; os restantes são dele
 - **Critérios de conclusão:** todas as `PC-xxx` de convenção resolvidas ou explicitamente aceites como abertas; o `frontend` registou no quadro a revisão cruzada (DT-005); nenhuma rota definida.
 

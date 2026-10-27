@@ -168,6 +168,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@blbet/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       fastify:
         specifier: ^5.12.7
         version: 5.12.7
