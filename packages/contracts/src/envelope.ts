@@ -24,6 +24,8 @@ export const ISSUE_CODES = [
   'too_big',
   'unknown_field',
   'invalid_cursor',
+  // T14-A1 — no 404 do detalhe de um evento que já começou (field: path.id).
+  'event_started',
 ] as const;
 export const issueCodeSchema = z.enum(ISSUE_CODES);
 export type IssueCode = z.infer<typeof issueCodeSchema>;

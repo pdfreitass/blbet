@@ -9,7 +9,7 @@ import {
 
 const evento = {
   id: 'OVc2-Alcu-Ynsy',
-  competitionId: 'Xa0f-wjcs-tANp',
+  competition: { id: 'Xa0f-wjcs-tANp', name: 'English Premier League', sport: 'soccer' },
   startsAt: '2026-11-02T20:00:00Z',
   status: 'scheduled',
   homeTeam: { id: 'MIuT-wjcs-m2L0', name: 'Newcastle United' },
@@ -71,6 +71,12 @@ describe('eventSchema', () => {
     expect(eventSchema.safeParse(oddNumerica).success).toBe(false);
   });
 
+  it('embute a competição sem origin próprio (T14-A3)', () => {
+    expect(eventSchema.safeParse({ ...evento, competition: { ...evento.competition, origin: 'provider' } }).success).toBe(false);
+    const { competition: _competition, ...semCompeticao } = evento;
+    expect(eventSchema.safeParse({ ...semCompeticao, competitionId: 'Xa0f-wjcs-tANp' }).success).toBe(false);
+  });
+
   it('não aceita campos do provedor (nome da casa de apostas)', () => {
     const comFonte = { ...evento, markets: { ...evento.markets, source: 'DRAFT_KINGS' } };
     expect(eventSchema.safeParse(comFonte).success).toBe(false);
@@ -89,6 +95,12 @@ describe('eventsQuerySchema', () => {
   it('aplica limite padrão 20 e converte texto da query', () => {
     expect(eventsQuerySchema.parse({})).toEqual({ limit: 20 });
     expect(eventsQuerySchema.parse({ limit: '50', competitionId: 'abc' })).toEqual({ limit: 50, competitionId: 'abc' });
+  });
+
+  it('aceita busca q aparada, entre 1 e 100 caracteres (A7, T14-A4)', () => {
+    expect(eventsQuerySchema.parse({ q: '  arsenal ' })).toEqual({ limit: 20, q: 'arsenal' });
+    expect(eventsQuerySchema.safeParse({ q: '   ' }).success).toBe(false);
+    expect(eventsQuerySchema.safeParse({ q: 'a'.repeat(101) }).success).toBe(false);
   });
 
   it('rejeita limite fora de 1..100 e campo desconhecido', () => {

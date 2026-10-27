@@ -200,20 +200,20 @@ Procedimento obrigatório, do `backend`:
 
 ### 7.1 Proposta do `backend` — rotas de esportes (T-014, 2026-10-27)
 
-**Estado:** proposta, **não acordada**. Esquemas em `packages/contracts/src/sports.ts`. Âmbito: DT-010.
+**Estado:** proposta, **revista pelo `frontend`** (2026-10-27: concorda com os 3 pontos; ajustes T14-A1 a T14-A4 **aceites e já aplicados** abaixo). Falta a aprovação do Pedro. Esquemas em `packages/contracts/src/sports.ts`. Âmbito: DT-010.
 
 | Rota | Resposta `200` | Erros |
 |---|---|---|
 | `GET /api/competitions` | `paginatedSchema(competitionSchema)` — competições com jogos, ordenadas por nome | `UPSTREAM_UNAVAILABLE`, `RATE_LIMITED`, `INTERNAL_ERROR` |
-| `GET /api/events?competitionId=&limit=&cursor=` | `paginatedSchema(eventSchema)` — só jogos futuros, por `startsAt` ascendente | os anteriores + `VALIDATION_FAILED` (query inválida, cursor obsoleto) |
-| `GET /api/events/{id}` | `successSchema(eventSchema)` | os anteriores + `NOT_FOUND` (inexistente **ou já começado**) |
+| `GET /api/events?competitionId=&q=&limit=&cursor=` | `paginatedSchema(eventSchema)` — só jogos futuros, por `startsAt` ascendente | os anteriores + `VALIDATION_FAILED` (query inválida, cursor obsoleto) |
+| `GET /api/events/{id}` | `successSchema(eventSchema)` | os anteriores + `NOT_FOUND`. Se o evento **já começou**, `details: [{ "field": "path.id", "issue": "event_started" }]` (T14-A1) |
 
 **Exemplo de evento:**
 
 ```json
 {
   "id": "OVc2-Alcu-Ynsy",
-  "competitionId": "Xa0f-wjcs-tANp",
+  "competition": { "id": "Xa0f-wjcs-tANp", "name": "English Premier League", "sport": "soccer" },
   "startsAt": "2026-11-02T20:00:00Z",
   "status": "scheduled",
   "homeTeam": { "id": "MIuT-wjcs-m2L0", "name": "Newcastle United" },
@@ -234,6 +234,9 @@ Procedimento obrigatório, do `backend`:
 - `status` só tem `scheduled` por agora (A4); um valor novo é anunciado no quadro (PC-014).
 - **Aviso (A3):** os `id` derivam das chaves do provedor, cuja estabilidade **não está garantida** (C5). Trocar de provedor (DT-009) muda todos os `id` — é uma mudança incompatível e será anunciada antes.
 - Valores desconhecidos na query (`sort`, filtros não listados) dão `VALIDATION_FAILED` com `unknown_field`.
+- **T14-A3:** o evento embute `competition: { id, name, sport }` para a lista agrupar sem segunda chamada.
+- **T14-A4:** `?q=` (A7) é aceite: texto aparado, 1 a 100 caracteres, procura nos nomes das equipas e da competição. Sem correspondência → `200` com `data: []`.
+- **T14-A2:** texto que não seja nome próprio (fase, estado, categoria) entra sempre como **enumerado**, nunca como texto livre do provedor.
 
 Primeira rota só pode ser definida após:
 
@@ -298,7 +301,7 @@ Acordo de 2026-10-26 (T-004): proposta do `backend` (secção 9), revisão do `f
 | # | Regra final |
 |---|---|
 | **A1** (PC-001/002) | O erro tem `retryable: boolean` **obrigatório**, decidido pelo servidor: `true` em `RATE_LIMITED`, `INTERNAL_ERROR` e `UPSTREAM_UNAVAILABLE`; `false` em `VALIDATION_FAILED` e `NOT_FOUND`. Em `RATE_LIMITED`, `retryAfterSeconds` (inteiro positivo) vem **no corpo** quando o tempo de espera for conhecido. Um código novo traz sempre o seu `retryable`, por isso acrescentar um código continua a ser compatível |
-| **A2** (PC-003) | Os valores de `issue` são um catálogo **estável**, como os `code`: `required`, `invalid_type`, `invalid_value`, `invalid_format`, `too_small`, `too_big`, `unknown_field`, `invalid_cursor`. Acrescentar um valor é anunciado no quadro (PC-014) |
+| **A2** (PC-003) | Os valores de `issue` são um catálogo **estável**, como os `code`: `required`, `invalid_type`, `invalid_value`, `invalid_format`, `too_small`, `too_big`, `unknown_field`, `invalid_cursor`, `event_started` (T14-A1, 2026-10-27). Acrescentar um valor é anunciado no quadro (PC-014) |
 | **A3** (PC-004) | O identificador de um recurso é **estável ao longo do tempo**: deriva do identificador estável da origem e nunca é gerado por pedido. Se um provedor não o garantir, o `backend` avisa no quadro antes, e é uma mudança incompatível. O frontend aplica `encodeURIComponent` ao montar as rotas |
 | **A4** (PC-005) | A situação de um evento é um **campo do modelo**, decidido pelo servidor. Nunca é deduzida da data no cliente |
 | **A5** (PC-006) | Texto decimal com **ponto**, sem separador de milhares, sem sinal e sem notação científica, e com **número fixo de casas por campo**. O `backend` normaliza. Odds com **2 casas** (DT-010). Uma odd indisponível é `null`, nunca texto vazio |

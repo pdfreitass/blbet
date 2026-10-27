@@ -36,6 +36,10 @@ export const competitionSchema = z.strictObject({
 });
 export type Competition = z.infer<typeof competitionSchema>;
 
+/** T14-A3 — competição embutida no evento, para agrupar sem segunda chamada. Sem `origin` próprio. */
+export const competitionRefSchema = competitionSchema.omit({ origin: true });
+export type CompetitionRef = z.infer<typeof competitionRefSchema>;
+
 export const teamSchema = z.strictObject({
   id: idSchema,
   name: z.string().min(1),
@@ -67,7 +71,7 @@ export type EventMarkets = z.infer<typeof eventMarketsSchema>;
 
 export const eventSchema = z.strictObject({
   id: idSchema,
-  competitionId: idSchema,
+  competition: competitionRefSchema,
   startsAt: utcDateTimeSchema,
   status: eventStatusSchema,
   homeTeam: teamSchema,
@@ -80,9 +84,12 @@ export type SportEvent = z.infer<typeof eventSchema>;
 /** PC-008 e PC-009 — query de `GET /api/events`. Campos desconhecidos dão VALIDATION_FAILED. */
 export const DEFAULT_PAGE_LIMIT = 20;
 export const MAX_PAGE_LIMIT = 100;
+export const MAX_QUERY_LENGTH = 100;
 
 export const eventsQuerySchema = z.strictObject({
   competitionId: idSchema.optional(),
+  /** A7 e T14-A4 — busca por nome de equipa ou de competição. Sem resultados dá `200` com `data: []`. */
+  q: z.string().trim().min(1).max(MAX_QUERY_LENGTH).optional(),
   limit: z.coerce.number().int().min(1).max(MAX_PAGE_LIMIT).default(DEFAULT_PAGE_LIMIT),
   cursor: z.string().min(1).optional(),
 });

@@ -64,6 +64,24 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-27 — Resposta à revisão da T-014 (T14-A1 a T14-A4)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-014 (em andamento)
+- **Arquivos modificados:** `packages/contracts/src/sports.ts`, `packages/contracts/src/envelope.ts`, `packages/contracts/test/sports.test.ts`, `packages/contracts/test/envelope.test.ts`, `docs/api-contract.md` (secção 7.1 e A2), `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** proposta da T-014 ajustada; catálogo de `issue` (A2) ganha `event_started` — acrescento compatível, anunciado aqui
+- **Resposta ao `frontend` — os quatro aceites:**
+  - **T14-A1:** `404` de evento já começado traz `details: [{ field: "path.id", issue: "event_started" }]`
+  - **T14-A2:** aceite. A proposta não tem texto livre além de nomes próprios; o que vier será enumerado
+  - **T14-A3:** `eventSchema` embute `competition: { id, name, sport }` (sai `competitionId`); a primeira opção que preferiste
+  - **T14-A4:** `q` opcional em `eventsQuerySchema` (aparado, 1 a 100 caracteres), sobre nomes de equipas e competição
+- **Versão revista vs. commitada:** a versão que reviste é a do commit `5a4cb1d`; estes ajustes vão num commit seguinte. A versão final é a soma dos dois e fica na `main` quando o Pedro integrar
+- **Numeração:** tomo nota — a decisão de tema é **DT-011** (do `frontend`). Concordo com a reserva prévia: antes de escrever um `DT-xxx` novo, reservar o número aqui numa linha. **O `backend` reserva DT-012** para a próxima decisão que registar
+- **Pendências para o outro agente:** depois do merge da `main`, migrar os tipos de evento para `@blbet/contracts`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 23/23, api 19/19 · `pnpm build` → ok
+- **Próxima ação recomendada:** Pedro integra na `main` e faz push; o `frontend` faz `git merge main` e migra os tipos; o `backend` segue para a T-015
+
 ### 2026-10-27 — Proposta do modelo esportivo (T-014) — **pedido de revisão ao `frontend`**
 
 - **Agente responsável:** backend
