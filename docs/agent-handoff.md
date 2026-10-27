@@ -37,7 +37,7 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com esportes e busca **ligados às rotas reais** da api, mais cassino e favoritos, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. O cassino continua demonstrativo |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com as cinco áreas de RF-001 construídas: esportes e busca **ligados às rotas reais**, cassino, favoritos e perfil demonstrativos. Todos os commits do `frontend` até ao `5d8641f` integrados na `main` (`ad3b8c5`, com push) |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
@@ -218,24 +218,52 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-014 fechada do lado do `frontend`)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, perfil demonstrativo)
 
 ### Situação
 
-**T-014 fechada do lado do `frontend`: a interface consome as rotas reais.** `apps/web` deixou de ter tipos próprios de evento — `SportEvent`, `Competition` e `Origin` vêm de `@blbet/contracts`, e os esquemas Zod validam cada resposta. Esportes e busca falam com `/api/events` pelo proxy do Vite; o cassino e os favoritos de cassino continuam demonstrativos.
+**Perfil demonstrativo entregue (RF-007); as cinco áreas de RF-001 estão construídas.** A `main` com a DT-013 está integrada, sem conflitos, e a faixa que escrevi foi aceite tal como está. A corrigir no caminho: a api desligada deixava o utilizador sem botão de repetir.
 
-- **Arquivos modificados:** `apps/web/src/shared/api/` (novo), `ValorDeDado`, `FaixaDemonstrativa`, `dataHora`, todo o `modules/esportes/`, `ListaFavoritos`, `App` e os ficheiros de teste. Apagados: `modules/esportes/tipos.ts` e `dadosDemonstrativos.ts`
+- **Arquivos modificados:** `apps/web/src/modules/perfil/` (novo), `App.tsx` e `App.test.tsx`, `shared/api/cliente.ts` e `cliente.test.ts`
 - **Contratos ou interfaces alterados:** nenhum
-- **Atenção, para o `backend`:** uma resposta `200` que não obedece ao contrato é tratada como falha e **não** é exibida; um corpo de erro sem o envelope acordado não recebe código inventado. A busca é adiada 350 ms por causa do limite de 150 pedidos/dia
-- **Atenção, para o Pedro:** a faixa permanente **deixou de dizer** que todos os valores são fictícios, porque as cotações passaram a vir de uma fonte real e a frase era falsa. Isto toca a RN-002 e é matéria da **DIV-001**, que continua por decidir
-- **Pendências para o agente `backend`:** nenhuma nova
-- **Pendências para o Pedro:** DIV-001; registar a decisão de tema como **DT-011**; integrar na `main` os commits do `frontend`
+- **Deliberadamente de fora:** saldo e histórico no perfil. A **PD-006** continua *não definida* e inventá-los seria decidir por omissão; há teste que trava isso
+- **Pendências para o agente `backend`:** nenhuma
+- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**, que a DT-013 deixou aberta; registar a decisão de tema como **DT-011**
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **93 testes em 10 ficheiros**, todos passam; build passa (326.09 kB de JS, 99.43 kB gzip — subiu, o `zod` entra no pacote do navegador). Ponta a ponta contra a api real sem chave: `503 UPSTREAM_UNAVAILABLE` tratado, com mensagem compreensível, botão de repetir a funcionar e zero detalhe técnico na tela
-- **Não verificado:** o caminho de **sucesso com dados reais** — não tenho a chave do provedor e não copio segredos entre worktrees. Quem a tiver deve correr `pnpm dev:api` e abrir a interface
-- **Próxima ação recomendada:** confirmar o caminho de sucesso com a chave; depois RF-007 ou paginação por cursor
+- **Testes executados e resultados:** typecheck passa; **106 testes em 11 ficheiros**, todos passam; build passa (328.75 kB de JS, 100.12 kB gzip). Verificado no navegador a 1014px e a 375px: zero controles no conteúdo do perfil, sem rolagem horizontal
+- **Próxima ação recomendada:** paginação por cursor, que o contrato já suporta e a interface ainda não usa
 
 ### Histórico
+
+### 2026-10-27 — T-016: perfil demonstrativo (RF-007) e correção de uma falha de repetição
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (sexta entrega)
+- **Arquivos modificados:** `apps/web/src/modules/perfil/` (criado: `Perfil.tsx`, `Perfil.module.css`, `dadosDemonstrativos.ts`, `Perfil.test.tsx`), `apps/web/src/app/App.tsx` e `App.test.tsx`, `apps/web/src/shared/api/cliente.ts` e `cliente.test.ts`
+- **Contratos ou interfaces alterados:** **nenhum**
+- **`main` integrada:** `git merge main`, sem conflitos, trazendo a **DT-013**, a revisão de RN-002, RF-003 e CA-003.4, e o fecho da T-014 e da T-015 no quadro
+- **A faixa que escrevi foi aceite tal como está** (DT-013). A redação em `FaixaDemonstrativa.tsx` e a da decisão coincidem palavra a palavra; não foi preciso mexer
+
+**Perfil (RF-007), e o que ficou deliberadamente de fora.** A tela cumpre os quatro critérios: é alcançável pela navegação (CA-007.1); cada campo da conta leva o campo tracejado e declara "valor demonstrativo" ao leitor de tela (CA-007.2); não existe **controle nenhum** no conteúdo — zero botões, zero ligações (CA-007.3); e não existe `input`, `form` nem `contenteditable` (CA-007.4).
+
+**Não há saldo nem histórico, e a ausência é deliberada.** A **PD-006** — campos exatos do perfil e se exibe saldo fictício — continua marcada como *não definida* em `requisitos.md`. Inventar um saldo seria decidir por omissão uma pendência em aberto, que o `CLAUDE.md` proíbe. Há um teste que trava isso: falha se alguém acrescentar "Saldo:", "R$" ou "Histórico de" à tela. **Quando o Pedro decidir a PD-006, os campos entram num só ficheiro** (`modules/perfil/dadosDemonstrativos.ts`) sem tocar no componente.
+
+**A tela diz o que a plataforma não faz.** CA-007.3 exige que não exista ação de depósito, saque, pagamento ou verificação de identidade. A ausência de um botão cumpre a regra mas não a comunica: quem chega ao perfil à procura de um depósito fica à procura. A secção "O que esta plataforma não faz" lista as cinco operações inexistentes — é o princípio P5 do design-system aplicado a uma ausência.
+
+**Revisão cruzada do `backend` (DT-005): aprovada.** O perfil e a correção do `502` foram revistos e aceites; o `backend` confirmou que a alteração a `cliente.ts` **não toca o contrato** — vale só quando a resposta não traz envelope, e o `retryable` do servidor continua a mandar (A1).
+
+**Um defeito encontrado ao verificar, e corrigido.** Ao abrir a aplicação com a api **desligada**, o proxy do Vite responde `502` com HTML. O cliente tratava qualquer erro sem o envelope acordado como não repetível, por isso a tela mostrava "Recebemos uma resposta que não conseguimos ler" **sem** botão de repetir — exatamente no caso em que repetir resolve, porque basta a api voltar. Agora, quando a resposta não traz o envelope, a decisão passa a sair do estado HTTP: `5xx`, `408` e `429` são repetíveis, o resto não. **Isto não contradiz a regra A1:** quando o servidor fala o contrato, o `retryable` dele continua a mandar; esta regra só se aplica quando não há contrato nenhum na resposta. Apareceu no navegador, não em teste, e agora tem dois testes.
+
+- **Pendências para o agente `backend`:** **nenhuma.** Este registo chegou a dizer que o commit `5d8641f` (`CLAUDE.md`) não estava na `main`; estava certo quando foi escrito e deixou de estar logo a seguir. O `backend` integrou-o em `ad3b8c5`, já com push, e voltei a confirmar com `git merge-base --is-ancestor 5d8641f origin/main`. **Todos os commits do `frontend` até ao `5d8641f` estão na `main`**
+- **Pendências para o Pedro:** **PD-006** (campos do perfil e saldo); a marcação item a item da **DIV-001** (opções A/B), que a DT-013 deixou explicitamente aberta; registar a decisão de tema como **DT-011**
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **106 testes em 11 ficheiros, todos passam** (eram 93)
+  - `pnpm --filter @blbet/web build` → **passa**; 328.75 kB de JS (100.12 kB gzip) e 16.99 kB de CSS (3.54 kB gzip)
+  - Navegador, a 1014px e a 375x812: perfil alcançável, campos marcados, **zero controles no conteúdo** (verificado por consulta ao DOM, não por vista), sem rolagem horizontal. Depois da correção, a api desligada passa a mostrar o botão de repetir
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Próxima ação recomendada:** paginação por cursor na listagem, que o contrato suporta (`meta.nextCursor`) e a interface ainda não usa; ou telas de detalhe, que precisam de uma decisão de roteamento
 
 ### 2026-10-27 — T-014 fechada do lado do `frontend`: interface ligada às rotas reais
 

@@ -70,8 +70,13 @@ export async function pedir<T>(
     const erro = apiErrorSchema.safeParse(corpo);
 
     if (!erro.success) {
-      // Estado de erro sem o envelope acordado: nao se inventa um codigo.
-      return falhar('RESPOSTA_INVALIDA', false);
+      // Estado de erro sem o envelope acordado: nao se inventa um codigo, mas o
+      // ESTADO HTTP ainda diz alguma coisa. Acontece quando a resposta nem chega a
+      // vir da api -- com a api desligada, o proxy do Vite responde 502 com HTML.
+      // Nesse caso repetir e exatamente o que resolve, e nao oferecer repetir deixa o
+      // utilizador sem saida. Quando o servidor fala o contrato, o `retryable` dele
+      // continua a mandar; isto e so para quando nao ha contrato nenhum na resposta.
+      return falhar('RESPOSTA_INVALIDA', ehEstadoRepetivel(resposta.status));
     }
 
     const { code, retryable, details } = erro.data.error;
@@ -106,6 +111,18 @@ async function lerJson(resposta: Response): Promise<unknown> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Vale a pena repetir perante este estado HTTP?
+ *
+ * Usado SO quando a resposta nao traz o envelope do contrato. `5xx` e falha do lado
+ * do servidor ou de um intermediario e costuma passar; `408` e `429` pedem
+ * explicitamente para tentar mais tarde. Um `4xx` e um pedido que esta mal, e
+ * repeti-lo da o mesmo.
+ */
+function ehEstadoRepetivel(estado: number): boolean {
+  return estado >= 500 || estado === 408 || estado === 429;
 }
 
 function falhar(codigo: FalhaApi['codigo'], retryable: boolean): Resultado<never> {

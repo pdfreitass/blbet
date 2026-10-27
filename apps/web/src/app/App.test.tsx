@@ -357,3 +357,27 @@ describe('App — armazenamento local indisponível (CA-006.5)', () => {
     expect(container.textContent).not.toContain('SecurityError');
   });
 });
+
+describe('App — perfil (RF-007)', () => {
+  beforeEach(() => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+  });
+
+  it('o perfil é alcançável pela navegação principal (CA-007.1)', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Perfil/ }));
+
+    expect(screen.getByRole('button', { current: 'page' }).textContent).toContain('Perfil');
+    expect(screen.getByText('Visitante de demonstração')).toBeTruthy();
+  });
+
+  it('o perfil não expõe nenhuma operação financeira (CA-007.3)', () => {
+    const { container } = render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Perfil/ }));
+
+    // O conteúdo do perfil não tem controle nenhum; a navegação fica fora do <main>.
+    expect(container.querySelectorAll('main a, main button, main input')).toHaveLength(0);
+  });
+});

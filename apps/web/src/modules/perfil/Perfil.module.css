@@ -1,0 +1,94 @@
+/*
+ * Perfil demonstrativo -- RF-007.
+ *
+ * Estrutura por regua e linha, sem cartao flutuante (principio P2): e uma tela de
+ * leitura, e a separacao faz-se por divisor e espaco.
+ */
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-2) var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.nome {
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+}
+
+.seccao {
+  padding-block: var(--space-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.titulo {
+  padding: 0 var(--space-4) var(--space-3);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.campos {
+  margin: 0;
+}
+
+.campo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+}
+
+.rotulo {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.valor {
+  margin: 0;
+  text-align: right;
+}
+
+/*
+ * Lista do que nao existe. Sem cor de estado: nao e aviso nem erro, e uma descricao
+ * do produto (a cor e semantica e so aparece em feedback -- principio P3).
+ */
+.inexistentes {
+  margin: 0;
+  padding: 0 var(--space-4);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.inexistente {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.marca {
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.nota {
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
