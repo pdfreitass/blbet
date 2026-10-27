@@ -2,7 +2,7 @@
 
 > Tarefas coordenadas entre os agentes `backend` (terminal) e `frontend` (Desktop). Regras em [`docs/agent-protocol.md`](agent-protocol.md); comunicação em [`docs/agent-handoff.md`](agent-handoff.md); decisões em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md).
 
-**Última atualização:** 2026-10-26 · **Por:** `backend` (registo das decisões DT-001 a DT-007 e das tarefas T-010 a T-016)
+**Última atualização:** 2026-10-26 · **Por:** `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
 
 ---
 
@@ -21,9 +21,9 @@
 
 | Status | Quantidade | Tarefas |
 |---|---|---|
-| Concluída | 4 | T-001, T-002, T-011, T-012 |
-| Em andamento | 4 | T-003, T-007, T-008, T-013 |
-| Não iniciada | 6 | T-004, T-005, T-006, T-009, T-010, T-016 |
+| Concluída | 7 | T-001, T-002, T-003, T-005, T-008, T-011, T-012 |
+| Em andamento | 3 | T-004, T-007, T-013 |
+| Não iniciada | 4 | T-006, T-009, T-010, T-016 |
 | Bloqueada | 2 | T-014, T-015 |
 
 **Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
@@ -51,7 +51,7 @@
 - **Descrição:** rever a tabela da seção 2 de [`docs/agent-protocol.md`](agent-protocol.md) conforme a stack aprovada. Resolve PA-001.
 - **Responsável:** `compartilhado`
 - **Dependências:** T-001 (concluída)
-- **Status:** **em andamento** — tabela atualizada pelo `backend` em 2026-10-26; **falta a concordância do `frontend`**
+- **Status:** **concluída** — 2026-10-26. Tabela atualizada pelo `backend`; concordância do `frontend` registada no quadro (seção de integração, resposta 1), sem divergência. Resolve PA-001
 - **Critérios de conclusão:** a tabela reflete a estrutura da stack aprovada; cada diretório relevante tem dono explícito; **os dois agentes registaram concordância no quadro**.
 
 ### T-004 — Definir convenções de contrato de API
@@ -59,7 +59,8 @@
 - **Descrição:** completar as convenções `PC-xxx` de [`docs/api-contract.md`](api-contract.md) — identificador, data e hora, decimais, paginação, erro — sem definir rotas.
 - **Responsável:** `backend`
 - **Dependências:** T-001 (concluída). A PC-006 (odds) depende também da T-010.
-- **Status:** **não iniciada**
+- **Status:** **do `backend`** — não o altero (uma tarefa é atualizada pelo seu responsável). A cópia desta branch está em `6a4ebd3` e pode estar atrasada: o `fcbe8fd` da `main` traz a proposta de convenções na secção 9 do contrato, e o merge está bloqueado (ver a nota de git no quadro)
+- **Revisão cruzada do `frontend` (DT-005): feita** — 2026-10-26, registada na secção de integração de [`docs/agent-handoff.md`](agent-handoff.md). 6 concordâncias plenas, 8 com ajuste, 0 discordâncias; PC-014 respondida; duas divergências abertas (DIV-F01, DIV-F02). Este critério de conclusão fica cumprido pelo meu lado; os restantes são do `backend`
 - **Critérios de conclusão:** todas as `PC-xxx` de convenção resolvidas ou explicitamente aceites como abertas; o `frontend` registou no quadro a revisão cruzada (DT-005); nenhuma rota definida.
 
 ### T-005 — Criar `docs/design-system.md`
@@ -67,7 +68,8 @@
 - **Descrição:** documentar a direção estética e os tokens visuais (Fase 2). Resolve o bloqueio da Fase 2 e a PD-009.
 - **Responsável:** `frontend`
 - **Dependências:** nenhuma para a parte documental; a implementação dos tokens depende da T-013
-- **Status:** **não iniciada**
+- **Status:** **concluída** — 2026-10-26, pelo `frontend`. **Direção aprovada pelo Pedro**, incluindo o tema escuro (DT-009) e a recomendação de estilos (DP-006: CSS Modules com os tokens em custom properties). Ressalva registada: a **DIV-001 continua sem escolha** entre as opções A e B de §7 — não a resolvo por omissão, e a implementação avança só com a marcação do dado demonstrativo, que é o único que vai existir
+- **Evidência:** [`docs/design-system.md`](design-system.md) existe, com direção estética, tokens (cor, tipografia, espaçamento, raio, elevação, movimento, breakpoints) e regras de uso; tratamento visual do dado demonstrativo definido (resolve **PD-009**); contraste verificado contra WCAG 2.2 AA com 28 pares calculados, 28 a passar (§4); registo no quadro feito
 - **Critérios de conclusão:** o ficheiro existe, com direção estética, tokens (cor, tipografia, espaçamento, raio, elevação, estados) e regras de uso; tratamento visual dos dados demonstrativos definido; contraste verificado contra WCAG 2.2 AA; registo no quadro.
 - **Observação:** a PD-002 (público-alvo) e a DIV-001 (dados reais vs. demonstrativos) influenciam a direção — risco de retrabalho.
 
@@ -92,7 +94,7 @@
 - **Descrição:** resolver PA-002 e PA-003.
 - **Responsável:** `compartilhado` — decisão do Pedro
 - **Dependências:** nenhuma
-- **Status:** **em andamento** — decidida e registada (DT-003, DT-004); seção 7 de `docs/agent-protocol.md` atualizada; **falta o `frontend` registar a leitura no quadro**
+- **Status:** **concluída** — 2026-10-26. Decidida e registada (DT-003, DT-004); seção 7 de `docs/agent-protocol.md` atualizada; leitura e aceitação do `frontend` registadas no quadro (seção de integração, resposta 2)
 - **Critérios de conclusão:** estratégia registada em `docs/decisoes-tecnicas.md`; seção 7 do protocolo atualizada; os dois agentes registaram a leitura no quadro.
 
 ### T-009 — Resolver pendências de requisitos que descrevem dados
@@ -147,7 +149,8 @@
 - **Descrição:** criar a raiz do monorepo (manifesto, workspace, configurações base de TypeScript, lint e testes) e o esqueleto vazio de `apps/api/` e `packages/contracts/`. Confirmar as versões e os comandos exatos. Definir a forma de comunicação local entre web e api e a PA-008.
 - **Responsável:** `backend` — raiz, `apps/api/`, `packages/contracts/` · `frontend` — esqueleto de `apps/web/`
 - **Dependências:** **T-011**, **T-012** (concluídas). Os ficheiros da raiz são compartilhados: aviso prévio, um agente de cada vez (seção 2 do protocolo).
-- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. Falta: esqueleto de `apps/web/` (`frontend`); forma de comunicação local entre web e api; PA-008.
+- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. Falta: esqueleto de `apps/web/` (`frontend`); PA-008.
+- **Comunicação local entre web e api: acordada** — 2026-10-26, pelo `frontend`, em resposta à proposta do `backend`: o servidor de desenvolvimento do Vite encaminha `/api` para `http://127.0.0.1:3333`, configurado no `vite.config.ts` do `frontend`, sem CORS na api. Porta confirmada no disco (`apps/api/.env.example`, `apps/api/src/config/env.ts`). Registo na secção de integração do quadro.
 - **Evidência da parte do backend:** `pnpm install` sem erros (pnpm 12.15.0); `pnpm typecheck` passa nos 2 pacotes; `pnpm test` → 3 ficheiros, 7 testes a passar; `pnpm build` passa; servidor em dev respondeu `GET /health` → `200 {"status":"ok"}`; arranque com variáveis inválidas falhou só com os nomes das variáveis. Versões em DT-008.
 - **Critérios de conclusão:** `pnpm install` corre sem erros; os scripts de tipos, lint e testes correm em todos os pacotes, com os resultados reais registados; nenhuma funcionalidade implementada; versões registadas em `docs/decisoes-tecnicas.md`.
 
