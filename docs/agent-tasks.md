@@ -21,12 +21,12 @@
 
 | Status | Quantidade | Tarefas |
 |---|---|---|
-| Concluída | 2 | T-001, T-002 |
-| Em andamento | 3 | T-003, T-007, T-008 |
-| Não iniciada | 6 | T-004, T-005, T-006, T-009, T-010, T-011 |
-| Bloqueada | 5 | T-012, T-013, T-014, T-015, T-016 |
+| Concluída | 4 | T-001, T-002, T-011, T-012 |
+| Em andamento | 4 | T-003, T-007, T-008, T-013 |
+| Não iniciada | 6 | T-004, T-005, T-006, T-009, T-010, T-016 |
+| Bloqueada | 2 | T-014, T-015 |
 
-**Ordem crítica:** T-011 (sair do OneDrive) → T-012 (worktrees) → T-013 (monorepo) → T-016 (frontend) e T-015 (backend). A T-010 (provedor esportivo) corre em paralelo e trava a T-014 e a T-015.
+**Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
 
 ---
 
@@ -116,7 +116,8 @@
 - **Descrição:** executar a DT-007.
 - **Responsável:** **Pedro** aprova o momento · `backend` executa e verifica
 - **Dependências:** nenhuma; tem de terminar **antes** da T-012 e de qualquer instalação de dependências
-- **Status:** **não iniciada**
+- **Status:** **concluída** — 2026-10-26, pelo `backend`
+- **Evidência:** repositório em `C:\Users\pedro\blbet`; 39/39 ficheiros com SHA-256 igual à origem; `git status`, `git log` (`9fa52c8`), `git remote -v` iguais; `git fsck` sem erros. Backup integral em `C:\Users\pedro\blbet-backup-20261026`, também verificado por SHA-256. Pasta antiga no OneDrive mantida, sem uso. A documentação foi commitada na `main` com aprovação do Pedro (`d337f1f`), sem push.
 - **Situação verificada em 2026-10-26:**
   - Caminho atual: `C:\Users\pedro\OneDrive\Documentos\blbet`.
   - Branch `main`, um commit (`9fa52c8`), remoto `origin` = `git@github.com:pdfreitass/blbet.git`, nenhuma worktree extra.
@@ -136,16 +137,18 @@
 
 - **Descrição:** executar a DT-003: uma branch e uma worktree por agente.
 - **Responsável:** `backend` executa, com aprovação do Pedro
-- **Dependências:** **T-011**; PA-006 (nomes e caminhos) e PA-007 (mecanismo de integração) decididos
-- **Status:** **bloqueada** por T-011
+- **Dependências:** **T-011**; PA-006 (nomes e caminhos) decidida em DT-008
+- **Status:** **concluída** — 2026-10-26, pelo `backend`
+- **Evidência:** `git worktree list` → `C:/Users/pedro/blbet [main]`, `C:/Users/pedro/blbet-backend [feat/backend-foundation]`, `C:/Users/pedro/blbet-frontend [feat/frontend-foundation]`, todas a partir de `d337f1f`. A PA-007 (mecanismo de integração na `main`) continua aberta.
 - **Critérios de conclusão:** duas worktrees fora do OneDrive, cada uma na sua branch, a partir da `main`; `git worktree list` regista as duas; cada sessão abre na sua worktree; procedimento e caminhos registados no quadro e no protocolo.
 
 ### T-013 — Preparar o monorepo pnpm e as configurações compartilhadas
 
 - **Descrição:** criar a raiz do monorepo (manifesto, workspace, configurações base de TypeScript, lint e testes) e o esqueleto vazio de `apps/api/` e `packages/contracts/`. Confirmar as versões e os comandos exatos. Definir a forma de comunicação local entre web e api e a PA-008.
 - **Responsável:** `backend` — raiz, `apps/api/`, `packages/contracts/` · `frontend` — esqueleto de `apps/web/`
-- **Dependências:** **T-011**, **T-012**. Os ficheiros da raiz são compartilhados: aviso prévio, um agente de cada vez (seção 2 do protocolo).
-- **Status:** **bloqueada** por T-011 e T-012
+- **Dependências:** **T-011**, **T-012** (concluídas). Os ficheiros da raiz são compartilhados: aviso prévio, um agente de cada vez (seção 2 do protocolo).
+- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. Falta: esqueleto de `apps/web/` (`frontend`); forma de comunicação local entre web e api; PA-008.
+- **Evidência da parte do backend:** `pnpm install` sem erros (pnpm 12.15.0); `pnpm typecheck` passa nos 2 pacotes; `pnpm test` → 3 ficheiros, 7 testes a passar; `pnpm build` passa; servidor em dev respondeu `GET /health` → `200 {"status":"ok"}`; arranque com variáveis inválidas falhou só com os nomes das variáveis. Versões em DT-008.
 - **Critérios de conclusão:** `pnpm install` corre sem erros; os scripts de tipos, lint e testes correm em todos os pacotes, com os resultados reais registados; nenhuma funcionalidade implementada; versões registadas em `docs/decisoes-tecnicas.md`.
 
 ### T-014 — Definir os contratos a partir da documentação real da API
@@ -168,6 +171,6 @@
 
 - **Descrição:** construir os tokens, os componentes-base e as telas em `apps/web/`, usando os contratos aprovados e, enquanto não existirem, dados demonstrativos **claramente identificados como tal**.
 - **Responsável:** `frontend`
-- **Dependências:** **T-013** (esqueleto de `apps/web/`); T-005 (`docs/design-system.md`); DP-006 (estilos e componentes)
-- **Status:** **bloqueada** por T-013
+- **Dependências:** a raiz do monorepo da T-013 (pronta na branch do `backend`, ver a seção de integração do quadro); T-005 (`docs/design-system.md`); DP-006 (estilos e componentes)
+- **Status:** **não iniciada** — **o `frontend` pode começar** na sua worktree (`C:\Users\pedro\blbet-frontend`)
 - **Critérios de conclusão:** definidos pelo `frontend` na Fase 2 e na Fase 3 do roadmap; os dados demonstrativos são substituídos pelos contratos aprovados assim que existirem, sem simular dados do provedor.

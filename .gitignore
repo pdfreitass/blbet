@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Variáveis de ambiente: nunca versionar valores reais. Só os exemplos (*.example) entram no git.
+.env
+.env.*
+!.env.example

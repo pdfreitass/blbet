@@ -38,7 +38,8 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-004](#dt-004--resolução-de-conflitos) | Resolução de conflitos | PA-003 | aprovada |
 | [DT-005](#dt-005--revisão-cruzada) | Revisão cruzada em contratos e integração | PA-004 | aprovada |
 | [DT-006](#dt-006--consulta-ao-quadro-de-coordenação) | Frequência de consulta ao quadro | PA-005 | aprovada |
-| [DT-007](#dt-007--repositório-fora-do-onedrive) | Repositório fora do OneDrive antes de instalar dependências | — | aprovada, execução pendente (T-011) |
+| [DT-007](#dt-007--repositório-fora-do-onedrive) | Repositório fora do OneDrive antes de instalar dependências | — | aprovada, executada (T-011) |
+| [DT-008](#dt-008--worktrees-e-versões-da-fundação) | Worktrees em pastas irmãs; versões da fundação | PA-006 | aprovada |
 
 ---
 
@@ -210,6 +211,34 @@ A revisão **não** autoriza nenhum agente a editar ficheiros do outro.
 **Decisão** — mover o repositório para um diretório local fora do OneDrive **antes de instalar dependências**.
 
 **Consequências** — destino recomendado: `C:\Users\pedro\blbet`, que não existia em 2026-10-26; reconfirmar no momento da mudança. O procedimento e os cuidados para preservar o trabalho estão na T-011 de [`docs/agent-tasks.md`](agent-tasks.md). Nenhuma mudança foi executada neste registo.
+
+**Execução (2026-10-26, `backend`)** — cópia integral para `C:\Users\pedro\blbet`, verificada por SHA-256 (39/39 ficheiros), `git status`, `git log`, `git remote -v` e `git fsck`. Backup integral em `C:\Users\pedro\blbet-backup-20261026`. A pasta antiga no OneDrive **não foi apagada** e deixou de ser usada.
+
+---
+
+### DT-008 — Worktrees e versões da fundação
+
+- **Data:** 2026-10-26
+- **Estado:** aprovada
+- **Decidido por:** Pedro (estrutura e corepack); `backend` (versões, conforme a DT-001: "confirmar na preparação do ambiente")
+- **Registado por:** `backend`
+- **Resolve:** PA-006
+
+**Decisão**
+
+| Pasta | Branch | Uso |
+|---|---|---|
+| `C:\Users\pedro\blbet` | `main` | Integração, controlada pelo Pedro |
+| `C:\Users\pedro\blbet-backend` | `feat/backend-foundation` | Agente `backend` |
+| `C:\Users\pedro\blbet-frontend` | `feat/frontend-foundation` | Agente `frontend` |
+
+Versões fixadas na fundação (estáveis em 2026-10-26, compatíveis com o Node 24.16 instalado): pnpm 12.15.0 via corepack (`packageManager`), Fastify ^5.12.7, Zod ^4.6.7, TypeScript ^7.0.2, Vitest ^5.0.5 (exige Vite ^8.3.5 como peer), tsx ^4.23.15, `@types/node` ^24.19.2 (alinhado com o Node 24, não com a versão 26 mais recente).
+
+**Consequências**
+
+- O `corepack enable` global exige administrador. Por isso o pnpm é ativado na pasta global do npm do utilizador (instruções em `apps/api/README.md`).
+- O pnpm 12 bloqueia scripts de instalação por omissão. Aprovar um pacote em `allowBuilds` (`pnpm-workspace.yaml`) é uma alteração de ficheiro partilhado. Hoje só o `esbuild` está aprovado.
+- `packages/contracts` exporta o código-fonte TypeScript (`./src/index.ts`), o que serve para Vite, tsx e Vitest. Correr a api compilada com contratos importados vai exigir compilar o pacote ou empacotar a api; a decidir quando a api importar os contratos pela primeira vez (T-014).
 
 ---
 
