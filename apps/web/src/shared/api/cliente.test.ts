@@ -95,6 +95,34 @@ describe('obterEventos', () => {
     expect(resultado.ok).toBe(false);
     if (!resultado.ok) {
       expect(resultado.falha.codigo).toBe('RESPOSTA_INVALIDA');
+    }
+  });
+
+  /*
+   * Com a api desligada, o proxy do Vite responde 502 com HTML — não há envelope para
+   * ler, e o `retryable` do servidor não existe. Repetir é exatamente o que resolve
+   * (basta a api voltar), por isso o botão tem de aparecer. Este caso apareceu a
+   * verificar o perfil no navegador, não em teste.
+   */
+  it('oferece repetir quando a api não responde e o intermediário devolve 5xx', async () => {
+    responderSempre(502, '<html>Bad Gateway</html>');
+
+    const resultado = await obterEventos();
+
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) {
+      expect(resultado.falha.codigo).toBe('RESPOSTA_INVALIDA');
+      expect(resultado.falha.retryable).toBe(true);
+    }
+  });
+
+  it('não oferece repetir num 4xx sem envelope, que repetir não resolve', async () => {
+    responderSempre(404, '<html>Not Found</html>');
+
+    const resultado = await obterEventos();
+
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) {
       expect(resultado.falha.retryable).toBe(false);
     }
   });

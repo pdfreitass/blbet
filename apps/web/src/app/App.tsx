@@ -17,6 +17,7 @@ import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
 import { ListaFavoritos } from '../modules/favoritos/ListaFavoritos';
+import { Perfil } from '../modules/perfil/Perfil';
 import estilos from './App.module.css';
 
 export function App() {
@@ -67,7 +68,7 @@ function Aplicacao() {
         {destino === 'perfil' ? (
           <>
             <h1 className={estilos.titulo}>Perfil</h1>
-            <NadaCadastrado conjunto="dados de perfil" />
+            <Perfil />
           </>
         ) : null}
       </main>
