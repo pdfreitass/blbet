@@ -9,7 +9,8 @@ O blbet começa como **protótipo de entretenimento, exclusivamente demonstrativ
 - **Não existem** apostas com dinheiro real, depósitos, saques ou pagamentos.
 - Qualquer saldo, aposta ou prémio é fictício e serve apenas para demonstração.
 - Não implementar integração com meios de pagamento, KYC financeiro ou liquidação monetária sem decisão explícita registada em `docs/decisoes-tecnicas.md`.
-- Os dados esportivos vêm de uma **API esportiva real** (DT-002). O provedor **ainda não está identificado**: não inventar nome, endpoints, autenticação, limites nem formatos, e não criar chamadas fictícias que se apresentem como reais.
+- Os dados esportivos vêm de uma **API esportiva real** (DT-002). O provedor está identificado: **Sportsbook API**, via RapidAPI, **só para desenvolvimento e testes** (DT-009). Tudo o que lhe diz respeito — endpoints, autenticação, limites e formatos — vive em `docs/integracoes.md`; fora do que lá está documentado, não inventar, e não criar chamadas fictícias que se apresentem como reais. A adoção de um provedor para publicação é decisão posterior.
+- **O âmbito dos dados esportivos é o da DT-010:** resultado final e mais/menos golos, odds decimais com 2 casas em texto, uma fonte fixa e só jogos futuros. Nada fora disto entra sem decisão registada.
 
 ## Documentos de referência
 
@@ -30,9 +31,11 @@ Consultar o documento **antes** de trabalhar na área correspondente:
 
 Decisões relevantes (técnicas, de produto ou de escopo) são registadas em `docs/decisoes-tecnicas.md`.
 
-**Estado atual:** existem `visao.md`, `requisitos.md`, `arquitetura.md`, `roadmap.md`, `decisoes-tecnicas.md`, `agent-protocol.md`, `agent-handoff.md`, `agent-tasks.md` e `api-contract.md`. Existem também `design-system.md` (do `frontend`) e `integracoes.md` (do `backend`, sem provedor identificado). Um documento inexistente **não** é uma decisão tomada — sinalizar a pendência e pedir esclarecimento em vez de assumir conteúdo.
+**Estado atual:** existem todos os documentos da tabela acima, incluindo `design-system.md` (do `frontend`) e `integracoes.md` (do `backend`, já com o provedor avaliado e escolhido). Um documento inexistente **não** é uma decisão tomada — sinalizar a pendência e pedir esclarecimento em vez de assumir conteúdo.
 
-**Stack aprovada (DT-001):** monorepo pnpm — `apps/web/` (React + Vite + TypeScript), `apps/api/` (Node.js + Fastify + TypeScript), `packages/contracts/` (Zod); Vitest e Playwright. Worktrees e versões: DT-008. Fundação do backend em `apps/api/` (instruções em `apps/api/README.md`); `apps/web/` ainda não existe.
+**Stack aprovada (DT-001):** monorepo pnpm — `apps/web/` (React + Vite + TypeScript), `apps/api/` (Node.js + Fastify + TypeScript), `packages/contracts/` (Zod); Vitest e Playwright. Worktrees e versões: DT-008.
+
+**Código existente:** `apps/api/` com as rotas de esportes a funcionar (instruções em `apps/api/README.md`); `packages/contracts/` com o envelope, as primitivas e o modelo esportivo; `apps/web/` com esportes e busca a consumir as rotas reais, cassino com catálogo demonstrativo e favoritos locais; o perfil (RF-007) ainda é só um estado vazio. Em desenvolvimento, o servidor do Vite encaminha `/api` para a api local (`127.0.0.1:3333`), e **sem a chave do provedor no `apps/api/.env` as rotas de esportes respondem `503`** — que é um estado previsto, não um defeito.
 
 ## Como trabalhar
 
