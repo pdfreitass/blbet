@@ -26,7 +26,7 @@
 | Não iniciada | 0 | — |
 | Bloqueada | 0 | — |
 
-**Ordem crítica:** T-014 e T-015 concluídas e integradas na `main` (`2e4ea64`): a interface consome as rotas reais de esportes. A T-016 segue (RF-007, perfil demonstrativo). `pnpm install --frozen-lockfile` passou na `main` integrada, o que confere o `pnpm-lock.yaml`.
+**Ordem crítica:** Fase 5 (qualidade) iniciada, segundo a DT-015. Etapas: (1) revisão de segurança da api, feita; (2) cobertura de 80%, ativa no `backend` e por fazer no `frontend`; (3) ESLint na raiz e GitHub Actions, configuração partilhada, com aviso prévio; (4) E2E do `frontend` em `e2e/`, com a api em modo de teste.
 
 ---
 
@@ -86,7 +86,7 @@
 - **Descrição:** resolver a DP-002.
 - **Responsável:** `compartilhado`
 - **Dependências:** T-001 (concluída)
-- **Status:** **em andamento** — ferramentas definidas na DT-001 (Vitest, Playwright); **falta a cobertura mínima**, que é decisão do Pedro, e o local e dono dos testes end-to-end (PA-008)
+- **Status:** **em andamento** — 2026-10-27: o Pedro decidiu a DT-015 (cobertura mínima de 80%; E2E em `e2e/`, dono `frontend`); a secção 8 do `arquitetura.md` foi atualizada. Do `backend`, a meta já está ativa em `apps/api` e `packages/contracts`. **Falta:** a concordância do `frontend` no quadro e a meta em `apps/web`
 - **Critérios de conclusão:** cobertura mínima registada em `docs/decisoes-tecnicas.md`; seção 8 de `docs/arquitetura.md` atualizada; os dois agentes concordaram no quadro.
 
 ### T-008 — Definir a estratégia de branches dos agentes

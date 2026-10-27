@@ -45,6 +45,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
 | [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
 | [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a) | Marcar só o dado fictício (opção A do `design-system.md`); o dado real não leva selo | DIV-001 (interface), DP-004, PC-010 | aprovada |
+| [DT-015](#dt-015--qualidade-cobertura-integração-contínua-lint-e-e2e) | Cobertura mínima de 80%, GitHub Actions, ESLint na raiz, E2E do `frontend` em `e2e/` | DP-002, DP-003, PA-008 | aprovada |
 
 ---
 
@@ -387,3 +388,30 @@ A RN-002 passa a ter esta regra: **os dados esportivos (eventos, competições e
 - O §7 do `design-system.md` (do `frontend`) passa a registar a opção escolhida.
 
 **Pendências** — se os termos do provedor final exigirem atribuição (C1, C2), essa atribuição entra como texto de fonte no rodapé do bloco, previsto na própria opção A. Quando o provedor for definitivo, pode propor-se ao contrato um campo de atualização ("cotações às HH:MM").
+
+---
+
+### DT-015 — Qualidade: cobertura, integração contínua, lint e E2E
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `backend`
+- **Resolve:** DP-002 (cobertura mínima), DP-003, PA-008
+
+**Contexto** — Arranque da Fase 5 do [`roadmap.md`](roadmap.md). As ferramentas de teste vinham da DT-001, mas faltavam a meta de cobertura, a integração contínua, o lint e um dono para os testes E2E.
+
+**Decisão**
+
+1. **Cobertura (DP-002):** mínimo de **80%** de linhas, instruções, funções e ramos em cada pacote (`apps/api`, `apps/web`, `packages/contracts`), medido com `@vitest/coverage-v8`. Abaixo disso, `pnpm coverage` falha.
+2. **Integração contínua (DP-003):** **GitHub Actions** em cada push e PR. Corre install com o lockfile congelado, typecheck, lint, testes com cobertura e build.
+3. **Lint:** **ESLint na raiz**, com `typescript-eslint` partilhado pelos pacotes e regras de React em `apps/web`.
+4. **E2E (PA-008):** Playwright em `e2e/` na raiz, **dono `frontend`**. O `backend` dá à api um modo de teste com respostas reais gravadas, para os E2E não gastarem a quota do provedor.
+
+**Alternativas consideradas** — 70% de cobertura, ou só medir; nenhuma CI; nenhum lint; E2E do `backend` ou partilhados. Rejeitadas pelo Pedro.
+
+**Consequências**
+
+- A raiz (`.github/`, configuração do ESLint, `package.json`) é partilhada: avisa-se no quadro antes de mexer, e cada mudança vai num commit isolado.
+- Cada agente põe a meta de cobertura no seu pacote. Exclusões só com justificação no próprio ficheiro de configuração.
+- A T-007 fica concluída.

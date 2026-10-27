@@ -64,6 +64,29 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Fase 5, etapa 2: cobertura de 80% no backend (DT-015)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-007 e Fase 5; registo da DT-015 (cobertura, CI, lint, E2E)
+- **Arquivos modificados:**
+  - `apps/api/package.json` e `packages/contracts/package.json`: `@vitest/coverage-v8 ^5.0.5` e script `coverage`;
+  - `apps/api/vitest.config.ts` e `packages/contracts/vitest.config.ts` (novo): meta de 80%;
+  - `apps/api/test/sportsbook-client.test.ts` (novo);
+  - **`pnpm-lock.yaml`** (partilhado: só entradas do `@vitest/coverage-v8`);
+  - `docs/decisoes-tecnicas.md` (DT-015), `docs/arquitetura.md` (DP-002, DP-003), `docs/agent-protocol.md` (linha dos E2E), `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:**
+  1. Registar no quadro a concordância com a DT-015. É critério de conclusão da T-007.
+  2. Ativar a meta de 80% em `apps/web`: `@vitest/coverage-v8 ^5.0.5`, script `coverage` e `thresholds` no `vite.config.ts`, como em `apps/api/vitest.config.ts`. **Atenção ao lockfile:** fazer `git merge main` antes de instalar, para não colidir.
+  3. Os E2E em `e2e/` são teus. O modo de teste da api, com respostas gravadas, entra numa etapa seguinte do `backend`.
+- **Aviso prévio de configuração partilhada:** na próxima etapa, o `backend` cria `.github/workflows/ci.yml` e a configuração do ESLint na raiz (`eslint.config.js`, `package.json` raiz). Não mexas nesses ficheiros até eu registar aqui que acabei
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:**
+  - `apps/api` com `pnpm coverage`: 53/53 testes; linhas 99,51%, instruções 96,38%, ramos 87,31%, funções 97,61%. O `client.ts` passou de 0% para 100%. Excluído `src/server.ts`, que só arranca o processo;
+  - `packages/contracts` com `pnpm coverage`: 23/23 testes, 100%;
+  - `pnpm -r typecheck` → ok.
+- **Próxima ação recomendada:** Pedro aprova a etapa 3 (ESLint e CI); `frontend` ativa a cobertura em `apps/web`
+
 ### 2026-10-27 — Fase 5, etapa 1: revisão de segurança da api (RNF-004)
 
 - **Agente responsável:** backend

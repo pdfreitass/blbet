@@ -199,8 +199,8 @@ Regras:
 | # | Decisão | Situação | Bloqueia |
 |---|---|---|---|
 | **DP-001** | Stack do projeto | **Resolvida** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto) | — |
-| **DP-002** | Ferramentas e cobertura mínima de teste | **Parcial** — ferramentas na DT-001; cobertura mínima aberta | Seção 8; RNF-007; PD-010 |
-| **DP-003** | Integração contínua | Aberta — com ou sem CI na fase atual | Seção 9 |
+| ~~**DP-002**~~ | ~~Ferramentas e cobertura mínima de teste~~ | **Resolvida** — ferramentas na DT-001; cobertura mínima de 80% na DT-015 | Seção 8; RNF-007; PD-010 |
+| ~~**DP-003**~~ | ~~Integração contínua~~ | **Resolvida** — DT-015: GitHub Actions em cada push e PR | Seção 9 |
 | ~~**DP-004**~~ | ~~Como marcar dados demonstrativos~~ | **Resolvida** — DT-014: marca-se só o dado fictício (opção A); o dado real de terceiros não leva selo | RNF-008; RN-002; PC-010 |
 | **DP-005** | Estratégia de estado da interface | Aberta — área do `frontend` | Seção 3; RNF-005 |
 | **DP-006** | Biblioteca de estilos e componentes | Aberta — área do `frontend`; depende de `docs/design-system.md` | Fase 2 |
