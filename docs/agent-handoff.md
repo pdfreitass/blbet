@@ -37,7 +37,7 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com as áreas de esportes e de cassino a correr, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. Sem lógica de negócio e sem rede |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com esportes, cassino, busca e favoritos a correr, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. Sem rede: os dados são demonstrativos |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
@@ -185,21 +185,47 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (revisão cruzada da T-014)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, favoritos locais)
 
 ### Situação
 
-**Revisão cruzada da T-014 entregue; nenhum código novo.** Revi a proposta do modelo esportivo e registei no histórico a concordância com os três pontos e **quatro ajustes** (T14-A1 a T14-A4). A proposta **não está publicada** — li-a na worktree do `backend` —, por isso **não fiz `git merge main`** (a `main` continua em `e3c7ca9`, sem nada novo) nem migrei os tipos de evento para `@blbet/contracts`, que ainda não os tem.
+**T-016 em andamento, terceira entrega: favoritos locais (RF-006).** A `main` com o modelo esportivo está integrada (merge `0f52812`) e os quatro ajustes da minha revisão foram aceites pelo `backend` em `247706d`. `apps/web/` tem agora esportes, cassino, busca e favoritos.
 
-- **Arquivos modificados:** `docs/agent-handoff.md`, `docs/design-system.md`. Nenhum ficheiro de código
-- **Contratos ou interfaces alterados:** nenhum
-- **Pendências para o agente `backend`:** responder a T14-A1 a T14-A4; **publicar** a proposta; confirmar que a versão revista é a que vai ser commitada; tomar nota da renumeração da decisão de tema para **DT-011** (segunda colisão de numeração)
-- **Pendências para o Pedro:** integrar a proposta do `backend` na `main` quando ele a publicar; **DIV-001** continua por decidir; registar a decisão de tema como DT-011
-- **Bloqueios:** a migração dos tipos de evento espera a publicação e o acordo da T-014
-- **Testes executados e resultados:** nenhum — revisão documental. O código de `apps/web` não foi tocado e ficou como no commit `21c20f9` (58 testes a passar)
-- **Próxima ação recomendada:** enquanto a T-014 não fecha, o indicador de favorito (RF-006), que não depende do contrato
+- **Arquivos modificados:** `apps/web/src/shared/favoritos/` e `apps/web/src/modules/favoritos/` (novos), `IndicadorFavorito`, os dois cartões, `App.tsx`, `src/test/render.tsx` e os testes afetados
+- **Contratos ou interfaces alterados:** nenhum. Favoritos são locais por requisito (RN-005)
+- **Pendências para o agente `backend`:** nenhuma nova; continua a conferência do `pnpm-lock.yaml` e a nota da renumeração para **DT-011**
+- **Pendências para o Pedro:** integrar na `main` os commits do `frontend`; **DIV-001**; registar a decisão de tema como DT-011
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** typecheck passa; **77 testes em 10 ficheiros**, todos passam; build passa (235.68 kB de JS, 15.19 kB de CSS). No navegador: favorito marcado, página recarregada, favorito preservado (CA-006.2 verificada a sério); zero erros na consola num separador limpo
+- **Próxima ação recomendada:** ligar a interface às rotas da T-014 quando a T-015 as entregar, ou o perfil demonstrativo (RF-007)
 
 ### Histórico
+
+### 2026-10-27 — T-016: indicador de favorito e favoritos locais (RF-006)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (terceira entrega)
+- **Arquivos modificados:** `apps/web/src/shared/favoritos/` (criado: `armazenamento.ts`, `contexto.tsx`, `armazenamento.test.ts`), `apps/web/src/shared/componentes/IndicadorFavorito.tsx` + `.module.css`, `apps/web/src/modules/favoritos/` (criado: `ListaFavoritos.tsx` + `.module.css`), `apps/web/src/test/render.tsx` (criado), `apps/web/src/modules/esportes/CartaoEvento.tsx` e `.module.css`, `apps/web/src/modules/cassino/CartaoJogo.tsx` e `.module.css`, `apps/web/src/app/App.tsx`, e os testes de `App`, `CartaoJogo` e `CatalogoJogos`
+- **Contratos ou interfaces alterados:** **nenhum.** Favoritos são locais por requisito (RN-005): sem servidor, sem conta e sem nada no contrato
+- **`main` integrada:** `git merge origin/main` (merge `0f52812`), trazendo `5a4cb1d` e `247706d`. Conflito **só** na tabela de resumo de `agent-tasks.md` — o histórico deste quadro fundiu-se sozinho, com as entradas dos dois agentes. Resolvi somando os dois lados: cada agente sabe o estado da sua área, por isso T-009 e T-014 vêm do `backend` e T-016 vem de mim
+- **Os quatro ajustes da minha revisão foram aceites e já estão no código do `backend`** (`247706d`): `event_started` entrou no catálogo de `issue` (T14-A1), `competitionRefSchema` embutido no evento (T14-A3) e `q` no `eventsQuerySchema` (T14-A4). Confirmado no disco, não no quadro
+- **O que foi construído (RF-006):** indicador de favorito nos dois cartões, com `aria-pressed` e nome acessível que descreve **a ação e o alvo** ("Adicionar X aos favoritos"); duas marcas de estado, a forma do ícone (contorno → preenchido) e a cor de marca, com a **forma** como portador principal (1.4.1); persistência em `localStorage` (RN-005); visualização que reúne eventos e jogos favoritados, com estado vazio explicativo (CA-006.4)
+- **CA-006.5 é o ponto que mais trabalhei.** Com o armazenamento indisponível — janela privada, política do navegador, quota cheia —, a aplicação continua navegável, **não** mostra erro técnico e **não desenha** o indicador: um controle que não guarda nada é pior do que controle nenhum. A visualização de favoritos diz "indisponíveis neste navegador" em vez de ficar vazia sem razão aparente. Tudo isto tem teste, com `Storage.prototype` a lançar
+- **O conteúdo do armazenamento é tratado como dado externo:** JSON inválido, conteúdo que não é lista e entradas com forma inesperada são filtrados em vez de rebentarem a leitura
+- **Decisão de desenho registada:** a escrita falhar **não** desfaz a mudança na tela (CA-006.1 exige resposta imediata); o que se perde é a persistência, e o indicador desaparece a seguir porque o armazenamento passa a indisponível
+- **Testes que mudaram de forma, e porquê:** os três que afirmavam "nenhum controle" nos cartões passaram a afirmar "nenhum controle **além do favorito**", verificando que o único botão é o indicador. O design-system autoriza-o nas secções 9.2 e 9.4; o que continua proibido — e continua testado — é qualquer coisa operável sobre uma odd ou uma forma de jogar
+- **Pendências para o agente `backend`:** nenhuma nova. Continua a conferência do `pnpm-lock.yaml` e a nota sobre a renumeração para **DT-011**
+- **Pendências para o Pedro:** integrar na `main` os commits do `frontend`; **DIV-001**; registar a decisão de tema como DT-011
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **77 testes em 10 ficheiros, todos passam** (eram 58 em 9)
+  - `pnpm --filter @blbet/web build` → **passa** em 274ms; 235.68 kB de JS (73.59 kB gzip) e 15.19 kB de CSS (3.36 kB gzip)
+  - Navegador: marcar, recarregar a página e confirmar que o favorito sobreviveu — `localStorage` com `["evento:evt-fict-001"]` e o indicador marcado depois do recarregamento (CA-006.2 verificada a sério, não só por teste); a visualização de favoritos mostra o evento marcado. **Zero erros na consola** num separador limpo
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Nota sobre o servidor de desenvolvimento, outra vez:** o histórico da consola do separador guardava erros do HMR de alterações anteriores — incluindo um `useFavoritos exige <FavoritosProvider>` de um estado intermédio. Confirmei num separador novo que o estado atual não tem erro nenhum. Quem for verificar, use um separador limpo: o histórico do separador não é o estado da aplicação
+- **Não feito:** telas de detalhe e roteamento, que continuam sem existir; o estado de favorito "no detalhe" de RF-006 fica à espera dessas telas. O perfil (RF-007) continua vazio
+- **Próxima ação recomendada:** ligar a interface às rotas da T-014 quando a T-015 as entregar, ou o perfil demonstrativo (RF-007)
 
 ### 2026-10-27 — Revisão cruzada da proposta do modelo esportivo (T-014)
 

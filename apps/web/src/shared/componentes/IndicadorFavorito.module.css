@@ -1,0 +1,30 @@
+/*
+ * Indicador de favorito -- design-system seccao 9.6, RF-006.
+ *
+ * DUAS marcas de estado: a FORMA do icone muda (contorno -> preenchido) e a cor passa
+ * a de marca. A forma e o portador principal, nao a cor (WCAG 1.4.1).
+ */
+
+.indicador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--target-min);
+  min-height: var(--target-min);
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-lg);
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--duration-quick) var(--ease-standard);
+}
+
+.indicador:hover {
+  color: var(--color-text-primary);
+}
+
+.indicador[aria-pressed='true'] {
+  color: var(--color-brand);
+}

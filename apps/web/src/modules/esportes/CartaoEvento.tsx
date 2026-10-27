@@ -1,4 +1,5 @@
 import { Etiqueta } from '../../shared/componentes/Etiqueta';
+import { IndicadorFavorito } from '../../shared/componentes/IndicadorFavorito';
 import { ValorDemonstrativo } from '../../shared/componentes/ValorDemonstrativo';
 import { descreverInstante, formatarDiaMes, formatarHora } from '../../shared/formato/dataHora';
 import estilos from './CartaoEvento.module.css';
@@ -43,6 +44,8 @@ export function CartaoEvento({ evento }: CartaoEventoProps) {
           <ValorDemonstrativo numerico descricao={`início em ${descreverInstante(evento.inicio)}`}>
             {`${formatarDiaMes(evento.inicio)} ${formatarHora(evento.inicio)}`}
           </ValorDemonstrativo>
+          {/* O unico controle dentro do cartao, como a seccao 9.2 preve. */}
+          <IndicadorFavorito tipo="evento" id={evento.id} nome={`${casa} contra ${visitante}`} />
         </p>
       </div>
       {evento.mercados.map((mercado) => (

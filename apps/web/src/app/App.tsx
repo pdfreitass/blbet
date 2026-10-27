@@ -4,9 +4,11 @@ import { CampoBusca } from '../shared/componentes/CampoBusca';
 import { NadaCadastrado, NadaEncontrado } from '../shared/componentes/Estados';
 import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { NavegacaoPrincipal, type IdDestino } from '../shared/componentes/NavegacaoPrincipal';
+import { FavoritosProvider } from '../shared/favoritos/contexto';
 import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { EVENTOS_DEMONSTRATIVOS } from '../modules/esportes/dadosDemonstrativos';
+import { ListaFavoritos } from '../modules/favoritos/ListaFavoritos';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
 import type { EventoDemonstrativo } from '../modules/esportes/tipos';
 import estilos from './App.module.css';
@@ -19,6 +21,18 @@ import estilos from './App.module.css';
  * de NavegacaoPrincipal. Quando houver, o estado passa a vir da rota e o resto fica.
  */
 export function App() {
+  return (
+    <FavoritosProvider>
+      <Aplicacao />
+    </FavoritosProvider>
+  );
+}
+
+/**
+ * O conteudo, separado do provedor: assim o estado dos favoritos vive acima de tudo o
+ * que o consome, incluindo os cartoes dentro das listas.
+ */
+function Aplicacao() {
   const [destino, setDestino] = useState<IdDestino>('esportes');
   const [termo, setTermo] = useState('');
 
@@ -77,7 +91,7 @@ export function App() {
         {destino === 'favoritos' ? (
           <>
             <h1 className={estilos.titulo}>Favoritos</h1>
-            <NadaCadastrado conjunto="favoritos" />
+            <ListaFavoritos eventos={EVENTOS_DEMONSTRATIVOS} jogos={JOGOS_DEMONSTRATIVOS} />
           </>
         ) : null}
 

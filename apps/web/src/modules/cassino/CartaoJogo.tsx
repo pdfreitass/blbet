@@ -1,4 +1,5 @@
 import { Etiqueta } from '../../shared/componentes/Etiqueta';
+import { IndicadorFavorito } from '../../shared/componentes/IndicadorFavorito';
 import estilos from './CartaoJogo.module.css';
 import { rotularCategoria } from './categorias';
 import type { JogoDemonstrativo } from './tipos';
@@ -19,8 +20,7 @@ function sigla(nome: string): string {
  * design-system proibe qualquer afordancia de "jogar" (RN-004, CA-004.4). Pela mesma
  * razao do cartao de evento, fica de leitura ate haver para onde ir.
  *
- * O indicador de favorito previsto na seccao 9.4 pertence a RF-006 e ainda nao existe:
- * nao ponho um lugar vazio no canto a fingir que existe.
+ * O indicador de favorito da seccao 9.4 e o unico controle do cartao (RF-006).
  */
 export function CartaoJogo({ jogo }: CartaoJogoProps) {
   return (
@@ -33,7 +33,10 @@ export function CartaoJogo({ jogo }: CartaoJogoProps) {
       </div>
       <div className={estilos.identificacao}>
         <h3 className={estilos.nome}>{jogo.nome}</h3>
-        <Etiqueta variante="neutra">{rotularCategoria(jogo.categoria)}</Etiqueta>
+        <div className={estilos.rodapeCartao}>
+          <Etiqueta variante="neutra">{rotularCategoria(jogo.categoria)}</Etiqueta>
+          <IndicadorFavorito tipo="jogo" id={jogo.id} nome={jogo.nome} />
+        </div>
       </div>
     </article>
   );

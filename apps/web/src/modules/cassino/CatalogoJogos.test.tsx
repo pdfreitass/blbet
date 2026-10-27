@@ -1,5 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+
+import { renderizar } from '../../test/render';
 
 import { CatalogoJogos } from './CatalogoJogos';
 import type { JogoDemonstrativo } from './tipos';
@@ -11,14 +13,14 @@ const JOGOS: readonly JogoDemonstrativo[] = [
 
 describe('CatalogoJogos', () => {
   it('mostra todos os jogos sem filtro', () => {
-    render(<CatalogoJogos jogos={JOGOS} />);
+    renderizar(<CatalogoJogos jogos={JOGOS} />);
 
     expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Roleta Maquete' })).toBeTruthy();
   });
 
   it('filtra por categoria e marca o filtro ativo', () => {
-    render(<CatalogoJogos jogos={JOGOS} />);
+    renderizar(<CatalogoJogos jogos={JOGOS} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Mesa' }));
 
@@ -28,7 +30,7 @@ describe('CatalogoJogos', () => {
   });
 
   it('carregar de novo na categoria ativa remove o filtro', () => {
-    render(<CatalogoJogos jogos={JOGOS} />);
+    renderizar(<CatalogoJogos jogos={JOGOS} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Mesa' }));
     fireEvent.click(screen.getByRole('button', { name: 'Mesa' }));
@@ -38,7 +40,7 @@ describe('CatalogoJogos', () => {
   });
 
   it('categoria válida sem jogos dá lista vazia com saída, não erro (regra A7)', () => {
-    render(<CatalogoJogos jogos={JOGOS} />);
+    renderizar(<CatalogoJogos jogos={JOGOS} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Cartas' }));
 
@@ -51,16 +53,23 @@ describe('CatalogoJogos', () => {
   });
 
   it('catálogo vazio na origem usa o estado de nada cadastrado, não o de nada encontrado', () => {
-    render(<CatalogoJogos jogos={[]} />);
+    renderizar(<CatalogoJogos jogos={[]} />);
 
     expect(screen.getByText('Ainda não há jogos')).toBeTruthy();
     expect(screen.queryByText('Nada encontrado')).toBeNull();
   });
 
-  it('nenhum cartão da grelha é operável (RN-004, CA-004.4)', () => {
-    const { container } = render(<CatalogoJogos jogos={JOGOS} />);
+  it('nenhum cartão da grelha oferece como jogar (RN-004, CA-004.4)', () => {
+    const { container } = renderizar(<CatalogoJogos jogos={JOGOS} />);
     const grelha = container.querySelector('ul');
 
-    expect(grelha?.querySelectorAll('a, button, input, [role="button"]')).toHaveLength(0);
+    expect(grelha?.querySelectorAll('a, input, select, [role="button"]')).toHaveLength(0);
+
+    // Um botão por cartão, e é o favorito.
+    const botoes = [...(grelha?.querySelectorAll('button') ?? [])];
+    expect(botoes).toHaveLength(JOGOS.length);
+    for (const botao of botoes) {
+      expect(botao.getAttribute('aria-label')).toContain('favoritos');
+    }
   });
 });
