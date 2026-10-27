@@ -18,6 +18,7 @@ function daquiA(horas: number): Date {
 export const EVENTOS_DEMONSTRATIVOS: readonly EventoDemonstrativo[] = [
   {
     id: 'evt-fict-001',
+    origin: 'demo',
     esporte: 'Futebol',
     competicao: 'Copa Fictícia de Demonstração',
     participantes: ['Atlético Exemplo', 'Clube Protótipo'],
@@ -28,23 +29,24 @@ export const EVENTOS_DEMONSTRATIVOS: readonly EventoDemonstrativo[] = [
         id: 'mkt-fict-001',
         nome: 'Resultado final',
         opcoes: [
-          { id: 'opc-fict-001', nome: 'Atlético Exemplo', odd: 2.35 },
-          { id: 'opc-fict-002', nome: 'Empate', odd: 3.1 },
-          { id: 'opc-fict-003', nome: 'Clube Protótipo', odd: 2.8 },
+          { id: 'opc-fict-001', nome: 'Atlético Exemplo', odd: '2.35' },
+          { id: 'opc-fict-002', nome: 'Empate', odd: '3.10' },
+          { id: 'opc-fict-003', nome: 'Clube Protótipo', odd: '2.80' },
         ],
       },
       {
         id: 'mkt-fict-002',
         nome: 'Total de gols',
         opcoes: [
-          { id: 'opc-fict-004', nome: 'Acima de 2,5', odd: 1.95 },
-          { id: 'opc-fict-005', nome: 'Abaixo de 2,5', odd: 1.85 },
+          { id: 'opc-fict-004', nome: 'Acima de 2,5', odd: '1.95' },
+          { id: 'opc-fict-005', nome: 'Abaixo de 2,5', odd: '1.85' },
         ],
       },
     ],
   },
   {
     id: 'evt-fict-002',
+    origin: 'demo',
     esporte: 'Futebol',
     competicao: 'Copa Fictícia de Demonstração',
     participantes: ['Sociedade Amostra', 'União Maquete'],
@@ -55,15 +57,16 @@ export const EVENTOS_DEMONSTRATIVOS: readonly EventoDemonstrativo[] = [
         id: 'mkt-fict-003',
         nome: 'Resultado final',
         opcoes: [
-          { id: 'opc-fict-006', nome: 'Sociedade Amostra', odd: 1.72 },
-          { id: 'opc-fict-007', nome: 'Empate', odd: 3.4 },
-          { id: 'opc-fict-008', nome: 'União Maquete', odd: 4.25 },
+          { id: 'opc-fict-006', nome: 'Sociedade Amostra', odd: '1.72' },
+          { id: 'opc-fict-007', nome: 'Empate', odd: '3.40' },
+          { id: 'opc-fict-008', nome: 'União Maquete', odd: '4.25' },
         ],
       },
     ],
   },
   {
     id: 'evt-fict-003',
+    origin: 'demo',
     esporte: 'Basquete',
     competicao: 'Liga Demonstrativa de Basquete',
     participantes: ['Esboço Basquete Clube', 'Rascunho Esportivo'],
@@ -74,8 +77,8 @@ export const EVENTOS_DEMONSTRATIVOS: readonly EventoDemonstrativo[] = [
         id: 'mkt-fict-004',
         nome: 'Vencedor da partida',
         opcoes: [
-          { id: 'opc-fict-009', nome: 'Esboço Basquete Clube', odd: 1.45 },
-          { id: 'opc-fict-010', nome: 'Rascunho Esportivo', odd: 2.7 },
+          { id: 'opc-fict-009', nome: 'Esboço Basquete Clube', odd: '1.45' },
+          { id: 'opc-fict-010', nome: 'Rascunho Esportivo', odd: '2.70' },
         ],
       },
     ],

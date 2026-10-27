@@ -48,7 +48,17 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
 
     expect(screen.getByRole('button', { current: 'page' }).textContent).toContain('Cassino');
-    expect(screen.getByText('Ainda não há jogos')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
+  });
+
+  it('o catálogo do cassino não expõe nenhuma forma de jogar (RN-004, CA-004.4)', () => {
+    const { container } = render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
+
+    // Os únicos controles do conteúdo são os filtros de categoria, fora da grelha.
+    const grelha = container.querySelector('main ul');
+    expect(grelha?.querySelectorAll('a, button, input, [role="button"]')).toHaveLength(0);
   });
 
   it('nenhuma tela do protótipo expõe controle de aposta (RN-001, CA-003.3)', () => {

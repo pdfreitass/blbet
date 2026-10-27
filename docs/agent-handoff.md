@@ -37,7 +37,7 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com o primeiro ecrã a correr, commitado na branch do `frontend` (2026-10-27, `aaf04f2` e `7aeef79`, **por integrar**). Sem lógica de negócio e sem rede |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com as áreas de esportes e de cassino a correr, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. Sem lógica de negócio e sem rede |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
@@ -145,21 +145,45 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, primeira entrega de código)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, catálogo de cassino e alinhamento com os contratos)
 
 ### Situação
 
-**T-016 iniciada e com código a correr.** `apps/web/` deixou de ser esqueleto: tem a casca da aplicação, a navegação principal, a lista de eventos com mercados somente leitura, a busca e os componentes de estado de RF-008, tudo sobre os tokens do `design-system.md`. Verificações reais: typecheck, 41 testes e build passam; verificado no navegador em 375px e em desktop, sem erros na consola.
+**T-016 em andamento, segunda entrega: catálogo de cassino (RF-004).** `apps/web/` tem agora a área de esportes e a de cassino, e passou a consumir `@blbet/contracts` — as odds são texto decimal pela regra A5 e cada recurso declara `origin: 'demo'` (PC-010, A8). A `main` do `backend` está integrada na minha branch.
 
-- **Arquivos modificados:** `apps/web/` (todo o código-fonte e os testes), `apps/web/vite.config.ts`, `.claude/launch.json` (criado), `pnpm-lock.yaml`
-- **Contratos ou interfaces alterados:** nenhum. `apps/api/`, `packages/contracts/` e `docs/api-contract.md` intocados
-- **Pendências para o agente `backend`:** conferir o diff do `pnpm-lock.yaml` antes da integração — o `pnpm install` acrescentou-lhe 517 linhas, todas de `apps/web`
-- **Pendências para o Pedro:** aprovar o commit; **DIV-001** continua por decidir (avancei com a opção A restrita ao dado demonstrativo, como o design-system previa)
-- **Bloqueios:** nenhum para continuar
-- **Testes executados e resultados:** typecheck sem erros; `vitest run` → 41 testes em 6 ficheiros, todos passam; `vite build` → 230.28 kB de JS (72.10 kB gzip) e 11.73 kB de CSS (2.97 kB gzip). Detalhe e o que falhou pelo caminho, no registo de 2026-10-27
-- **Próxima ação recomendada:** cartão de jogo e área de cassino (RF-004), ou indicador de favorito (RF-006)
+- **Arquivos modificados:** `apps/web/src/modules/cassino/` (novo), `apps/web/src/app/`, `apps/web/src/shared/formato/odd.ts`, `apps/web/src/modules/esportes/` (odds para texto), `apps/web/package.json`, `docs/design-system.md`
+- **Contratos ou interfaces alterados:** nenhum. Passei a consumir `packages/contracts/`, não a alterá-lo
+- **Pendências para o agente `backend`:** tomar nota da **colisão de DT-009** (detalhe no registo de 2026-10-27 abaixo: a decisão de tema passa a **DT-010**, a do provedor fica); conferir o `pnpm-lock.yaml`, que mudou outra vez para ligar `apps/web` aos contratos
+- **Pendências para o Pedro:** aprovar o commit; **DIV-001** continua por decidir
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** typecheck passa; 58 testes em 9 ficheiros, todos passam; build passa (232.71 kB de JS, 14.00 kB de CSS). Verificado no navegador em 375px e a 1014px, sem rolagem horizontal
+- **Próxima ação recomendada:** indicador de favorito (RF-006)
 
 ### Histórico
+
+### 2026-10-27 — T-016: catálogo de cassino (RF-004) e alinhamento com os contratos da `main`
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (segunda entrega)
+- **Arquivos modificados:** `apps/web/src/modules/cassino/` (criado: `tipos.ts`, `dadosDemonstrativos.ts`, `categorias.ts`, `CartaoJogo.tsx` + `.module.css`, `CatalogoJogos.tsx` + `.module.css`, e os três ficheiros de teste), `apps/web/src/app/App.tsx` e `App.test.tsx`, `apps/web/src/shared/formato/odd.ts` e `odd.test.ts`, `apps/web/src/modules/esportes/tipos.ts` e `dadosDemonstrativos.ts` e `LinhaMercado.test.tsx`, `apps/web/package.json`, `docs/design-system.md`
+- **Contratos ou interfaces alterados:** **nenhum.** `packages/contracts/`, `apps/api/` e `docs/api-contract.md` continuam intocados — passei a **consumir** o pacote, não a alterá-lo
+- **`main` integrada:** fiz `git merge origin/main` (merge `483ea91`). Conflito só nas duas tabelas de resumo deste quadro e de `agent-tasks.md`, resolvido mantendo os dois registos: nenhuma linha do `backend` foi apagada
+- **Alinhamento com o que o `backend` publicou:** `apps/web` passou a depender de `@blbet/contracts` (`workspace:*`) e usa o tipo `Origin`. Em consequência: (1) as odds passaram de `number` para **texto decimal**, como a regra **A5** exige, e `formatarOdd` recusa agora tudo o que viole A5 — vírgula decimal, separador de milhares, sinal, notação científica — em vez de o exibir como veio; (2) cada recurso demonstrativo declara `origin: 'demo'`, como **PC-010** e **A8** exigem
+- **O que foi construído (RF-004):** cartão de jogo com espaço de imagem de proporção fixa reservada antes de haver imagem (RNF-003), nome e categoria numa faixa opaca **abaixo** da imagem; catálogo com filtro por categoria e grelha responsiva de 2/3/4/6 colunas pelos breakpoints de §3.7. Uma categoria válida sem jogos dá lista vazia com saída, e não erro — a regra **A7** (CA-005.2, CA-008.3). Nenhuma afordância de jogar, em lado nenhum (RN-004, CA-004.4), e há testes que travam a regressão
+- **Sem imagens:** os jogos são fictícios e inventar arte para eles aproximaria o protótipo de um produto real. O espaço fica reservado com a proporção certa, pronto para um `<img>` com `width`, `height` e `loading="lazy"` quando houver catálogo a sério
+- **PC-014 honrada em código:** `rotularCategoria` devolve um valor de enumerado desconhecido como veio, em vez de quebrar. Foi o compromisso que assumi na revisão da T-004 e agora tem teste
+- **Pendências para o agente `backend`:** **uma, de coordenação** — ver a colisão de numeração abaixo. A conferência do `pnpm-lock.yaml` pedida no registo anterior continua de pé; o lock mudou outra vez, agora só para ligar `apps/web` a `@blbet/contracts`
+- **Colisão de numeração — DT-009:** a T-005 reservou **DT-009** para a decisão de tema (§2 do `design-system.md`, aprovada pelo Pedro em 2026-10-26 mas ainda por registar). O `backend` registou **DT-009** para a Sportsbook API, e essa já está na `main`. **Não desfaço registo alheio:** a DT-009 do provedor fica como está e a decisão de tema passa a **DT-010**, já corrigida no `design-system.md`. Fica a sugestão de, no futuro, reservar o número no quadro antes de o usar
+- **Bloqueios:** nenhum. **BLQ-001 deixou de me afetar** — continuo sem depender de chaves, nomes ou formatos do provedor, como a DT-009 exige
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **58 testes em 9 ficheiros, todos passam** (eram 41 em 6). Um falhou à primeira, e com razão: o teste do `App` ainda esperava o cassino vazio
+  - `pnpm --filter @blbet/web build` → **passa** em 249ms; 232.71 kB de JS (72.72 kB gzip) e 14.00 kB de CSS (3.25 kB gzip)
+  - Navegador em 375x812 e a 1014px: grelha de 2 e de 4 colunas, filtro, estado vazio por categoria e navegação. Sem rolagem horizontal (verificada por medição, não por vista)
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Aviso sobre o servidor de desenvolvimento:** reescrever um módulo por baixo do Vite deixou a cache do HMR a servir uma versão antiga de `odd.ts`, com erro na consola enquanto os testes e o build passavam. Resolve-se reiniciando o servidor; os erros que ficam no histórico do separador são desse período, não do estado atual
+- **Não feito:** indicador de favorito (RF-006) — é a próxima; detalhe de jogo e de evento, e roteamento, continuam sem existir
+- **Próxima ação recomendada:** o Pedro aprova o commit e decide a **DIV-001**; o `backend` toma nota da renumeração para DT-010
 
 ### 2026-10-27 — T-016: dependências instaladas e primeiro ecrã de `apps/web/`
 

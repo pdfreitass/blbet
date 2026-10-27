@@ -1,0 +1,67 @@
+/*
+ * Cartao de jogo -- design-system seccao 9.4, RF-004.
+ *
+ * Nenhuma afordancia de "jogar": o cartao e leitura, nao controle (RN-004, CA-004.4).
+ */
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-surface-canvas);
+  box-shadow: var(--elevation-0);
+}
+
+/*
+ * Espaco da imagem com proporcao FIXA, reservada antes de haver o que carregar: e o
+ * que impede o deslocamento de layout (RNF-003, e a razao do principio P1).
+ *
+ * Nao ha imagem: os jogos sao ficticios e inventar arte para eles aproximaria o
+ * prototipo de um produto real. Quando houver catalogo a serio, entra aqui um <img>
+ * com `width`, `height` e `loading="lazy"`, na mesma caixa e sem mudar o layout.
+ */
+.espacoImagem {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface-inset);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-surface-raised) 0,
+    var(--color-surface-raised) 1px,
+    var(--color-surface-inset) 1px,
+    var(--color-surface-inset) 4px
+  );
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* Sigla do jogo em face monoespaçada: o mesmo tratamento que os numeros (P1). */
+.sigla {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-label);
+}
+
+/*
+ * Faixa opaca ABAIXO da imagem, nunca sobre ela (seccao 9.4): texto sobre imagem nao
+ * tem contraste garantido.
+ */
+.identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3);
+  background-color: var(--color-surface-raised);
+}
+
+.nome {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+}

@@ -8,8 +8,8 @@ const MERCADO: MercadoDemonstrativo = {
   id: 'mkt-teste',
   nome: 'Resultado final',
   opcoes: [
-    { id: 'opc-1', nome: 'Atlético Exemplo', odd: 2.35 },
-    { id: 'opc-2', nome: 'Empate', odd: 3.1 },
+    { id: 'opc-1', nome: 'Atlético Exemplo', odd: '2.35' },
+    { id: 'opc-2', nome: 'Empate', odd: '3.10' },
   ],
 };
 

@@ -4,6 +4,8 @@ import { CampoBusca } from '../shared/componentes/CampoBusca';
 import { NadaCadastrado, NadaEncontrado } from '../shared/componentes/Estados';
 import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { NavegacaoPrincipal, type IdDestino } from '../shared/componentes/NavegacaoPrincipal';
+import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
+import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { EVENTOS_DEMONSTRATIVOS } from '../modules/esportes/dadosDemonstrativos';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
 import type { EventoDemonstrativo } from '../modules/esportes/tipos';
@@ -68,7 +70,7 @@ export function App() {
         {destino === 'cassino' ? (
           <>
             <h1 className={estilos.titulo}>Cassino</h1>
-            <NadaCadastrado conjunto="jogos" />
+            <CatalogoJogos jogos={JOGOS_DEMONSTRATIVOS} />
           </>
         ) : null}
 
