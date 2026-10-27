@@ -145,21 +145,49 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, catálogo de cassino e alinhamento com os contratos)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (revisão cruzada da T-014)
 
 ### Situação
 
-**T-016 em andamento, segunda entrega: catálogo de cassino (RF-004).** `apps/web/` tem agora a área de esportes e a de cassino, e passou a consumir `@blbet/contracts` — as odds são texto decimal pela regra A5 e cada recurso declara `origin: 'demo'` (PC-010, A8). A `main` do `backend` está integrada na minha branch.
+**Revisão cruzada da T-014 entregue; nenhum código novo.** Revi a proposta do modelo esportivo e registei no histórico a concordância com os três pontos e **quatro ajustes** (T14-A1 a T14-A4). A proposta **não está publicada** — li-a na worktree do `backend` —, por isso **não fiz `git merge main`** (a `main` continua em `e3c7ca9`, sem nada novo) nem migrei os tipos de evento para `@blbet/contracts`, que ainda não os tem.
 
-- **Arquivos modificados:** `apps/web/src/modules/cassino/` (novo), `apps/web/src/app/`, `apps/web/src/shared/formato/odd.ts`, `apps/web/src/modules/esportes/` (odds para texto), `apps/web/package.json`, `docs/design-system.md`
-- **Contratos ou interfaces alterados:** nenhum. Passei a consumir `packages/contracts/`, não a alterá-lo
-- **Pendências para o agente `backend`:** tomar nota da **colisão de DT-009** (detalhe no registo de 2026-10-27 abaixo: a decisão de tema passa a **DT-010**, a do provedor fica); conferir o `pnpm-lock.yaml`, que mudou outra vez para ligar `apps/web` aos contratos
-- **Pendências para o Pedro:** aprovar o commit; **DIV-001** continua por decidir
-- **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; 58 testes em 9 ficheiros, todos passam; build passa (232.71 kB de JS, 14.00 kB de CSS). Verificado no navegador em 375px e a 1014px, sem rolagem horizontal
-- **Próxima ação recomendada:** indicador de favorito (RF-006)
+- **Arquivos modificados:** `docs/agent-handoff.md`, `docs/design-system.md`. Nenhum ficheiro de código
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `backend`:** responder a T14-A1 a T14-A4; **publicar** a proposta; confirmar que a versão revista é a que vai ser commitada; tomar nota da renumeração da decisão de tema para **DT-011** (segunda colisão de numeração)
+- **Pendências para o Pedro:** integrar a proposta do `backend` na `main` quando ele a publicar; **DIV-001** continua por decidir; registar a decisão de tema como DT-011
+- **Bloqueios:** a migração dos tipos de evento espera a publicação e o acordo da T-014
+- **Testes executados e resultados:** nenhum — revisão documental. O código de `apps/web` não foi tocado e ficou como no commit `21c20f9` (58 testes a passar)
+- **Próxima ação recomendada:** enquanto a T-014 não fecha, o indicador de favorito (RF-006), que não depende do contrato
 
 ### Histórico
+
+### 2026-10-27 — Revisão cruzada da proposta do modelo esportivo (T-014)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-014 (revisão cruzada, DT-005). **Nada implementado**
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo), `docs/design-system.md` (renumeração, ver abaixo)
+- **Contratos ou interfaces alterados:** **nenhum.** Não toquei em `packages/contracts/` nem em `docs/api-contract.md` — a alteração é do `backend`
+- **O que revi, e de onde:** `packages/contracts/src/sports.ts` e a secção 7.1 do `api-contract.md` **lidos na worktree do `backend`** (`C:\Users\pedro\blbet-backend`), porque **não estão publicados**: não existem em `origin/main`, nem em `origin/feat/backend-foundation`, nem na cópia da `main` em `C:\Users\pedro\blbet`. Esta revisão vale para a versão que lá estava em 2026-10-27; se o `backend` a alterar antes de commitar, tem de dizer o que mudou
+- **Resultado: concordo com os três pontos**, dois deles com ajuste. Mais **dois ajustes** fora dos três pontos, um dos quais afeta uma tela já construída
+
+**Ponto 1 — `markets` como objeto com `matchResult` e `totalGoals`: concordo, sem ajuste.** Um objeto tipado por mercado é melhor do que uma lista genérica: os dois mercados têm semânticas diferentes (1X2 tem casa, empate e fora; mais/menos tem linha), e uma lista genérica obrigaria a adivinhar qual é qual pelo nome. Aceito também que os rótulos visíveis sejam meus — já são, e é o que permite traduzi-los sem mexer no contrato. Duas notas, nenhuma delas pedido de mudança: a **ordem de exibição** dos mercados passa a ser decisão do `frontend`, e fixo-a para que CA-003.2 continue a valer; `matchResult: null` e `matchResult` com as três odds a `null` são, para mim, o mesmo estado — mercado indisponível — e não preciso que me distingam os dois.
+
+**Ponto 2 — evento começado desaparece da lista e dá `404` no detalhe: concordo com a regra, ajuste no erro (T14-A1).** Desaparecer da lista é coerente com a DT-010 e não me cria problema: a lista já não mostra contagem total (A6) e já assumi que uma página pode mudar entre pedidos (DIV-F02). O problema é o detalhe. `NOT_FOUND` passa a significar duas coisas — *não existe* e *já começou* — e eu não as consigo distinguir. Ao utilizador que abriu a lista há dez minutos e carrega num jogo, dizer "não encontrado" é enganador: o jogo existe, só começou. **Peço:** no `404` de um evento que já começou, `details` com `{ "field": "path.id", "issue": "event_started" }`. Encaixa no catálogo estável de `issue` da **A2** sem código de erro novo, e sem isso a mensagem de CA-008.2 fica errada ou vaga.
+
+**Ponto 3 — nomes das equipas em inglês até a PD-008 fechar: concordo, com um limite (T14-A2).** Não traduzo nem adivinho nomes; ficam como vêm. Nome de clube e nome de competição são nomes próprios, e por isso **não** marco `lang` neles — a WCAG 3.1.2 isenta nomes próprios, e marcá-los pioraria a pronúncia, não a melhoraria. **O limite:** isto vale para nomes próprios. Se algum campo de texto do provedor vier a trazer coisa que **não** é nome próprio — fase da competição, rótulo de estado, categoria — peço que venha como **enumerado**, não como texto livre em inglês: um enumerado eu traduzo e a PC-014 já cobre acrescentar valores; texto livre em inglês eu só posso mostrar como está, e aí a interface fica meio em português e meio em inglês.
+
+**T14-A3 — a lista agrupada por competição precisa do nome, não só do `competitionId`.** É o ajuste que mais me afeta. CA-002.1 exige agrupar por esporte e competição, e é o que `ListaEventos` faz hoje. Com `eventSchema` a trazer só `competitionId`, e sendo os `id` texto opaco que eu não interpreto (**PC-004**), para desenhar o cabeçalho de cada grupo tenho de chamar `GET /api/competitions`, guardar o resultado e correlacionar no cliente — com um caso sem resposta boa quando um `competitionId` não tem correspondência na outra lista, que é possível porque as duas respostas são pedidos diferentes em momentos diferentes. **Peço uma das duas:** `eventSchema` embute `competition: { id, name, sport }`, **ou** a resposta de `GET /api/events` traz as competições dos eventos daquela página em `meta`. Prefiro a primeira: é uma chamada, não tem caso sem correspondência, e o custo de repetir o nome é irrelevante ao pé de uma odd.
+
+**T14-A4 — `eventsQuerySchema` não aceita `q`, e a tela de busca já existe.** A regra **A7**, acordada na T-004, diz que o parâmetro de busca se chama `?q=`, seja qual for o escopo que a PD-003 vier a definir. O esquema proposto é `strictObject` com `competitionId`, `limit` e `cursor`, portanto `?q=` dá `VALIDATION_FAILED` com `unknown_field`. A tela de busca (RF-005) está construída e hoje filtra os eventos demonstrativos no cliente. **Peço** uma de duas coisas, e qualquer uma serve: acrescentar `q` opcional ao esquema, **ou** registar aqui que nesta fase a busca é só do lado do cliente e que `?q=` entra quando a PD-003 fechar. O que não pode é ficar por dizer, senão ligo a tela à rota e descubro na primeira chamada.
+
+**Sem divergências.** Nenhum dos pontos acima é discordância: são ajustes que aceito ver recusados com uma razão registada aqui.
+
+- **Colisão de numeração, a segunda — DT-010:** no registo anterior movi a decisão de tema de DT-009 para **DT-010**, por a DT-009 já estar tomada. Entretanto o `backend` registou **DT-010** para o âmbito dos dados esportivos. Como da outra vez, **não mexo no registo alheio**: a DT-010 do âmbito esportivo fica, e a decisão de tema passa a **DT-011** no `design-system.md`. Aconteceu duas vezes em dois dias, e vai repetir-se: **proponho** que, a partir de agora, quem for usar um número o reserve primeiro aqui no quadro, numa linha, antes de o escrever em `decisoes-tecnicas.md`
+- **Pendências para o agente `backend`:** responder a **T14-A1 a T14-A4**; dizer se a versão que revi é a que vai ser commitada; **publicar** a proposta, que ainda não está em nenhuma branch remota; tomar nota da renumeração para DT-011. A conferência do `pnpm-lock.yaml` continua de pé
+- **Pendências para o Pedro:** integrar a proposta do `backend` na `main` — **a `main` continua em `e3c7ca9`**, sem o modelo esportivo, por isso não fiz `git merge main`: não havia nada novo para integrar
+- **Bloqueios:** a migração dos tipos de eventos para `@blbet/contracts` **não foi feita e não podia ser**: `sports.ts` não existe no pacote da minha branch. `apps/web/src/modules/esportes/tipos.ts` fica como está até a proposta ser acordada e integrada; quando o for, os tipos locais de evento saem e entram os do pacote, como já aconteceu com `Origin`
+- **Testes executados e resultados:** nenhum teste — revisão documental, sem alteração de código. Verificações feitas: `git fetch --all` seguido de `git cat-file -e origin/main:packages/contracts/src/sports.ts` → **não existe**; o mesmo em `origin/feat/backend-foundation` → **não existe**; `ls` em `C:\Users\pedro\blbet\packages\contracts\src` → só `envelope.ts`, `index.ts` e `primitives.ts`; o ficheiro está em `C:\Users\pedro\blbet-backend\packages\contracts\src\sports.ts`, que é a worktree do `backend`
+- **Próxima ação recomendada:** o `backend` responde aos quatro ajustes e publica; o Pedro integra na `main`; só então faço o merge e migro os tipos
 
 ### 2026-10-27 — T-016: catálogo de cassino (RF-004) e alinhamento com os contratos da `main`
 

@@ -2,7 +2,7 @@
 
 > Tarefas coordenadas entre os agentes `backend` (terminal) e `frontend` (Desktop). Regras em [`docs/agent-protocol.md`](agent-protocol.md); comunicação em [`docs/agent-handoff.md`](agent-handoff.md); decisões em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md).
 
-**Última atualização:** 2026-10-27 · **Por:** `frontend` (T-016: catálogo de cassino (RF-004) e alinhamento com os contratos publicados; `main` integrada na branch do `frontend`). Registo anterior: `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
+**Última atualização:** 2026-10-27 · **Por:** `frontend` (revisão cruzada da T-014 registada no quadro: 3 pontos concordados, 4 ajustes pedidos). Registo anterior: `frontend` (T-016: catálogo de cassino e alinhamento com os contratos). Registo anterior: `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
 
 ---
 
