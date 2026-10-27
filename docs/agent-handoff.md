@@ -37,13 +37,13 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com as cinco áreas de RF-001 construídas: esportes e busca **ligados às rotas reais**, cassino, favoritos e perfil demonstrativos. Todos os commits do `frontend` até ao `5d8641f` integrados na `main` (`ad3b8c5`, com push) |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com as cinco áreas de RF-001 construídas: esportes e busca **ligados às rotas reais**, cassino, favoritos e perfil demonstrativos. Todos os commits do `frontend` integrados na `main`, incluindo o perfil (`928843f`) |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
-| **Git** | `main` em `e3c7ca9`, **publicada** em `git@github.com:pdfreitass/blbet.git`. A branch `feat/frontend-foundation` ainda não foi publicada |
-| **Tarefas em andamento** | T-006, T-007, T-010, T-013, T-016 |
-| **Tarefas concluídas** | T-001, T-002, T-011, T-012 |
+| **Git** | `main` local em `928843f`; **`origin/main` em `ad3b8c5`** — o `928843f` e o `7400b27` ainda **não foram publicados**. A branch `feat/frontend-foundation` nunca foi publicada |
+| **Tarefas em andamento** | T-006, T-007, T-009, T-010, T-013, T-016 |
+| **Tarefas concluídas** | T-001 a T-005, T-008, T-011, T-012, T-014, T-015 |
 
 ---
 
@@ -218,20 +218,22 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-016, perfil demonstrativo)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (`main` com o RF-007 integrada)
 
 ### Situação
 
-**Perfil demonstrativo entregue (RF-007); as cinco áreas de RF-001 estão construídas.** A `main` com a DT-013 está integrada, sem conflitos, e a faixa que escrevi foi aceite tal como está. A corrigir no caminho: a api desligada deixava o utilizador sem botão de repetir.
+**RF-007 integrado; a branch está alinhada com a `main`.** Fiz `git merge main` (merge `fe9c0bf`), sem conflitos, e as verificações continuam verdes depois dele. As cinco áreas de RF-001 estão construídas e integradas.
 
-- **Arquivos modificados:** `apps/web/src/modules/perfil/` (novo), `App.tsx` e `App.test.tsx`, `shared/api/cliente.ts` e `cliente.test.ts`
+- **Arquivos modificados:** nenhum ficheiro de código — só este quadro: a tabela partilhada "Estado atual do projeto", atualizada com factos verificados no disco, e esta secção
 - **Contratos ou interfaces alterados:** nenhum
-- **Deliberadamente de fora:** saldo e histórico no perfil. A **PD-006** continua *não definida* e inventá-los seria decidir por omissão; há teste que trava isso
-- **Pendências para o agente `backend`:** nenhuma
-- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**, que a DT-013 deixou aberta; registar a decisão de tema como **DT-011**
+- **Dois pontos verificados no disco, que o quadro não dizia:**
+  - **`origin/main` está em `ad3b8c5`**, não em `928843f`: o `928843f` (RF-007) e o `7400b27` existem só na `main` local, **sem push**. Quem clonar o repositório hoje não recebe o perfil
+  - A secção `Backend` deste quadro descrevia um estado anterior à T-014 e à T-015. **Assinalei em vez de corrigir**, por ser a secção do outro agente, e o `backend` atualizou-a em `5c50a52` — confirmado por leitura desse commit. **Pendência fechada**
+- **Pendências para o agente `backend`:** **nenhuma.** O `backend` também não tem nenhuma para mim (`5c50a52`)
+- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main` (`git push`), que está dois commits à frente do remoto
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **106 testes em 11 ficheiros**, todos passam; build passa (328.75 kB de JS, 100.12 kB gzip). Verificado no navegador a 1014px e a 375px: zero controles no conteúdo do perfil, sem rolagem horizontal
-- **Próxima ação recomendada:** paginação por cursor, que o contrato já suporta e a interface ainda não usa
+- **Testes executados e resultados — depois do merge:** `pnpm install` → já atualizado; typecheck → **passa**; `vitest run` → **106 testes em 11 ficheiros, todos passam**; build → **passa** em 310ms
+- **Próxima ação recomendada:** paginação por cursor na listagem, que o contrato suporta (`meta.nextCursor`) e a interface ainda não usa
 
 ### Histórico
 
