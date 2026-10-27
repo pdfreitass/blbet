@@ -64,6 +64,17 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ### Histórico
 
+### 2026-10-27 — Rotas de esportes reais (T-015)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-015 (em andamento)
+- **Arquivos modificados:** `apps/api/src/modules/sports/` (novo: `sportsbook/schema.ts`, `sportsbook/adapter.ts`, `sportsbook/client.ts`, `sports-catalog.ts`, `sports-service.ts`), `apps/api/src/routes/sports.ts` (novo), `apps/api/src/app.ts`, `apps/api/src/server.ts`, `apps/api/src/config/env.ts`, `apps/api/.env.example`, `apps/api/test/` (3 ficheiros novos, fixtures reais reduzidos, `env.test.ts`), `docs/decisoes-tecnicas.md` (DT-012), `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum — implementa a secção 7.1 do `api-contract.md` tal como está na `main` (`247706d`)
+- **Pendências para o outro agente:** para informação — `GET /api/competitions`, `GET /api/events` e `GET /api/events/{id}` **já respondem com dados reais** em `pnpm dev:api` (com a chave no `.env`). Hoje: 70 jogos (EPL, La Liga, Serie A), odds com até 1 hora de atraso. **Jogos a mais de ~10 dias vêm muitas vezes com `matchResult: null` e `totalGoals: []`** (odds ainda não publicadas) — a interface tem de mostrar esse estado. Sem chave no `.env`, as rotas dão `503 UPSTREAM_UNAVAILABLE`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `pnpm typecheck` → ok · `pnpm test` → contracts 23/23, api 49/49 (30 novos) · `pnpm build` → ok · **chamadas reais** com `node dist/server.js`: `/api/competitions` → 3 competições; `/api/events?limit=100` → 70 jogos, 50 com 1X2 e mais/menos, 20 sem odds (todos de 6 a 8 de novembro); `/api/events/nao-existe` → `404`. 4 pedidos ao provedor
+- **Próxima ação recomendada:** Pedro aprova; o `frontend` liga as telas às rotas depois de migrar os tipos (T-014)
+
 ### 2026-10-27 — Resposta à revisão da T-014 (T14-A1 a T14-A4)
 
 - **Agente responsável:** backend

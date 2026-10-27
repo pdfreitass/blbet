@@ -1,0 +1,520 @@
+{
+  "events": [
+    {
+      "key": "OVc2-Alcu-Ynsy",
+      "name": "Everton @ Newcastle United",
+      "type": "MATCH",
+      "startTime": "2026-11-02T20:00:00.000Z",
+      "homeParticipantKey": "MIuT-wjcs-m2L0",
+      "participants": [
+        {
+          "key": "MIuT-wjcs-m2L0",
+          "type": "TEAM",
+          "slug": "newcastle-united",
+          "name": "Newcastle United",
+          "shortName": "NEW",
+          "sport": "SOCCER"
+        },
+        {
+          "key": "WPB8-wjcs-P0WD",
+          "type": "TEAM",
+          "slug": "everton",
+          "name": "Everton",
+          "shortName": "EVE",
+          "sport": "SOCCER"
+        }
+      ],
+      "competitionInstance": {
+        "key": "kPdK-Aigp-JLKU",
+        "name": "2026-27 English Premier League",
+        "competitionKey": "Xa0f-wjcs-tANp",
+        "startAt": "2026-08-19T00:00:00.000Z",
+        "endAt": "2027-06-02T00:00:00.000Z"
+      },
+      "markets": [
+        {
+          "key": "PCuN-Aktk-quZU",
+          "type": "BOTH_TEAMS_TO_SCORE",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-19T10:01:00.965Z",
+          "participantKey": null,
+          "participant": null
+        },
+        {
+          "key": "SIKZ-Aktk-JlXx",
+          "type": "BOTH_TEAMS_TO_SCORE",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-27T10:46:00.050Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 0,
+                "payout": 1.56,
+                "type": "YES",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "SIKZ-Aktk-JlXx",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 0,
+                "payout": 2.3,
+                "type": "NO",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "SIKZ-Aktk-JlXx",
+                "participantKey": null,
+                "participant": null
+              }
+            ],
+            "DRAFT_KINGS": [
+              {
+                "modifier": 0,
+                "payout": 1.555556,
+                "type": "YES",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "SIKZ-Aktk-JlXx",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 0,
+                "payout": 2.35,
+                "type": "NO",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "SIKZ-Aktk-JlXx",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "1qDI-Aktk-zgYm",
+          "type": "MONEYLINE_3WAY",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-27T10:46:00.050Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 0,
+                "payout": 2.2,
+                "type": "WIN",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "1qDI-Aktk-zgYm",
+                "participantKey": "MIuT-wjcs-m2L0",
+                "participant": {
+                  "key": "MIuT-wjcs-m2L0",
+                  "type": "TEAM",
+                  "slug": "newcastle-united",
+                  "name": "Newcastle United",
+                  "shortName": "NEW",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 2.95,
+                "type": "WIN",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "1qDI-Aktk-zgYm",
+                "participantKey": "WPB8-wjcs-P0WD",
+                "participant": {
+                  "key": "WPB8-wjcs-P0WD",
+                  "type": "TEAM",
+                  "slug": "everton",
+                  "name": "Everton",
+                  "shortName": "EVE",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 3.55,
+                "type": "DRAW",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "1qDI-Aktk-zgYm",
+                "participantKey": null,
+                "participant": null
+              }
+            ],
+            "DRAFT_KINGS": [
+              {
+                "modifier": 0,
+                "payout": 2.2,
+                "type": "WIN",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "1qDI-Aktk-zgYm",
+                "participantKey": "MIuT-wjcs-m2L0",
+                "participant": {
+                  "key": "MIuT-wjcs-m2L0",
+                  "type": "TEAM",
+                  "slug": "newcastle-united",
+                  "name": "Newcastle United",
+                  "shortName": "NEW",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 3,
+                "type": "WIN",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "1qDI-Aktk-zgYm",
+                "participantKey": "WPB8-wjcs-P0WD",
+                "participant": {
+                  "key": "WPB8-wjcs-P0WD",
+                  "type": "TEAM",
+                  "slug": "everton",
+                  "name": "Everton",
+                  "shortName": "EVE",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 3.65,
+                "type": "DRAW",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "1qDI-Aktk-zgYm",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "QMc8-Aktk-czdc",
+          "type": "POINT_TOTAL",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-27T10:46:00.066Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 2.5,
+                "payout": 1.7,
+                "type": "OVER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "QMc8-Aktk-czdc",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 2.5,
+                "payout": 2.14,
+                "type": "UNDER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "QMc8-Aktk-czdc",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "S4p3-Aktk-yzEn",
+          "type": "POINT_TOTAL",
+          "segment": "HALF_1",
+          "lastFoundAt": "2026-10-27T10:46:00.026Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 1.5,
+                "payout": 2.45,
+                "type": "OVER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "S4p3-Aktk-yzEn",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 1.5,
+                "payout": 1.49,
+                "type": "UNDER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "S4p3-Aktk-yzEn",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "key": "YmT4-Albq-rMNm",
+      "name": "Arsenal FC @ Liverpool",
+      "type": "MATCH",
+      "startTime": "2026-11-01T16:30:00.000Z",
+      "homeParticipantKey": "G53c-wjcs-mGqJ",
+      "participants": [
+        {
+          "key": "G53c-wjcs-mGqJ",
+          "type": "TEAM",
+          "slug": "liverpool",
+          "name": "Liverpool",
+          "shortName": "LIV",
+          "sport": "SOCCER"
+        },
+        {
+          "key": "3FBc-wjcs-zkpE",
+          "type": "TEAM",
+          "slug": "arsenal-fc",
+          "name": "Arsenal FC",
+          "shortName": "ARS",
+          "sport": "SOCCER"
+        }
+      ],
+      "competitionInstance": {
+        "key": "kPdK-Aigp-JLKU",
+        "name": "2026-27 English Premier League",
+        "competitionKey": "Xa0f-wjcs-tANp",
+        "startAt": "2026-08-19T00:00:00.000Z",
+        "endAt": "2027-06-02T00:00:00.000Z"
+      },
+      "markets": [
+        {
+          "key": "vDvd-Aksk-yqrS",
+          "type": "MONEYLINE_3WAY",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-27T10:46:00.050Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 0,
+                "payout": 2.28,
+                "type": "WIN",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "vDvd-Aksk-yqrS",
+                "participantKey": "3FBc-wjcs-zkpE",
+                "participant": {
+                  "key": "3FBc-wjcs-zkpE",
+                  "type": "TEAM",
+                  "slug": "arsenal-fc",
+                  "name": "Arsenal FC",
+                  "shortName": "ARS",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 2.9,
+                "type": "WIN",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "vDvd-Aksk-yqrS",
+                "participantKey": "G53c-wjcs-mGqJ",
+                "participant": {
+                  "key": "G53c-wjcs-mGqJ",
+                  "type": "TEAM",
+                  "slug": "liverpool",
+                  "name": "Liverpool",
+                  "shortName": "LIV",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 3.45,
+                "type": "DRAW",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "vDvd-Aksk-yqrS",
+                "participantKey": null,
+                "participant": null
+              }
+            ],
+            "DRAFT_KINGS": [
+              {
+                "modifier": 0,
+                "payout": 2.25,
+                "type": "WIN",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "vDvd-Aksk-yqrS",
+                "participantKey": "3FBc-wjcs-zkpE",
+                "participant": {
+                  "key": "3FBc-wjcs-zkpE",
+                  "type": "TEAM",
+                  "slug": "arsenal-fc",
+                  "name": "Arsenal FC",
+                  "shortName": "ARS",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 3,
+                "type": "WIN",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "vDvd-Aksk-yqrS",
+                "participantKey": "G53c-wjcs-mGqJ",
+                "participant": {
+                  "key": "G53c-wjcs-mGqJ",
+                  "type": "TEAM",
+                  "slug": "liverpool",
+                  "name": "Liverpool",
+                  "shortName": "LIV",
+                  "sport": "SOCCER"
+                }
+              },
+              {
+                "modifier": 0,
+                "payout": 3.55,
+                "type": "DRAW",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "vDvd-Aksk-yqrS",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "ikIi-Akti-Q2Yy",
+          "type": "POINT_TOTAL",
+          "segment": "HALF_1",
+          "lastFoundAt": "2026-10-27T10:46:00.026Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 1.5,
+                "payout": 2.75,
+                "type": "OVER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "ikIi-Akti-Q2Yy",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 1.5,
+                "payout": 1.4,
+                "type": "UNDER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "ikIi-Akti-Q2Yy",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "1ur7-Aksk-GL9y",
+          "type": "POINT_TOTAL",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-27T10:46:00.066Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 2.5,
+                "payout": 1.88,
+                "type": "OVER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "1ur7-Aksk-GL9y",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 2.5,
+                "payout": 1.9,
+                "type": "UNDER",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "1ur7-Aksk-GL9y",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "ddNU-Aktd-eXtG",
+          "type": "BOTH_TEAMS_TO_SCORE",
+          "segment": "REGULATION_TIME",
+          "lastFoundAt": "2026-10-27T10:46:00.050Z",
+          "participantKey": null,
+          "participant": null,
+          "outcomes": {
+            "BET_PARX": [
+              {
+                "modifier": 0,
+                "payout": 1.67,
+                "type": "YES",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "ddNU-Aktd-eXtG",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 0,
+                "payout": 2.1,
+                "type": "NO",
+                "live": false,
+                "source": "BET_PARX",
+                "marketKey": "ddNU-Aktd-eXtG",
+                "participantKey": null,
+                "participant": null
+              }
+            ],
+            "DRAFT_KINGS": [
+              {
+                "modifier": 0,
+                "payout": 1.625,
+                "type": "YES",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "ddNU-Aktd-eXtG",
+                "participantKey": null,
+                "participant": null
+              },
+              {
+                "modifier": 0,
+                "payout": 2.2,
+                "type": "NO",
+                "live": false,
+                "source": "DRAFT_KINGS",
+                "marketKey": "ddNU-Aktd-eXtG",
+                "participantKey": null,
+                "participant": null
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

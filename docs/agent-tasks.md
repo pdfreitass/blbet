@@ -22,9 +22,9 @@
 | Status | Quantidade | Tarefas |
 |---|---|---|
 | Concluída | 8 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012 |
-| Em andamento | 7 | T-006, T-007, T-009, T-010, T-013, T-014, T-016 |
+| Em andamento | 8 | T-006, T-007, T-009, T-010, T-013, T-014, T-015, T-016 |
 | Não iniciada | 0 | — |
-| Bloqueada | 1 | T-015 |
+| Bloqueada | 0 | — |
 
 **Ordem crítica:** T-014 com a revisão cruzada do `frontend` entregue e os ajustes T14-A1 a T14-A4 aplicados pelo `backend` (`247706d`); segue para a T-015. A T-016 avança em paralelo com o que não depende do contrato. Falta integrar na `main` os commits do `frontend` e a conferência do `pnpm-lock.yaml` pelo `backend`.
 
@@ -167,7 +167,7 @@
 - **Descrição:** implementar em `apps/api/` o adaptador do provedor esportivo e as rotas da T-014: credenciais em variáveis de ambiente, validação das respostas, tratamento de erros e de limites.
 - **Responsável:** `backend`
 - **Dependências:** **T-010**, **T-013**, **T-014**, T-006; DP-009 (cache e forma de atualização)
-- **Status:** **bloqueada** por T-010, T-013 e T-014
+- **Status:** **em andamento** — 2026-10-27, pelo `backend`: adaptador, cache (DT-012) e as 3 rotas da secção 7.1 implementados em `apps/api/src/modules/sports/` e `src/routes/sports.ts`, testados com fixtures tirados de respostas reais e com chamadas reais. **Falta:** aprovação do Pedro; a T-014 fechar (migração dos tipos no `frontend`)
 - **Critérios de conclusão:** o adaptador chama o provedor real com credenciais fora do repositório; os testes usam exemplos de resposta retirados da documentação oficial; nenhuma resposta inventada apresentada como real; tipos, lint e testes a passar, com os resultados reais registados.
 
 ### T-016 — Iniciar o desenvolvimento visual do frontend em paralelo

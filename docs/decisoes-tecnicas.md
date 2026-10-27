@@ -42,6 +42,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-008](#dt-008--worktrees-e-versões-da-fundação) | Worktrees em pastas irmãs; versões da fundação | PA-006 | aprovada |
 | [DT-009](#dt-009--sportsbook-api-como-provedor-esportivo-de-testes) | Sportsbook API (RapidAPI, plano gratuito) como provedor esportivo de desenvolvimento e testes | BLQ-001 em parte | aprovada, só para testes |
 | [DT-010](#dt-010--âmbito-inicial-dos-dados-esportivos) | Mercados, formato das odds, fonte única e só jogos futuros | PD-004, PD-007, PC-006 | aprovada |
+| [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
 
 ---
 
@@ -307,3 +308,24 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 - A situação do evento (A4) tem, por agora, um único valor: `scheduled`. Valores novos entram como mudança compatível (PC-014).
 - A fonte fixa é configuração do backend e **não** vai no contrato. Se a fonte não tiver odd para um resultado, o valor é `null` (A5).
 - O frontend não precisa de lógica de escolha de casa nem de comparação de odds.
+
+---
+
+### DT-012 — Competições e frequência de atualização no plano gratuito
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada, **enquanto se usa o plano gratuito** da Sportsbook API (DT-009)
+- **Decidido por:** Pedro
+- **Registado por:** `backend` (número reservado no quadro, ver DT-011 do `frontend`)
+- **Resolve:** DP-009, para esta fase
+
+**Contexto** — O plano gratuito permite 150 pedidos por dia. Uma chamada por competição traz os eventos e as odds.
+
+**Decisão** — Três competições: **Premier League** (`EPL`), **La Liga** (`LA_LIGA`) e **Serie A** (`SERIE_A`). Cada uma é atualizada no máximo **uma vez por hora**, e só quando há um pedido (cache em memória). A lista de competições é atualizada uma vez por dia. Teto: 3 × 24 + 1 = **73 pedidos/dia**.
+
+**Consequências**
+
+- Odds com até 1 hora de atraso. Aceitável para um protótipo sem apostas.
+- Se o provedor falhar e houver dados em cache, servem-se os dados antigos; sem cache, a rota dá `503 UPSTREAM_UNAVAILABLE`.
+- A fonte fixa da DT-010 é `BET_PARX` (cobertura completa de 1X2 e mais/menos na amostra), configurável.
+- Competições, frequência e fonte são variáveis de ambiente. Com o plano pago, sobem sem mudar código.
