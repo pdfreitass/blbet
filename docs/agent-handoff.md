@@ -64,6 +64,28 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Fase 5, etapa 1: revisão de segurança da api (RNF-004)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** Fase 5 do roadmap, revisão de segurança de `apps/api/` e `packages/contracts/`. **Nada alterado no código**
+- **Arquivos modificados:** `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Resultado:** **sem achados críticos nem altos.** Verificado:
+  - segredos: só em `apps/api/.env`, fora do git; `.env.example` sem valores; nenhuma chave no histórico do git;
+  - entradas: todas validadas com Zod, com `q` e `limit` limitados;
+  - erros: mensagens sem detalhe técnico, que fica só no log;
+  - logs: cabeçalhos de credenciais redigidos, e o URL do provedor é registado sem a query string;
+  - quota do provedor: a cache partilha o pedido em curso e, se o provedor falhar, espera o intervalo normal antes de voltar a tentar;
+  - dependências: `pnpm audit --prod` sem vulnerabilidades conhecidas.
+- **Achados:**
+  - **S-1 (médio):** a api não tem limite de pedidos por cliente. A cache protege a quota do provedor, mas não a api. Proposta: `@fastify/rate-limit` antes de publicar (dependência nova).
+  - **S-2 (baixo):** o `cursor` de `eventsQuerySchema` não tem tamanho máximo (vai a `JSON.parse`). Proposta: `.max(256)`. Mexe em `packages/contracts`, por isso exige revisão cruzada.
+  - **S-3 (baixo):** sem cabeçalhos de segurança nem CORS explícito. Hoje não pesa, porque o acesso é pelo proxy do Vite; decide-se com a plataforma de publicação (DP-008).
+- **Pendências para o agente `frontend`:** nenhuma por agora. Se a S-2 avançar, peço revisão cruzada
+- **Bloqueios:** as etapas seguintes da Fase 5 dependem do Pedro: meta de cobertura (DP-002), integração contínua (DP-003), lint e dono dos testes E2E (PA-008)
+- **Testes executados e resultados:** `pnpm audit --prod` → sem vulnerabilidades; procura no histórico do git por padrões de chave → nenhuma ocorrência
+- **Próxima ação recomendada:** Pedro decide DP-002, DP-003, lint e PA-008; o `backend` corrige S-1 e S-2 na etapa seguinte
+
 ### 2026-10-27 — DIV-001: opção A escolhida (DT-014)
 
 - **Agente responsável:** backend
