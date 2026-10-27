@@ -1,0 +1,136 @@
+/*
+ * Tokens visuais do blbet -- a UNICA fonte de valores visuais.
+ * Transcritos de docs/design-system.md secao 3 (direcao aprovada em 2026-10-26).
+ *
+ * Regras (secao 5 do design-system):
+ *   1. Componente consome token, nunca valor. Valor literal em componente e defeito.
+ *   2. Token novo entra no documento ANTES de entrar aqui, com a razao de contraste
+ *      calculada se for cor.
+ *   3. Nenhum componente define cor, raio, sombra ou duracao proprios.
+ *
+ * Tema: escuro unico nesta fase (secao 2 do design-system, decisao DT-009 proposta).
+ * Os nomes sao SEMANTICOS, nao literais, precisamente para que um tema claro futuro
+ * seja uma redefinicao de valores sob [data-theme="light"], sem tocar em componente.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Cor: superficies ------------------------------------------------ */
+  --color-surface-sunken: #070a0e;
+  --color-surface-canvas: #0b0e13;
+  --color-surface-raised: #141922;
+  --color-surface-overlay: #1c222d;
+  --color-surface-inset: #10151d;
+
+  /* --- Cor: texto ------------------------------------------------------ */
+  /* Razoes contra canvas / raised / overlay, calculadas (design-system secao 4):
+     primary 17.07 / 15.56 / 14.09 -- secondary 8.84 / 8.06 / 7.30
+     muted    5.83 /  5.32 /  4.82  (o overlay e o caso mais apertado) */
+  --color-text-primary: #eef1f6;
+  --color-text-secondary: #a7b0bf;
+  --color-text-muted: #848e9d;
+  --color-text-on-brand: #0b0e13;
+
+  /* --- Cor: marca e traco ---------------------------------------------- */
+  /* brand 14.42:1 sobre canvas: serve em texto e em icone pequeno, nao so em area. */
+  --color-brand: #b8f135;
+  --color-brand-strong: #9cd41e;
+  --color-brand-quiet: #1e2a12;
+
+  /* subtle e strong sao DECORATIVOS: 1.38:1 e 1.96:1, nao cumprem o 3:1 de
+     WCAG 1.4.11. E proibido usa-los como contorno de controle operavel. */
+  --color-border-subtle: #252c38;
+  --color-border-strong: #3a4452;
+  /* Contorno de controle operavel: 3.72 / 3.39 / 3.07 -- cumpre 1.4.11. */
+  --color-border-interactive: #616e7e;
+
+  /* --- Cor: estados ---------------------------------------------------- */
+  /* So em feedback. Nunca para classificar conteudo, nunca como cor de um
+     esporte, de uma categoria ou de um valor de odd. */
+  --color-success: #35c98a;
+  --color-warning: #f2b33d;
+  --color-danger: #ff6e6e;
+  --color-info: #63aeff;
+
+  /* --- Tipografia: familias -------------------------------------------- */
+  /* Nenhuma fonte remota nesta fase: a pilha do sistema e o que de facto renderiza.
+     Ver o risco R6 do design-system -- a licenca das duas familias nao foi
+     verificada, e servi-las exige verifica-la primeiro. */
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-numeric: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+
+  /* --- Tipografia: escala ---------------------------------------------- */
+  /* Em rem, para respeitar o tamanho de fonte do sistema (RNF-002). */
+  --text-3xl: 2rem;
+  --text-2xl: 1.5rem;
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+
+  --leading-3xl: 1.15;
+  --leading-2xl: 1.2;
+  --leading-xl: 1.3;
+  --leading-lg: 1.4;
+  --leading-md: 1.5;
+  --leading-sm: 1.45;
+  --leading-xs: 1.4;
+
+  /* 600 e o limite superior: nao existe 700 ou acima (design-system 1.4). */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Etiqueta curta em maiusculas. */
+  --tracking-label: 0.04em;
+
+  /* --- Espacamento: regua de 4px --------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Alvo de toque minimo (design-system 3.3): 44px, com folga sobre os 24px
+     que a WCAG 2.2 exige em 2.5.8. */
+  --target-min: 44px;
+
+  /* --- Raio ------------------------------------------------------------ */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+
+  /* --- Elevacao -------------------------------------------------------- */
+  /* Indica sobreposicao REAL, nunca importancia. Cartao de lista e elevation-0:
+     a diferenca de plano vem da cor da superficie. */
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elevation-2: 0 8px 24px rgb(0 0 0 / 0.55);
+
+  /* --- Movimento ------------------------------------------------------- */
+  --duration-instant: 80ms;
+  --duration-quick: 140ms;
+  --duration-moderate: 220ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* --- Layout ---------------------------------------------------------- */
+  --layout-max-width: 1440px;
+  --layout-measure: 72ch;
+}
+
+/*
+ * Os breakpoints do design-system 3.7 -- 600, 900, 1280 e 1680 -- NAO sao custom
+ * properties: @media nao as aceita. Vivem como valores literais nas consultas de
+ * media de cada componente, que e a unica excecao a regra 1 acima.
+ */

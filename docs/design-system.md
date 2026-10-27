@@ -76,7 +76,9 @@ Justificação:
 
 **Implementação prevista:** as custom properties são declaradas em `:root`, com `color-scheme: dark` para que os controles nativos do navegador acompanhem. Um tema claro futuro entra como bloco de redefinição sob `[data-theme="light"]`, mais `prefers-color-scheme` se e quando for decidido. Nenhum componente lê valor literal de cor.
 
-**A registar:** se aprovada, esta é uma decisão técnica que deve virar registo em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md) — próximo identificador livre: **DT-009**. Não a registei por iniciativa própria; fica como proposta.
+**A registar:** se aprovada, esta é uma decisão técnica que deve virar registo em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md) — próximo identificador livre: **DT-011**. Não a registei por iniciativa própria; fica como proposta.
+
+> **Correção de 2026-10-27, atualizada no mesmo dia.** Este documento reservava o **DT-009** para a decisão de tema. O `backend` registou a DT-009 para o provedor esportivo e, pouco depois, a **DT-010** para o âmbito dos dados esportivos. Nenhuma das duas é alterada; a decisão de tema passa a **DT-011**. Aconteceu duas vezes: está proposto no quadro que o número seja reservado aí antes de ser usado.
 
 ---
 
@@ -440,7 +442,7 @@ Componente único usado pelo estado de evento, pela categoria de jogo e pela mar
 |---|---|---|
 | **DIV-001** | Opção A ou Opção B para dados reais de terceiros (§7) | **Pedro** |
 | **DP-006** | Confirmar CSS Modules + custom properties (§8) | **Pedro** |
-| **DT-009** | Registar a decisão de tema (§2) em `docs/decisoes-tecnicas.md`, se aprovada | **Pedro** aprova; `frontend` registaria |
+| **DT-011** | Registar a decisão de tema (§2) em `docs/decisoes-tecnicas.md`, se aprovada. Era DT-009 e depois DT-010; renumerada duas vezes em 2026-10-27, porque o `backend` registou a DT-009 (provedor esportivo) e a DT-010 (âmbito dos dados esportivos) | **Pedro** aprova; `frontend` registaria |
 | **PD-002** | Público-alvo — ver R1 | **Pedro** |
 | **PD-007** | Formato de exibição das odds (§9.3) | **Pedro** (T-009) |
 | **PD-003**, **PD-005**, **PD-006 (requisitos)**, **PD-008** | Escopo da busca, categorias de cassino, campos do perfil, idioma e formatos | **Pedro** (T-009) |

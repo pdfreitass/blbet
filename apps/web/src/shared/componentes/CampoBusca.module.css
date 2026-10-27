@@ -1,0 +1,74 @@
+/* Campo de busca -- design-system secao 9.5, RF-005. */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.rotulo {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.controle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-inset);
+}
+
+/* O anel de foco e do input, nao da moldura: o foco tem de marcar o que recebe o
+   teclado. :focus-visible global ja desenha o anel. */
+.entrada {
+  flex: 1;
+  min-height: var(--target-min);
+  border: none;
+  background: none;
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+}
+
+/*
+ * O decorador nativo do input[type=search] desenha um segundo botao de limpar, ao
+ * lado do nosso -- dois controles com a mesma funcao, e o nativo sem nome acessivel.
+ * Fica so o nosso.
+ */
+.entrada::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
+
+.entrada::placeholder {
+  color: var(--color-text-muted);
+}
+
+.icone {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.limpar {
+  min-width: var(--target-min);
+  min-height: var(--target-min);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-lg);
+  cursor: pointer;
+}
+
+.limpar:hover {
+  color: var(--color-text-primary);
+}
+
+.contagem {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}

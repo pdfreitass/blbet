@@ -1,0 +1,38 @@
+/*
+ * Campo tracejado -- design-system secao 6.1. Tres marcas SIMULTANEAS e redundantes,
+ * nenhuma dependente de matiz: contorno tracejado, hachura diagonal e glifo fixo.
+ * Satisfaz WCAG 1.4.1 por redundancia e cumpre RNF-008 sem depender de texto auxiliar.
+ */
+
+.campo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px dashed var(--color-border-interactive);
+  border-radius: var(--radius-sm);
+  /* Hachura a 45 graus com passo de 4px: raised sobre inset, 1.07:1 -- textura, nao
+     informacao. Deliberadamente quase invisivel para nao reduzir o contraste do
+     numero que fica por cima, que continua text-primary sobre surface-inset. */
+  background-color: var(--color-surface-inset);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-surface-raised) 0,
+    var(--color-surface-raised) 1px,
+    var(--color-surface-inset) 1px,
+    var(--color-surface-inset) 4px
+  );
+  color: var(--color-text-primary);
+}
+
+/* Losango vazado antes do valor. aria-hidden no marcador: e marca visual, e quem usa
+   leitor de tela recebe o nome acessivel do elemento visualmente oculto. */
+.glifo {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+
+.valor {
+  font-weight: var(--weight-medium);
+}

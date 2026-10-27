@@ -1,0 +1,43 @@
+/* Visualizacao que reune os favoritos -- RF-006. */
+
+.grupo {
+  padding-block: var(--space-4) var(--space-2);
+}
+
+.titulo {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.grelha {
+  display: grid;
+  gap: var(--space-4);
+  padding-inline: var(--space-4);
+  margin: 0;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 600px) {
+  .grelha {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .grelha {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Explica a ausencia de um favorito, em vez de o deixar desaparecer em silencio. */
+.aviso {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}

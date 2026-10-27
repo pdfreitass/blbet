@@ -1,0 +1,113 @@
+/*
+ * Acesso a api. UM ponto: nenhum componente chama `fetch` por sua conta.
+ *
+ * Em desenvolvimento, o servidor do Vite encaminha `/api` para a api local (acordo da
+ * T-013), por isso o caminho e relativo e nao ha endereco nenhum em variavel.
+ *
+ * NUNCA lanca: devolve um resultado discriminado. Uma excecao a atravessar a arvore
+ * de componentes transformaria uma falha prevista -- a api em baixo -- num ecra
+ * branco, que e exatamente o que RF-008 proibe.
+ */
+
+import { apiErrorSchema } from '@blbet/contracts';
+
+import { mensagemDe, type FalhaApi } from './erros';
+
+/**
+ * O que este modulo precisa de um esquema: validar sem lancar.
+ *
+ * Descrito pela forma, e nao importado de `zod`, para que `apps/web` nao passe a ter
+ * a biblioteca como dependencia direta so por causa de uma assinatura. Os esquemas
+ * continuam a ser os do pacote de contratos.
+ */
+export interface Validador<T> {
+  safeParse(valor: unknown): { success: true; data: T } | { success: false };
+}
+
+export type Resultado<T> = { readonly ok: true; readonly dados: T } | { readonly ok: false; readonly falha: FalhaApi };
+
+/** Sinal de cancelamento, para abandonar um pedido que deixou de interessar. */
+export interface OpcoesPedido {
+  readonly signal?: AbortSignal;
+}
+
+/** Lancado so para interromper: quem chama distingue-o de uma falha a mostrar. */
+export class PedidoCancelado extends Error {}
+
+/**
+ * Faz o pedido e valida a resposta contra o esquema do contrato.
+ *
+ * Uma resposta que nao obedece ao contrato e tratada como falha, e nao exibida: dar
+ * por boa uma resposta que o contrato nao permite e pior do que dizer que nao se
+ * conseguiu ler.
+ */
+export async function pedir<T>(
+  caminho: string,
+  schema: Validador<T>,
+  opcoes: OpcoesPedido = {},
+): Promise<Resultado<T>> {
+  let resposta: Response;
+
+  try {
+    resposta = await fetch(caminho, {
+      headers: { Accept: 'application/json' },
+      // `signal: undefined` nao passa com `exactOptionalPropertyTypes`; `null` e o
+      // valor que a API de fetch aceita para "sem cancelamento".
+      signal: opcoes.signal ?? null,
+    });
+  } catch (erro) {
+    if (erro instanceof DOMException && erro.name === 'AbortError') {
+      throw new PedidoCancelado();
+    }
+
+    // Rede em baixo, DNS, servidor desligado: nao ha corpo nenhum para ler.
+    return falhar('SEM_LIGACAO', true);
+  }
+
+  const corpo: unknown = await lerJson(resposta);
+
+  if (!resposta.ok) {
+    const erro = apiErrorSchema.safeParse(corpo);
+
+    if (!erro.success) {
+      // Estado de erro sem o envelope acordado: nao se inventa um codigo.
+      return falhar('RESPOSTA_INVALIDA', false);
+    }
+
+    const { code, retryable, details } = erro.data.error;
+    const issue = details?.[0]?.issue;
+
+    // `exactOptionalPropertyTypes` esta ligado: a chave so entra quando ha valor, em
+    // vez de entrar com `undefined`.
+    return {
+      ok: false,
+      falha: {
+        codigo: code,
+        // Do SERVIDOR (A1). Acrescentar um codigo de erro novo nao quebra isto.
+        retryable,
+        ...(issue === undefined ? {} : { issue }),
+        mensagem: mensagemDe(code, issue),
+      },
+    };
+  }
+
+  const analisado = schema.safeParse(corpo);
+
+  if (!analisado.success) {
+    return falhar('RESPOSTA_INVALIDA', false);
+  }
+
+  return { ok: true, dados: analisado.data };
+}
+
+async function lerJson(resposta: Response): Promise<unknown> {
+  try {
+    return await resposta.json();
+  } catch {
+    return null;
+  }
+}
+
+function falhar(codigo: FalhaApi['codigo'], retryable: boolean): Resultado<never> {
+  return { ok: false, falha: { codigo, retryable, mensagem: mensagemDe(codigo) } };
+}

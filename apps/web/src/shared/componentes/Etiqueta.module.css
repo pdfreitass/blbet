@@ -1,0 +1,49 @@
+/*
+ * Etiqueta de estado e de procedencia -- design-system secao 9.8. Componente UNICO
+ * para situacao de evento, categoria de jogo e marcacao de procedencia.
+ * Icone MAIS texto, sempre: cor nunca e o unico portador (secao 3.1, regra 3).
+ */
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  background-color: var(--color-surface-raised);
+}
+
+.marca {
+  line-height: 1;
+}
+
+.neutra {
+  color: var(--color-text-secondary);
+}
+
+.sucesso {
+  color: var(--color-success);
+}
+
+.aviso {
+  color: var(--color-warning);
+}
+
+.erro {
+  color: var(--color-danger);
+}
+
+.informacao {
+  color: var(--color-info);
+}
+
+.demonstrativo {
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border-interactive);
+  background-color: var(--color-surface-inset);
+}

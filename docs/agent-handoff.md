@@ -37,12 +37,12 @@
 | | |
 |---|---|
 | **Fase do roadmap** | Fase 1 — Documentação e planejamento, **em andamento** |
-| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). Sem lógica de negócio |
+| **Código da aplicação** | Fundação do backend (`apps/api/`, `packages/contracts/`, raiz do monorepo) **integrada na `main`** (aprovação do Pedro, 2026-10-26). `apps/web/` com esportes e busca **ligados às rotas reais** da api, mais cassino e favoritos, na branch do `frontend` (2026-10-27, **por integrar**). Consome `packages/contracts/`. O cassino continua demonstrativo |
 | **Stack** | **Aprovada** — [DT-001](decisoes-tecnicas.md#dt-001--stack-do-projeto): monorepo pnpm, `apps/web` (React + Vite), `apps/api` (Fastify), `packages/contracts` (Zod) |
 | **Local do repositório** | `C:\Users\pedro\blbet` (`main`). A pasta antiga no OneDrive **não deve ser usada** (DT-007) |
 | **Worktrees** | `C:\Users\pedro\blbet-backend` → `feat/backend-foundation` · `C:\Users\pedro\blbet-frontend` → `feat/frontend-foundation` (DT-008) |
-| **Git** | `main` em `6adaeb0` (fundação + convenções da T-004), sem push |
-| **Tarefas em andamento** | T-003, T-007, T-008, T-013 |
+| **Git** | `main` em `e3c7ca9`, **publicada** em `git@github.com:pdfreitass/blbet.git`. A branch `feat/frontend-foundation` ainda não foi publicada |
+| **Tarefas em andamento** | T-006, T-007, T-010, T-013, T-016 |
 | **Tarefas concluídas** | T-001, T-002, T-011, T-012 |
 
 ---
@@ -207,20 +207,162 @@ Fundação técnica do backend commitada em `feat/backend-foundation` e integrad
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-26 (revisão da T-004)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (T-014 fechada do lado do `frontend`)
 
 ### Situação
 
-**T-005 aprovada pelo Pedro; revisão cruzada da T-004 entregue.** O Pedro aprovou a direção visual, o tema escuro (DT-009) e a recomendação de estilos (DP-006) em 2026-10-26; a **DIV-001 continua sem escolha entre as opções A e B** de §7 do `design-system.md` e não a decido por omissão. A revisão da proposta de convenções do contrato está registada na secção de integração. Nenhum código escrito ainda.
+**T-014 fechada do lado do `frontend`: a interface consome as rotas reais.** `apps/web` deixou de ter tipos próprios de evento — `SportEvent`, `Competition` e `Origin` vêm de `@blbet/contracts`, e os esquemas Zod validam cada resposta. Esportes e busca falam com `/api/events` pelo proxy do Vite; o cassino e os favoritos de cassino continuam demonstrativos.
 
-- **Arquivos modificados:** `docs/design-system.md` (criado), `docs/agent-handoff.md` (esta seção e a de integração), `docs/agent-tasks.md` (status das tarefas do `frontend`)
-- **Contratos ou interfaces alterados:** nenhum. Não editei `docs/api-contract.md` nem `packages/contracts/`: a revisão vai no quadro e quem altera o contrato é o `backend`
-- **Pendências para o agente `backend`:** os ajustes A1 a A8 e as divergências DIV-F01 e DIV-F02 da revisão da T-004, na secção de integração
-- **Bloqueios:** nenhum. O merge da `main` (`fcbe8fd`) está feito, depois de o Pedro aprovar o commit `a5da2e6`; o conflito ficou só no `docs/agent-tasks.md` e foi resolvido sem apagar registo nenhum do `backend`. **DP-001 está aprovada** (DT-001) — a nota anterior desta seção estava errada e fica corrigida. Bloqueios reais: `docs/design-system.md` inexistente (resolvo na T-005); PD-002 (público-alvo) e DIV-001 (dados reais vs. demonstrativos) carregam risco de retrabalho visual; DP-006 (abordagem de estilos) por decidir
-- **Testes executados e resultados:** nenhum executado — não há código de `apps/web/` nem dependências do frontend instaladas
-- **Próxima ação recomendada:** T-016 — esqueleto de `apps/web/`, com aviso prévio ao Pedro **antes** de instalar dependências, porque o `backend` também vai mexer no `pnpm-lock.yaml`. A opção A ou B da DIV-001 continua a faltar
+- **Arquivos modificados:** `apps/web/src/shared/api/` (novo), `ValorDeDado`, `FaixaDemonstrativa`, `dataHora`, todo o `modules/esportes/`, `ListaFavoritos`, `App` e os ficheiros de teste. Apagados: `modules/esportes/tipos.ts` e `dadosDemonstrativos.ts`
+- **Contratos ou interfaces alterados:** nenhum
+- **Atenção, para o `backend`:** uma resposta `200` que não obedece ao contrato é tratada como falha e **não** é exibida; um corpo de erro sem o envelope acordado não recebe código inventado. A busca é adiada 350 ms por causa do limite de 150 pedidos/dia
+- **Atenção, para o Pedro:** a faixa permanente **deixou de dizer** que todos os valores são fictícios, porque as cotações passaram a vir de uma fonte real e a frase era falsa. Isto toca a RN-002 e é matéria da **DIV-001**, que continua por decidir
+- **Pendências para o agente `backend`:** nenhuma nova
+- **Pendências para o Pedro:** DIV-001; registar a decisão de tema como **DT-011**; integrar na `main` os commits do `frontend`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** typecheck passa; **93 testes em 10 ficheiros**, todos passam; build passa (326.09 kB de JS, 99.43 kB gzip — subiu, o `zod` entra no pacote do navegador). Ponta a ponta contra a api real sem chave: `503 UPSTREAM_UNAVAILABLE` tratado, com mensagem compreensível, botão de repetir a funcionar e zero detalhe técnico na tela
+- **Não verificado:** o caminho de **sucesso com dados reais** — não tenho a chave do provedor e não copio segredos entre worktrees. Quem a tiver deve correr `pnpm dev:api` e abrir a interface
+- **Próxima ação recomendada:** confirmar o caminho de sucesso com a chave; depois RF-007 ou paginação por cursor
 
 ### Histórico
+
+### 2026-10-27 — T-014 fechada do lado do `frontend`: interface ligada às rotas reais
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-014 (migração e ligação, fecha o lado do `frontend`); T-016 (quinta entrega)
+- **Arquivos modificados:** `apps/web/src/shared/api/` (criado: `cliente.ts`, `erros.ts`, `esportes.ts`, `useRecurso.ts`, `useTermoAdiado.ts`, `cliente.test.ts`), `apps/web/src/shared/componentes/ValorDeDado.tsx` (criado), `apps/web/src/shared/componentes/FaixaDemonstrativa.tsx`, `apps/web/src/shared/formato/dataHora.ts` e `dataHora.test.ts`, `apps/web/src/modules/esportes/` (`CartaoEvento.tsx`, `LinhaMercado.tsx`, `ListaEventos.tsx`, `mercados.ts` novo; `tipos.ts`, `dadosDemonstrativos.ts` e `LinhaMercado.test.tsx` **apagados**), `apps/web/src/modules/favoritos/ListaFavoritos.tsx` e `.module.css`, `apps/web/src/app/App.tsx` e `App.test.tsx`, `apps/web/src/test/` (`fixtures.ts`, `servidorFalso.ts` novos)
+- **Contratos ou interfaces alterados:** **nenhum.** `packages/contracts/`, `apps/api/` e `docs/api-contract.md` intocados
+- **`main` integrada:** `git merge origin/main` trazendo `2be2afb` (merge `09268ed`). Conflito só na tabela de resumo de `agent-tasks.md`, resolvido somando os dois lados: T-015 do `backend`, T-016 do `frontend`, nenhuma bloqueada
+
+**A migração está feita.** `apps/web` deixou de ter tipos próprios de evento: `SportEvent`, `Competition`, `EventMarkets` e `Origin` vêm todos de `@blbet/contracts`. `modules/esportes/tipos.ts` e `dadosDemonstrativos.ts` foram **apagados** — não ficaram a apodrecer ao lado do código novo. Os esquemas Zod do pacote validam cada resposta antes de ela chegar a um componente.
+
+**Como a interface fala com a api:** um só módulo (`shared/api/cliente.ts`); nenhum componente chama `fetch`. Caminhos relativos `/api/...` pelo proxy do Vite, como a T-013 acordou — confirmado no navegador, `GET /api/events?limit=30` passa para a api. O cliente **nunca lança**: devolve um resultado discriminado, porque uma exceção a atravessar a árvore transformaria a api em baixo num ecrã branco, que é o que RF-008 proíbe.
+
+**Os três pontos que o Pedro assinalou, e o que cada um exigiu:**
+
+1. **Só existe `scheduled` e os jogos começados desaparecem.** A etiqueta de situação lê o valor do contrato e, se vier um valor que não conheço, mostra-o como veio em vez de quebrar (PC-014). O caso difícil foi nos **favoritos**: um jogo favoritado que começa deixa de vir na listagem e desapareceria em silêncio da visualização. Agora conta-se a diferença e diz-se ao utilizador — "1 jogo favoritado já começou e deixou de estar disponível". Os eventos favoritados são cruzados com a listagem em vez de pedidos um a um: com 150 pedidos/dia (DT-009), um pedido por favorito seria desperdício.
+2. **Jogos distantes vêm com `matchResult: null` e `totalGoals: []`.** Um evento sem mercados **não** mostra secção vazia, que pareceria defeito: mostra "Ainda não há cotações publicadas para este jogo". Uma odd `null` dentro de um mercado existente mostra "—", nunca um espaço em branco. As linhas de `totalGoals` são **ordenadas por valor** antes de exibidas: o contrato não garante ordem, e uma lista que muda de ordem entre pedidos é mais difícil de ler.
+3. **Erros no formato acordado.** `retryable` vem do servidor e é ele que decide se aparece "Tentar novamente" — não há lista de códigos repetíveis escrita do meu lado, por isso um código novo com o seu `retryable` funciona sem eu mudar nada. O `issue` `event_started` (T14-A1) tem texto próprio: "Este jogo já começou e deixou de estar disponível", em vez do "não encontrámos" que seria enganador. `error.message` **nunca** chega à tela (DIV-F01), e há teste que o verifica palavra a palavra.
+
+**Dois pontos que decidi e que convém o `backend` saber:**
+
+- **Uma resposta `200` que não obedece ao contrato é tratada como falha**, não exibida. Dar por boa uma resposta que o contrato não permite é pior do que dizer que não se conseguiu ler. O mesmo para um corpo de erro sem o envelope acordado: não invento um código.
+- **A busca é adiada em 350 ms.** Não é polimento: com 150 pedidos/dia, um pedido por tecla esgota o plano numa tarde. Verificado no navegador — sete teclas de "arsenal" deram **um** pedido, `?q=arsenal&limit=30`.
+
+**A faixa permanente mudou de texto, e isto precisa de decisão.** Dizia "Todos os valores exibidos são fictícios". Com as cotações a virem de uma fonte externa real, isso passou a ser **falso**, e uma declaração falsa é pior do que declaração nenhuma — contraria o princípio P5 do design-system, sinal honesto. Passou a dizer que não há apostas, depósitos, saques nem pagamentos (o que continua rigorosamente verdadeiro), que as cotações vêm de fonte externa e são informativas, e que o cassino e os restantes valores são fictícios. **Isto toca a RN-002** ("todo dado é fictício"), que o `requisitos.md` ainda afirma e que deixou de descrever o produto. **É matéria da DIV-001 e da decisão do Pedro**; o texto atual é o mais honesto que consigo escrever sem decidir por ele.
+
+- **Marcação de procedência:** continua a opção A — marca-se só o fictício. O componente que decide é um só (`ValorDeDado`), por isso a opção B entra num sítio e nenhum componente que o usa precisa de mudar.
+- **Pendências para o agente `backend`:** nenhuma nova. A T-014 fica fechada do meu lado: a proposta foi revista, os quatro ajustes foram aceites e a interface consome o modelo
+- **Pendências para o Pedro:** **DIV-001** (agora com consequência visível, ver acima); registar a decisão de tema como **DT-011**; integrar na `main` os commits do `frontend`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **93 testes em 10 ficheiros, todos passam** (eram 77). Os exemplos de resposta são validados pelos esquemas do contrato no momento em que são construídos: se o modelo mudar, os testes denunciam-no em vez de verificarem uma forma que já não existe
+  - `pnpm --filter @blbet/web build` → **passa**; 326.09 kB de JS (99.43 kB gzip) e 15.53 kB de CSS (3.39 kB gzip). **Cresceu** de 73.59 para 99.43 kB gzip: o `zod` entra agora no pacote do navegador, por causa dos esquemas que validam as respostas. Está dentro do orçamento, mas é um custo a ter presente
+  - **Ponta a ponta, no navegador, contra a api a correr:** criei um `apps/api/.env` local **sem chave** (ignorado pelo git, ver `.gitignore:7`) e arranquei a api. `GET /api/events` devolveu `503 UPSTREAM_UNAVAILABLE` com `retryable: true`, e a interface mostrou "Os dados esportivos estão indisponíveis neste momento" com "Tentar novamente", que emitiu novo pedido. Nenhum de `503`, `UPSTREAM_UNAVAILABLE`, `not configured` ou `provider` aparece na tela — verificado por leitura do texto da página
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **O que NÃO foi verificado, e é a limitação desta entrega:** o caminho de **sucesso com dados reais**. Não tenho a chave do provedor — ela está no `.env` da worktree do `backend` e não copio segredos entre worktrees. O caminho está coberto por testes com respostas validadas pelo contrato, mas **ninguém viu ainda um jogo real da EPL na tela**. Quem tiver a chave deve correr `pnpm dev:api` e abrir a interface: é um passo de minutos e fecha a dúvida
+- **Deixei a api a correr** na porta 3333 a partir desta worktree, sem chave. Pode ser parada sem consequência
+- **Próxima ação recomendada:** alguém com a chave confirma o caminho de sucesso; o Pedro decide a DIV-001; depois, perfil demonstrativo (RF-007) ou paginação por cursor, que o contrato já suporta e a interface ainda não usa
+
+### 2026-10-27 — T-016: indicador de favorito e favoritos locais (RF-006)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (terceira entrega)
+- **Arquivos modificados:** `apps/web/src/shared/favoritos/` (criado: `armazenamento.ts`, `contexto.tsx`, `armazenamento.test.ts`), `apps/web/src/shared/componentes/IndicadorFavorito.tsx` + `.module.css`, `apps/web/src/modules/favoritos/` (criado: `ListaFavoritos.tsx` + `.module.css`), `apps/web/src/test/render.tsx` (criado), `apps/web/src/modules/esportes/CartaoEvento.tsx` e `.module.css`, `apps/web/src/modules/cassino/CartaoJogo.tsx` e `.module.css`, `apps/web/src/app/App.tsx`, e os testes de `App`, `CartaoJogo` e `CatalogoJogos`
+- **Contratos ou interfaces alterados:** **nenhum.** Favoritos são locais por requisito (RN-005): sem servidor, sem conta e sem nada no contrato
+- **`main` integrada:** `git merge origin/main` (merge `0f52812`), trazendo `5a4cb1d` e `247706d`. Conflito **só** na tabela de resumo de `agent-tasks.md` — o histórico deste quadro fundiu-se sozinho, com as entradas dos dois agentes. Resolvi somando os dois lados: cada agente sabe o estado da sua área, por isso T-009 e T-014 vêm do `backend` e T-016 vem de mim
+- **Os quatro ajustes da minha revisão foram aceites e já estão no código do `backend`** (`247706d`): `event_started` entrou no catálogo de `issue` (T14-A1), `competitionRefSchema` embutido no evento (T14-A3) e `q` no `eventsQuerySchema` (T14-A4). Confirmado no disco, não no quadro
+- **O que foi construído (RF-006):** indicador de favorito nos dois cartões, com `aria-pressed` e nome acessível que descreve **a ação e o alvo** ("Adicionar X aos favoritos"); duas marcas de estado, a forma do ícone (contorno → preenchido) e a cor de marca, com a **forma** como portador principal (1.4.1); persistência em `localStorage` (RN-005); visualização que reúne eventos e jogos favoritados, com estado vazio explicativo (CA-006.4)
+- **CA-006.5 é o ponto que mais trabalhei.** Com o armazenamento indisponível — janela privada, política do navegador, quota cheia —, a aplicação continua navegável, **não** mostra erro técnico e **não desenha** o indicador: um controle que não guarda nada é pior do que controle nenhum. A visualização de favoritos diz "indisponíveis neste navegador" em vez de ficar vazia sem razão aparente. Tudo isto tem teste, com `Storage.prototype` a lançar
+- **O conteúdo do armazenamento é tratado como dado externo:** JSON inválido, conteúdo que não é lista e entradas com forma inesperada são filtrados em vez de rebentarem a leitura
+- **Decisão de desenho registada:** a escrita falhar **não** desfaz a mudança na tela (CA-006.1 exige resposta imediata); o que se perde é a persistência, e o indicador desaparece a seguir porque o armazenamento passa a indisponível
+- **Testes que mudaram de forma, e porquê:** os três que afirmavam "nenhum controle" nos cartões passaram a afirmar "nenhum controle **além do favorito**", verificando que o único botão é o indicador. O design-system autoriza-o nas secções 9.2 e 9.4; o que continua proibido — e continua testado — é qualquer coisa operável sobre uma odd ou uma forma de jogar
+- **Pendências para o agente `backend`:** nenhuma nova. Continua a conferência do `pnpm-lock.yaml` e a nota sobre a renumeração para **DT-011**
+- **Pendências para o Pedro:** integrar na `main` os commits do `frontend`; **DIV-001**; registar a decisão de tema como DT-011
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **77 testes em 10 ficheiros, todos passam** (eram 58 em 9)
+  - `pnpm --filter @blbet/web build` → **passa** em 274ms; 235.68 kB de JS (73.59 kB gzip) e 15.19 kB de CSS (3.36 kB gzip)
+  - Navegador: marcar, recarregar a página e confirmar que o favorito sobreviveu — `localStorage` com `["evento:evt-fict-001"]` e o indicador marcado depois do recarregamento (CA-006.2 verificada a sério, não só por teste); a visualização de favoritos mostra o evento marcado. **Zero erros na consola** num separador limpo
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Nota sobre o servidor de desenvolvimento, outra vez:** o histórico da consola do separador guardava erros do HMR de alterações anteriores — incluindo um `useFavoritos exige <FavoritosProvider>` de um estado intermédio. Confirmei num separador novo que o estado atual não tem erro nenhum. Quem for verificar, use um separador limpo: o histórico do separador não é o estado da aplicação
+- **Não feito:** telas de detalhe e roteamento, que continuam sem existir; o estado de favorito "no detalhe" de RF-006 fica à espera dessas telas. O perfil (RF-007) continua vazio
+- **Próxima ação recomendada:** ligar a interface às rotas da T-014 quando a T-015 as entregar, ou o perfil demonstrativo (RF-007)
+
+### 2026-10-27 — Revisão cruzada da proposta do modelo esportivo (T-014)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-014 (revisão cruzada, DT-005). **Nada implementado**
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo), `docs/design-system.md` (renumeração, ver abaixo)
+- **Contratos ou interfaces alterados:** **nenhum.** Não toquei em `packages/contracts/` nem em `docs/api-contract.md` — a alteração é do `backend`
+- **O que revi, e de onde:** `packages/contracts/src/sports.ts` e a secção 7.1 do `api-contract.md` **lidos na worktree do `backend`** (`C:\Users\pedro\blbet-backend`), porque **não estão publicados**: não existem em `origin/main`, nem em `origin/feat/backend-foundation`, nem na cópia da `main` em `C:\Users\pedro\blbet`. Esta revisão vale para a versão que lá estava em 2026-10-27; se o `backend` a alterar antes de commitar, tem de dizer o que mudou
+- **Resultado: concordo com os três pontos**, dois deles com ajuste. Mais **dois ajustes** fora dos três pontos, um dos quais afeta uma tela já construída
+
+**Ponto 1 — `markets` como objeto com `matchResult` e `totalGoals`: concordo, sem ajuste.** Um objeto tipado por mercado é melhor do que uma lista genérica: os dois mercados têm semânticas diferentes (1X2 tem casa, empate e fora; mais/menos tem linha), e uma lista genérica obrigaria a adivinhar qual é qual pelo nome. Aceito também que os rótulos visíveis sejam meus — já são, e é o que permite traduzi-los sem mexer no contrato. Duas notas, nenhuma delas pedido de mudança: a **ordem de exibição** dos mercados passa a ser decisão do `frontend`, e fixo-a para que CA-003.2 continue a valer; `matchResult: null` e `matchResult` com as três odds a `null` são, para mim, o mesmo estado — mercado indisponível — e não preciso que me distingam os dois.
+
+**Ponto 2 — evento começado desaparece da lista e dá `404` no detalhe: concordo com a regra, ajuste no erro (T14-A1).** Desaparecer da lista é coerente com a DT-010 e não me cria problema: a lista já não mostra contagem total (A6) e já assumi que uma página pode mudar entre pedidos (DIV-F02). O problema é o detalhe. `NOT_FOUND` passa a significar duas coisas — *não existe* e *já começou* — e eu não as consigo distinguir. Ao utilizador que abriu a lista há dez minutos e carrega num jogo, dizer "não encontrado" é enganador: o jogo existe, só começou. **Peço:** no `404` de um evento que já começou, `details` com `{ "field": "path.id", "issue": "event_started" }`. Encaixa no catálogo estável de `issue` da **A2** sem código de erro novo, e sem isso a mensagem de CA-008.2 fica errada ou vaga.
+
+**Ponto 3 — nomes das equipas em inglês até a PD-008 fechar: concordo, com um limite (T14-A2).** Não traduzo nem adivinho nomes; ficam como vêm. Nome de clube e nome de competição são nomes próprios, e por isso **não** marco `lang` neles — a WCAG 3.1.2 isenta nomes próprios, e marcá-los pioraria a pronúncia, não a melhoraria. **O limite:** isto vale para nomes próprios. Se algum campo de texto do provedor vier a trazer coisa que **não** é nome próprio — fase da competição, rótulo de estado, categoria — peço que venha como **enumerado**, não como texto livre em inglês: um enumerado eu traduzo e a PC-014 já cobre acrescentar valores; texto livre em inglês eu só posso mostrar como está, e aí a interface fica meio em português e meio em inglês.
+
+**T14-A3 — a lista agrupada por competição precisa do nome, não só do `competitionId`.** É o ajuste que mais me afeta. CA-002.1 exige agrupar por esporte e competição, e é o que `ListaEventos` faz hoje. Com `eventSchema` a trazer só `competitionId`, e sendo os `id` texto opaco que eu não interpreto (**PC-004**), para desenhar o cabeçalho de cada grupo tenho de chamar `GET /api/competitions`, guardar o resultado e correlacionar no cliente — com um caso sem resposta boa quando um `competitionId` não tem correspondência na outra lista, que é possível porque as duas respostas são pedidos diferentes em momentos diferentes. **Peço uma das duas:** `eventSchema` embute `competition: { id, name, sport }`, **ou** a resposta de `GET /api/events` traz as competições dos eventos daquela página em `meta`. Prefiro a primeira: é uma chamada, não tem caso sem correspondência, e o custo de repetir o nome é irrelevante ao pé de uma odd.
+
+**T14-A4 — `eventsQuerySchema` não aceita `q`, e a tela de busca já existe.** A regra **A7**, acordada na T-004, diz que o parâmetro de busca se chama `?q=`, seja qual for o escopo que a PD-003 vier a definir. O esquema proposto é `strictObject` com `competitionId`, `limit` e `cursor`, portanto `?q=` dá `VALIDATION_FAILED` com `unknown_field`. A tela de busca (RF-005) está construída e hoje filtra os eventos demonstrativos no cliente. **Peço** uma de duas coisas, e qualquer uma serve: acrescentar `q` opcional ao esquema, **ou** registar aqui que nesta fase a busca é só do lado do cliente e que `?q=` entra quando a PD-003 fechar. O que não pode é ficar por dizer, senão ligo a tela à rota e descubro na primeira chamada.
+
+**Sem divergências.** Nenhum dos pontos acima é discordância: são ajustes que aceito ver recusados com uma razão registada aqui.
+
+- **Colisão de numeração, a segunda — DT-010:** no registo anterior movi a decisão de tema de DT-009 para **DT-010**, por a DT-009 já estar tomada. Entretanto o `backend` registou **DT-010** para o âmbito dos dados esportivos. Como da outra vez, **não mexo no registo alheio**: a DT-010 do âmbito esportivo fica, e a decisão de tema passa a **DT-011** no `design-system.md`. Aconteceu duas vezes em dois dias, e vai repetir-se: **proponho** que, a partir de agora, quem for usar um número o reserve primeiro aqui no quadro, numa linha, antes de o escrever em `decisoes-tecnicas.md`
+- **Pendências para o agente `backend`:** responder a **T14-A1 a T14-A4**; dizer se a versão que revi é a que vai ser commitada; **publicar** a proposta, que ainda não está em nenhuma branch remota; tomar nota da renumeração para DT-011. A conferência do `pnpm-lock.yaml` continua de pé
+- **Pendências para o Pedro:** integrar a proposta do `backend` na `main` — **a `main` continua em `e3c7ca9`**, sem o modelo esportivo, por isso não fiz `git merge main`: não havia nada novo para integrar
+- **Bloqueios:** a migração dos tipos de eventos para `@blbet/contracts` **não foi feita e não podia ser**: `sports.ts` não existe no pacote da minha branch. `apps/web/src/modules/esportes/tipos.ts` fica como está até a proposta ser acordada e integrada; quando o for, os tipos locais de evento saem e entram os do pacote, como já aconteceu com `Origin`
+- **Testes executados e resultados:** nenhum teste — revisão documental, sem alteração de código. Verificações feitas: `git fetch --all` seguido de `git cat-file -e origin/main:packages/contracts/src/sports.ts` → **não existe**; o mesmo em `origin/feat/backend-foundation` → **não existe**; `ls` em `C:\Users\pedro\blbet\packages\contracts\src` → só `envelope.ts`, `index.ts` e `primitives.ts`; o ficheiro está em `C:\Users\pedro\blbet-backend\packages\contracts\src\sports.ts`, que é a worktree do `backend`
+- **Próxima ação recomendada:** o `backend` responde aos quatro ajustes e publica; o Pedro integra na `main`; só então faço o merge e migro os tipos
+
+### 2026-10-27 — T-016: catálogo de cassino (RF-004) e alinhamento com os contratos da `main`
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (segunda entrega)
+- **Arquivos modificados:** `apps/web/src/modules/cassino/` (criado: `tipos.ts`, `dadosDemonstrativos.ts`, `categorias.ts`, `CartaoJogo.tsx` + `.module.css`, `CatalogoJogos.tsx` + `.module.css`, e os três ficheiros de teste), `apps/web/src/app/App.tsx` e `App.test.tsx`, `apps/web/src/shared/formato/odd.ts` e `odd.test.ts`, `apps/web/src/modules/esportes/tipos.ts` e `dadosDemonstrativos.ts` e `LinhaMercado.test.tsx`, `apps/web/package.json`, `docs/design-system.md`
+- **Contratos ou interfaces alterados:** **nenhum.** `packages/contracts/`, `apps/api/` e `docs/api-contract.md` continuam intocados — passei a **consumir** o pacote, não a alterá-lo
+- **`main` integrada:** fiz `git merge origin/main` (merge `483ea91`). Conflito só nas duas tabelas de resumo deste quadro e de `agent-tasks.md`, resolvido mantendo os dois registos: nenhuma linha do `backend` foi apagada
+- **Alinhamento com o que o `backend` publicou:** `apps/web` passou a depender de `@blbet/contracts` (`workspace:*`) e usa o tipo `Origin`. Em consequência: (1) as odds passaram de `number` para **texto decimal**, como a regra **A5** exige, e `formatarOdd` recusa agora tudo o que viole A5 — vírgula decimal, separador de milhares, sinal, notação científica — em vez de o exibir como veio; (2) cada recurso demonstrativo declara `origin: 'demo'`, como **PC-010** e **A8** exigem
+- **O que foi construído (RF-004):** cartão de jogo com espaço de imagem de proporção fixa reservada antes de haver imagem (RNF-003), nome e categoria numa faixa opaca **abaixo** da imagem; catálogo com filtro por categoria e grelha responsiva de 2/3/4/6 colunas pelos breakpoints de §3.7. Uma categoria válida sem jogos dá lista vazia com saída, e não erro — a regra **A7** (CA-005.2, CA-008.3). Nenhuma afordância de jogar, em lado nenhum (RN-004, CA-004.4), e há testes que travam a regressão
+- **Sem imagens:** os jogos são fictícios e inventar arte para eles aproximaria o protótipo de um produto real. O espaço fica reservado com a proporção certa, pronto para um `<img>` com `width`, `height` e `loading="lazy"` quando houver catálogo a sério
+- **PC-014 honrada em código:** `rotularCategoria` devolve um valor de enumerado desconhecido como veio, em vez de quebrar. Foi o compromisso que assumi na revisão da T-004 e agora tem teste
+- **Pendências para o agente `backend`:** **uma, de coordenação** — ver a colisão de numeração abaixo. A conferência do `pnpm-lock.yaml` pedida no registo anterior continua de pé; o lock mudou outra vez, agora só para ligar `apps/web` a `@blbet/contracts`
+- **Colisão de numeração — DT-009:** a T-005 reservou **DT-009** para a decisão de tema (§2 do `design-system.md`, aprovada pelo Pedro em 2026-10-26 mas ainda por registar). O `backend` registou **DT-009** para a Sportsbook API, e essa já está na `main`. **Não desfaço registo alheio:** a DT-009 do provedor fica como está e a decisão de tema passa a **DT-010**, já corrigida no `design-system.md`. Fica a sugestão de, no futuro, reservar o número no quadro antes de o usar
+- **Bloqueios:** nenhum. **BLQ-001 deixou de me afetar** — continuo sem depender de chaves, nomes ou formatos do provedor, como a DT-009 exige
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **58 testes em 9 ficheiros, todos passam** (eram 41 em 6). Um falhou à primeira, e com razão: o teste do `App` ainda esperava o cassino vazio
+  - `pnpm --filter @blbet/web build` → **passa** em 249ms; 232.71 kB de JS (72.72 kB gzip) e 14.00 kB de CSS (3.25 kB gzip)
+  - Navegador em 375x812 e a 1014px: grelha de 2 e de 4 colunas, filtro, estado vazio por categoria e navegação. Sem rolagem horizontal (verificada por medição, não por vista)
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Aviso sobre o servidor de desenvolvimento:** reescrever um módulo por baixo do Vite deixou a cache do HMR a servir uma versão antiga de `odd.ts`, com erro na consola enquanto os testes e o build passavam. Resolve-se reiniciando o servidor; os erros que ficam no histórico do separador são desse período, não do estado atual
+- **Não feito:** indicador de favorito (RF-006) — é a próxima; detalhe de jogo e de evento, e roteamento, continuam sem existir
+- **Próxima ação recomendada:** o Pedro aprova o commit e decide a **DIV-001**; o `backend` toma nota da renumeração para DT-010
+
+### 2026-10-27 — T-016: dependências instaladas e primeiro ecrã de `apps/web/`
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (primeira entrega). T-013 fica cumprida do lado do `frontend`: o esqueleto de `apps/web/` existe e corre
+- **Arquivos modificados:** `apps/web/` inteiro (criado: `src/app/`, `src/shared/componentes/`, `src/shared/formato/`, `src/modules/esportes/`, testes ao lado de cada módulo), `apps/web/vite.config.ts` (corrigido), `.claude/launch.json` (criado), `pnpm-lock.yaml` (**ver pendência abaixo**)
+- **Contratos ou interfaces alterados:** **nenhum.** Não toquei em `apps/api/`, `packages/contracts/` nem `docs/api-contract.md`. Os tipos em `src/modules/esportes/tipos.ts` descrevem **apenas** o conjunto demonstrativo local e estão marcados como tal: não são contrato e são substituídos pelos esquemas Zod aprovados quando existirem
+- **O que foi construído:** casca da aplicação com a faixa demonstrativa permanente (CA-001.4, sem botão de fechar); navegação principal com os cinco destinos de RF-001 nos dois arranjos do mesmo componente (barra no fundo < 600px, topo >= 600px, marca de 2px no ativo); lista de eventos agrupada por competição (CA-002.1); cartão de evento (RF-002); linha de mercado e odds **somente leitura** (RF-003, RN-003); campo de busca (RF-005) com filtragem; os quatro componentes de estado de RF-008 (esqueleto, erro, *nada cadastrado*, *nada encontrado*); campo tracejado de §6.1 do design-system aplicado a **todo** valor fictício; etiqueta de estado de §9.8
+- **Dados:** conjunto demonstrativo local em `src/modules/esportes/dadosDemonstrativos.ts`, com clubes e competições **inventados de propósito** (RN-002). Nenhuma chamada de rede, nenhum formato de provedor imitado (BLQ-001 respeitado)
+- **DIV-001:** implementada a opção A restrita ao dado demonstrativo, como §7 do design-system previu. A variante `real` da etiqueta **não existe** no código — não esboçada, não comentada, não desativada
+- **Dois defeitos corrigidos durante a verificação no navegador**, ambos de acessibilidade: (1) a competição aparecia duas vezes na árvore de acessibilidade — o título do grupo passou a visível e o cartão deixou de a repetir; (2) havia dois controles com o nome acessível "Limpar a busca" na mesma tela — a saída de *nada encontrado* passou a "Ver todos os eventos", e o botão nativo do `input[type=search]`, que desenhava um segundo × sem nome acessível, foi escondido
+- **Pendências para o agente `backend`:** **uma** — o `pnpm install` alterou o `pnpm-lock.yaml` (+517 linhas), ficheiro partilhado. As entradas acrescentadas são todas de `apps/web` (React 19, Vite 8, Vitest 5, Testing Library, jsdom); nada de `apps/api` nem da raiz foi removido ou alterado. **Antes de integrar, o `backend` confere o diff do lock.** Era a PA-008
+- **Bloqueios:** nenhum para continuar. **DIV-001** continua sem decisão do Pedro e **PD-002** (público-alvo) e **PD-003** (escopo da busca) continuam abertas; nenhuma delas trava a próxima etapa
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**, sem erros (falhou à primeira: `vite.config.ts` importava `defineConfig` de `vite`, que não aceita a chave `test`; passou a importar de `vitest/config`)
+  - `pnpm --filter @blbet/web test` → **41 testes, 6 ficheiros, todos passam** (4 falharam à primeira e revelaram os dois defeitos de acessibilidade acima; corrigi a interface, não os testes)
+  - `pnpm --filter @blbet/web build` → **passa** em 283ms; 230.28 kB de JS (72.10 kB gzip) e 11.73 kB de CSS (2.97 kB gzip), dentro do orçamento
+  - Verificação no navegador em 375x812 e em largura de desktop: os dois arranjos da navegação, a faixa, o campo tracejado, a busca com resultado e sem resultado. **Zero erros na consola**
+  - Varredura de valores literais (§5.5 do design-system): **zero** hexadecimais fora de `tokens.css`; os únicos `px` restantes são larguras de borda de 1px e 2px e os breakpoints em `@media`, que o design-system declara como a única exceção
+- **Não feito, de propósito:** o cartão de evento **não navega** — não há tela de detalhe nem roteamento decidido, e um cartão clicável que não leva a lado nenhum é pior do que um de leitura. O destino ativo é estado local em vez de rota, pela mesma razão. O componente de esqueleto de carregamento existe e está testado mas **não está em uso em nenhuma tela**: só terá uso quando houver leitura de rede, e não simulei um carregamento falso para o exibir. O indicador de favorito (RF-006) e o cartão de jogo (RF-004) ainda não existem
+- **Próxima ação recomendada:** o Pedro aprova o commit; o `backend` confere o diff do `pnpm-lock.yaml`. Depois: cartão de jogo e cassino (RF-004) ou indicador de favorito (RF-006)
 
 ### 2026-10-26 — Revisão cruzada da proposta de convenções do contrato (T-004)
 
@@ -465,7 +607,7 @@ Atualizado pelo `backend` em 2026-10-26. DP-001, PA-001 e PA-002 já não são b
 | Bloqueio | Afeta | Quem resolve |
 |---|---|---|
 | **BLQ-001** — provedor esportivo não identificado; documentação oficial indisponível | T-014, T-015, modelo de dados esportivos, PC-006 | Pedro (T-010) |
-| **`frontend` ainda sem a raiz do monorepo na sua branch** | `pnpm install` em `apps/web` | `frontend`: `git merge main` na própria worktree (fast-forward), antes de instalar |
+| ~~**`frontend` ainda sem a raiz do monorepo na sua branch**~~ | — | **Resolvido** em 2026-10-27: merge feito e `pnpm install` executado; o `pnpm-lock.yaml` mudou e espera conferência do `backend` |
 | **PA-007** — mecanismo de integração na `main` (merge local ou pull request) | Todas as integrações | Pedro |
 | **Quadro por branch** — cada worktree vê a sua cópia de `docs/`; um registo só chega ao outro agente depois de integrado na `main` | Coordenação | Pedro integra com frequência os commits de coordenação; em caso de dúvida, ler a cópia da `main` em `C:\Users\pedro\blbet` |
 | **DIV-001** — dados reais (DT-002) vs. "todo dado é fictício" (RN-002, RF-003, RNF-008) | Identificação de dados na interface, DP-004, PC-010 | Pedro |

@@ -1,0 +1,131 @@
+/*
+ * Reset minimo e base global do blbet.
+ * Consome apenas tokens de tokens.css -- nenhum valor literal (design-system secao 5).
+ */
+
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  /* Nenhum tamanho de fonte fixado na raiz: respeita o tamanho definido pelo
+     utilizador no sistema (RNF-002). A escala em rem depende disto. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100svh;
+  background-color: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: var(--weight-regular);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Imagens nunca estouram o contentor; sem rolagem horizontal (RNF-001). */
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+/* Os controles nao herdam a tipografia por omissao em todos os navegadores. */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Titulos: o tamanho vem de uma classe do componente, nunca do nivel do titulo.
+   A hierarquia h1-h3 segue a estrutura semantica (design-system 3.2, RNF-002). */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+/*
+ * Foco visivel, em TODO elemento operavel. O contorno nunca e removido.
+ * Atende 2.4.7 (Focus Visible) e 1.4.11; o deslocamento de 2px da tambem
+ * 2.4.13 (Focus Appearance) sem custo extra. Razao do anel: 14.42:1 sobre o
+ * fundo da pagina, 11.91:1 sobre a superficie de sobreposicao.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* O foco so e removido quando ha :focus-visible a substitui-lo. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/*
+ * Movimento: OBRIGATORIO respeitar prefers-reduced-motion (design-system 3.6,
+ * regra 3). Nenhum estado depende de movimento para ser compreendido, por isso
+ * anular as animacoes nao perde informacao nenhuma.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Numeros com funcao de dado: odds, hora, data, contagem, placar.
+ * Principio P1 do design-system -- algarismos de largura fixa, para que os
+ * numeros alinhem entre linhas e NAO desloquem o layout quando mudam (RF-008).
+ */
+.numeric {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Texto so para leitor de tela: usado onde a marca visual nao e percetivel por
+   quem nao ve (design-system 6.2). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

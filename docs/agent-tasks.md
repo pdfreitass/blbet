@@ -2,7 +2,7 @@
 
 > Tarefas coordenadas entre os agentes `backend` (terminal) e `frontend` (Desktop). Regras em [`docs/agent-protocol.md`](agent-protocol.md); comunicação em [`docs/agent-handoff.md`](agent-handoff.md); decisões em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md).
 
-**Última atualização:** 2026-10-26 · **Por:** `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
+**Última atualização:** 2026-10-27 · **Por:** `frontend` (T-014 fechada do seu lado: tipos migrados para `@blbet/contracts` e telas ligadas às rotas reais). Registo anterior: `frontend` (T-016: favoritos locais, RF-006). Registo anterior: `frontend` (revisão cruzada da T-014: 3 pontos concordados, 4 ajustes, todos aceites). Registo anterior: `frontend` (T-016: catálogo de cassino e alinhamento com os contratos). Registo anterior: `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
 
 ---
 
@@ -22,11 +22,11 @@
 | Status | Quantidade | Tarefas |
 |---|---|---|
 | Concluída | 8 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012 |
-| Em andamento | 7 | T-006, T-007, T-009, T-010, T-013, T-014, T-015 |
-| Não iniciada | 1 | T-016 |
+| Em andamento | 8 | T-006, T-007, T-009, T-010, T-013, T-014, T-015, T-016 |
+| Não iniciada | 0 | — |
 | Bloqueada | 0 | — |
 
-**Ordem crítica:** T-013 (falta `apps/web/`, do `frontend`) → T-016 (frontend). A T-010 (provedor esportivo) trava a T-014 e a T-015.
+**Ordem crítica:** T-014 com a revisão cruzada do `frontend` entregue e os ajustes T14-A1 a T14-A4 aplicados pelo `backend` (`247706d`); segue para a T-015. A T-016 avança em paralelo com o que não depende do contrato. Falta integrar na `main` os commits do `frontend` e a conferência do `pnpm-lock.yaml` pelo `backend`.
 
 ---
 
@@ -149,7 +149,7 @@
 - **Descrição:** criar a raiz do monorepo (manifesto, workspace, configurações base de TypeScript, lint e testes) e o esqueleto vazio de `apps/api/` e `packages/contracts/`. Confirmar as versões e os comandos exatos. Definir a forma de comunicação local entre web e api e a PA-008.
 - **Responsável:** `backend` — raiz, `apps/api/`, `packages/contracts/` · `frontend` — esqueleto de `apps/web/`
 - **Dependências:** **T-011**, **T-012** (concluídas). Os ficheiros da raiz são compartilhados: aviso prévio, um agente de cada vez (seção 2 do protocolo).
-- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. Falta: esqueleto de `apps/web/` (`frontend`); PA-008.
+- **Status:** **em andamento** — parte do `backend` concluída em 2026-10-26, na branch `feat/backend-foundation`, commitada e integrada na `main` com aprovação do Pedro. **Parte do `frontend` cumprida em 2026-10-27**: `apps/web/` existe, instala e corre (typecheck, 41 testes e build a passar). **PA-008 resolvida** — o `pnpm install` correu e alterou o `pnpm-lock.yaml` (+517 linhas, todas de `apps/web`); falta a conferência do diff pelo `backend` antes da integração.
 - **Comunicação local entre web e api: acordada** — 2026-10-26, pelo `frontend`, em resposta à proposta do `backend`: o servidor de desenvolvimento do Vite encaminha `/api` para `http://127.0.0.1:3333`, configurado no `vite.config.ts` do `frontend`, sem CORS na api. Porta confirmada no disco (`apps/api/.env.example`, `apps/api/src/config/env.ts`). Registo na secção de integração do quadro.
 - **Evidência da parte do backend:** `pnpm install` sem erros (pnpm 12.15.0); `pnpm typecheck` passa nos 2 pacotes; `pnpm test` → 3 ficheiros, 7 testes a passar; `pnpm build` passa; servidor em dev respondeu `GET /health` → `200 {"status":"ok"}`; arranque com variáveis inválidas falhou só com os nomes das variáveis. Versões em DT-008.
 - **Critérios de conclusão:** `pnpm install` corre sem erros; os scripts de tipos, lint e testes correm em todos os pacotes, com os resultados reais registados; nenhuma funcionalidade implementada; versões registadas em `docs/decisoes-tecnicas.md`.
@@ -175,5 +175,5 @@
 - **Descrição:** construir os tokens, os componentes-base e as telas em `apps/web/`, usando os contratos aprovados e, enquanto não existirem, dados demonstrativos **claramente identificados como tal**.
 - **Responsável:** `frontend`
 - **Dependências:** a raiz do monorepo da T-013 (pronta na branch do `backend`, ver a seção de integração do quadro); T-005 (`docs/design-system.md`); DP-006 (estilos e componentes)
-- **Status:** **não iniciada** — **o `frontend` pode começar** na sua worktree (`C:\Users\pedro\blbet-frontend`)
+- **Status:** **em andamento** — primeira entrega em 2026-10-27, na worktree `C:\Users\pedro\blbet-frontend`, **por commitar** (aguarda aprovação do Pedro). Entregue: casca da aplicação, faixa demonstrativa permanente (CA-001.4), navegação principal nos dois arranjos (RF-001, CA-001.2), lista de eventos agrupada por competição (CA-002.1), cartão de evento (RF-002), linha de mercado e odds somente leitura (RF-003, RN-003, CA-003.3), campo de busca com filtragem (RF-005), os quatro componentes de estado de RF-008 e o campo tracejado de §6.1 do design-system em todo valor fictício. Dados demonstrativos locais, com clubes e competições inventados; nenhuma chamada de rede e nenhum formato de provedor imitado. **Segunda entrega, 2026-10-27:** cartão de jogo e catálogo de cassino com filtro por categoria (RF-004, CA-004.4); `apps/web` passou a consumir `@blbet/contracts` — odds em texto decimal pela regra A5 e `origin` obrigatório (PC-010, A8). **Terceira entrega, 2026-10-27:** favoritos locais (RF-006, CA-006.1 a CA-006.5). **Quarta entrega, 2026-10-27:** tipos de esportes migrados para `@blbet/contracts` e esportes e busca ligados às rotas reais, com os três estados de RF-008 sobre respostas da api. **Falta:** perfil demonstrativo (RF-007), telas de detalhe, roteamento e paginação por cursor
 - **Critérios de conclusão:** definidos pelo `frontend` na Fase 2 e na Fase 3 do roadmap; os dados demonstrativos são substituídos pelos contratos aprovados assim que existirem, sem simular dados do provedor.
