@@ -22,18 +22,22 @@ describe('CartaoJogo', () => {
   });
 
   /*
-   * A salvaguarda de RN-004 e CA-004.4: o cartão é leitura. O único controle que o
-   * design-system autoriza aqui é o indicador de favorito (secção 9.4); qualquer
-   * outro, ou uma ligação, faz este teste falhar.
+   * A salvaguarda de RN-004 e CA-004.4: o cartão leva ao detalhe e a mais nada. O
+   * único botão é o favorito, e a única ligação é a do nome do jogo — nenhuma
+   * afordância de jogar.
    */
-  it('não contém controle nenhum além do indicador de favorito', () => {
+  it('não contém controle nenhum além do favorito e da ligação para o detalhe', () => {
     const { container } = renderizar(<CartaoJogo jogo={JOGO} />);
 
-    expect(container.querySelectorAll('a, input, select, [role="button"]')).toHaveLength(0);
+    expect(container.querySelectorAll('input, select, [role="button"]')).toHaveLength(0);
 
     const botoes = [...container.querySelectorAll('button')];
     expect(botoes).toHaveLength(1);
     expect(botoes[0]?.getAttribute('aria-label')).toContain('favoritos');
+
+    const ligacoes = [...container.querySelectorAll('a')];
+    expect(ligacoes).toHaveLength(1);
+    expect(ligacoes[0]?.getAttribute('href')).toBe('/cassino/jog-teste');
   });
 
   it('reserva o espaço da imagem antes de haver imagem, para não deslocar o layout', () => {

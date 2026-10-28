@@ -1,0 +1,122 @@
+/* Detalhe de evento -- RF-002 e RF-003, com o vocabulario do design-system. */
+
+.trilho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.ligacaoTrilho {
+  color: var(--color-brand);
+  text-decoration: none;
+}
+
+.ligacaoTrilho:hover {
+  text-decoration: underline;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.contexto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Os participantes sao o titulo da tela. Peso medio, nao forte: peso forte e excecao
+ * com significado (design-system 1.4).
+ */
+.participantes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* Fica no nome acessivel e na leitura, mas sem competir com os participantes. */
+.contra {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
+}
+
+.instante {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-md);
+}
+
+.falha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding-bottom: var(--space-8);
+}
+
+.voltar {
+  margin-inline: var(--space-4);
+  min-height: var(--target-min);
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-brand);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
+.voltar:hover {
+  background-color: var(--color-surface-overlay);
+}
+
+.rodape {
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 900px) {
+  .cabecalho {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .instante {
+    flex-shrink: 0;
+  }
+}

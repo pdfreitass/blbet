@@ -10,11 +10,46 @@
   border-bottom: 1px solid var(--color-border-strong);
 }
 
+/*
+ * `position: relative` para a area da ligacao poder cobrir o cabecalho: a ligacao
+ * envolve so os participantes, e o `::after` estende a area clicavel ao bloco todo,
+ * sem cobrir os mercados (ver o comentario de CartaoEvento.tsx).
+ */
 .cabecalho {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4);
+}
+
+.ligacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.ligacao::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.ligacao:hover {
+  color: var(--color-brand);
+}
+
+/* O anel de foco segue a area real da ligacao, nao so o texto. */
+.ligacao:focus-visible {
+  outline: none;
+}
+
+.ligacao:focus-visible::after {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
 }
 
 .contexto {
@@ -37,7 +72,12 @@
   color: var(--color-text-primary);
 }
 
+/*
+ * Acima da area da ligacao: o indicador de favorito tem de continuar a receber o
+ * proprio clique, e a data nao deve ficar por baixo de uma area clicavel invisivel.
+ */
 .instante {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;

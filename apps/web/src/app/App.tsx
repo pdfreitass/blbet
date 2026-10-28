@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { Route, Switch, useSearchParams } from 'wouter';
 
 import { obterEventos } from '../shared/api/esportes';
 import { useListaPaginada } from '../shared/api/useListaPaginada';
@@ -12,14 +13,17 @@ import {
 } from '../shared/componentes/Estados';
 import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { MaisResultados } from '../shared/componentes/MaisResultados';
-import { NavegacaoPrincipal, type IdDestino } from '../shared/componentes/NavegacaoPrincipal';
+import { NavegacaoPrincipal } from '../shared/componentes/NavegacaoPrincipal';
 import { FavoritosProvider } from '../shared/favoritos/contexto';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
+import { DetalheJogo } from '../modules/cassino/DetalheJogo';
+import { DetalheEvento } from '../modules/esportes/DetalheEvento';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
 import { ListaFavoritos } from '../modules/favoritos/ListaFavoritos';
 import { Perfil } from '../modules/perfil/Perfil';
 import estilos from './App.module.css';
+import { NaoEncontrado } from './NaoEncontrado';
 
 export function App() {
   return (
@@ -30,16 +34,13 @@ export function App() {
 }
 
 /**
- * Casca da aplicacao: faixa permanente, cabecalho, conteudo do destino ativo e
- * navegacao principal.
+ * Casca da aplicacao: faixa permanente, cabecalho, conteudo da rota e navegacao.
  *
- * O destino ativo e estado local porque nao ha roteamento decidido. Quando houver,
- * passa a vir da rota e o resto fica.
+ * O destino deixou de ser estado local e passou a vir do endereco (DT-015): o botao
+ * "voltar" do navegador volta a listagem em vez de sair da aplicacao, e recarregar
+ * mantem o sitio onde se estava.
  */
 function Aplicacao() {
-  const [destino, setDestino] = useState<IdDestino>('esportes');
-  const [termo, setTermo] = useState('');
-
   return (
     <div className={estilos.aplicacao}>
       <FaixaDemonstrativa />
@@ -47,31 +48,19 @@ function Aplicacao() {
         <span className={estilos.marca}>blbet</span>
         <span className={estilos.subtitulo}>protótipo demonstrativo</span>
       </header>
-      <NavegacaoPrincipal destinoAtivo={destino} onNavegar={setDestino} />
+      <NavegacaoPrincipal />
       <main className={estilos.conteudo}>
-        {destino === 'esportes' ? <Esportes /> : null}
-        {destino === 'busca' ? <Busca termo={termo} onAlterar={setTermo} /> : null}
-
-        {destino === 'cassino' ? (
-          <>
-            <h1 className={estilos.titulo}>Cassino</h1>
-            <CatalogoJogos jogos={JOGOS_DEMONSTRATIVOS} />
-          </>
-        ) : null}
-
-        {destino === 'favoritos' ? (
-          <>
-            <h1 className={estilos.titulo}>Favoritos</h1>
-            <ListaFavoritos jogos={JOGOS_DEMONSTRATIVOS} />
-          </>
-        ) : null}
-
-        {destino === 'perfil' ? (
-          <>
-            <h1 className={estilos.titulo}>Perfil</h1>
-            <Perfil />
-          </>
-        ) : null}
+        <Switch>
+          <Route path="/" component={Esportes} />
+          <Route path="/eventos/:id" component={DetalheEvento} />
+          <Route path="/cassino" component={Cassino} />
+          <Route path="/cassino/:id" component={DetalheJogo} />
+          <Route path="/busca" component={Busca} />
+          <Route path="/favoritos" component={Favoritos} />
+          <Route path="/perfil" component={PerfilDaRota} />
+          {/* Endereco desconhecido tem saida, como tudo o resto (CA-008.4). */}
+          <Route component={NaoEncontrado} />
+        </Switch>
       </main>
     </div>
   );
@@ -83,7 +72,10 @@ const EVENTOS_POR_PAGINA = 30;
 function Esportes() {
   const carregar = useCallback(
     (cursor: string | undefined, opcoes: { signal: AbortSignal }) =>
-      obterEventos({ limit: EVENTOS_POR_PAGINA, ...(cursor === undefined ? {} : { cursor }) }, opcoes),
+      obterEventos(
+        { limit: EVENTOS_POR_PAGINA, ...(cursor === undefined ? {} : { cursor }) },
+        opcoes,
+      ),
     [],
   );
   const lista = useListaPaginada(carregar, []);
@@ -102,8 +94,6 @@ function Esportes() {
 
       {!lista.carregando && lista.falha === null ? (
         lista.itens.length === 0 ? (
-          // Sem busca aplicada: o conjunto esta mesmo vazio (CA-008.3). Acontece
-          // quando a fonte nao tem jogos futuros nas competicoes disponiveis.
           <NadaCadastrado conjunto="jogos" />
         ) : (
           <>
@@ -125,13 +115,51 @@ function Esportes() {
   );
 }
 
-interface BuscaProps {
-  termo: string;
-  onAlterar: (termo: string) => void;
+function Cassino() {
+  return (
+    <>
+      <h1 className={estilos.titulo}>Cassino</h1>
+      <CatalogoJogos jogos={JOGOS_DEMONSTRATIVOS} />
+    </>
+  );
 }
 
-function Busca({ termo, onAlterar }: BuscaProps) {
-  // O termo que chega a api e o adiado; o campo responde a cada tecla.
+function Favoritos() {
+  return (
+    <>
+      <h1 className={estilos.titulo}>Favoritos</h1>
+      <ListaFavoritos jogos={JOGOS_DEMONSTRATIVOS} />
+    </>
+  );
+}
+
+function PerfilDaRota() {
+  return (
+    <>
+      <h1 className={estilos.titulo}>Perfil</h1>
+      <Perfil />
+    </>
+  );
+}
+
+function Busca() {
+  /*
+   * O termo vive no endereco (`?q=`), com o mesmo nome do parametro do contrato
+   * (regra A7). Recarregar a pagina mantem a busca, e o endereco pode ser guardado.
+   *
+   * A escrita usa `replace`: sem isso, cada tecla deixaria uma entrada no historico e
+   * o "voltar" teria de ser carregado uma vez por letra para sair da busca.
+   */
+  const [parametros, definirParametros] = useSearchParams();
+  const termo = parametros.get('q') ?? '';
+
+  const alterar = useCallback(
+    (novo: string) => {
+      definirParametros(novo === '' ? {} : { q: novo }, { replace: true });
+    },
+    [definirParametros],
+  );
+
   const procurado = useTermoAdiado(termo).trim();
 
   const carregar = useCallback(
@@ -151,7 +179,7 @@ function Busca({ termo, onAlterar }: BuscaProps) {
         A contagem e a dos resultados JA CARREGADOS, nao a do total: `meta.total` e
         opcional (A6) e a interface nao depende dele.
       */}
-      <CampoBusca termo={termo} onAlterar={onAlterar} contagem={lista.itens.length} />
+      <CampoBusca termo={termo} onAlterar={alterar} contagem={lista.itens.length} />
 
       {lista.carregando ? <EsqueletoLista descricao="os resultados" linhas={3} /> : null}
 
@@ -164,12 +192,10 @@ function Busca({ termo, onAlterar }: BuscaProps) {
 
       {!lista.carregando && lista.falha === null ? (
         lista.itens.length === 0 && procurado !== '' ? (
-          // Termo bem formado sem correspondencia: `200` com lista vazia (regra A7),
-          // e nao erro.
           <NadaEncontrado
             criterio={`“${procurado}”`}
             rotuloLimpar="Ver todos os jogos"
-            onLimpar={() => onAlterar('')}
+            onLimpar={() => alterar('')}
           />
         ) : lista.itens.length === 0 ? (
           <NadaCadastrado conjunto="jogos" />

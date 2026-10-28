@@ -46,6 +46,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
 | [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
 | [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a) | Marcar só o dado fictício (opção A do `design-system.md`); o dado real não leva selo | DIV-001 (interface), DP-004, PC-010 | aprovada |
+| [DT-015](#dt-015--wouter-como-biblioteca-de-rotas-do-frontend) | `wouter` como biblioteca de rotas de `apps/web/`; esquema de endereços e fallback para `index.html` | roteamento (RF-002, RF-004) | aprovada |
 
 ---
 
@@ -418,3 +419,33 @@ A RN-002 passa a ter esta regra: **os dados esportivos (eventos, competições e
 - O §7 do `design-system.md` (do `frontend`) passa a registar a opção escolhida.
 
 **Pendências** — se os termos do provedor final exigirem atribuição (C1, C2), essa atribuição entra como texto de fonte no rodapé do bloco, previsto na própria opção A. Quando o provedor for definitivo, pode propor-se ao contrato um campo de atualização ("cotações às HH:MM").
+
+---
+
+### DT-015 — `wouter` como biblioteca de rotas do frontend
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `frontend`
+- **Resolve:** o roteamento de `apps/web/`, necessário para as telas de detalhe (RF-002, RF-004)
+
+**Contexto** — Até aqui o destino ativo era estado local em `App.tsx`, sem URL. Isso tem três consequências que se tornam graves com telas de detalhe: o botão (e o gesto) "voltar" do navegador **sai da aplicação**, recarregar a página volta ao início, e nenhum ecrã é endereçável. A visão exige caminhos percorríveis "sem becos sem saída", e um "voltar" que fecha o produto é exatamente isso. Nenhum requisito pede URL partilhável e o `index.html` leva `noindex`, por isso não há argumento de SEO: o que decidiu foi o comportamento do histórico, sobretudo em mobile (RNF-001).
+
+**Decisão** — usar **`wouter`** (versão `3.13.0`, publicada em 2026-09-30; licença Unlicense; sem dependências próprias). A proposta com as quatro opções está no quadro, no registo do `frontend` de 2026-10-27.
+
+**Alternativas consideradas**
+
+- **History API à mão**, sem dependência: defensável, e era a alternativa. Rejeitada porque a parte difícil não é emparelhar caminhos — é sincronizar o histórico com o React sem perder eventos, tratar `popstate`, cliques com tecla modificadora e reposição de rolagem. Seria código próprio a manter numa área onde é fácil errar em silêncio.
+- **`react-router`**: 17 a 30 kB comprimidos num pacote de ~100 kB, por funcionalidades que este produto não usa (carregadores de dados, rotas aninhadas profundas). Rejeitada pela proporção.
+- **Manter o estado local**: não resolve nenhuma das três consequências. Recomendada a recusa, e recusada.
+
+**Consequências**
+
+- Custo no pacote: **~1,5 kB** comprimido, menos de 1,5 % do total.
+- **Risco aceite:** o `wouter` tem um só mantenedor. Mitigação: a superfície usada são três ou quatro hooks, a licença é de domínio público, e substituí-lo é trabalho contido.
+- O esquema de endereços passa a ser: `/` (esportes), `/eventos/:id`, `/cassino`, `/cassino/:id`, `/busca?q=…`, `/favoritos`, `/perfil`. O termo de busca em `?q=` espelha o parâmetro do contrato (regra A7), e recarregar mantém a busca.
+- **Publicação:** o servidor que servir o `dist` tem de devolver `index.html` em qualquer caminho. Em desenvolvimento o Vite já o faz; em produção é configuração de quem publicar, e fica registado aqui para não ser descoberto no primeiro deploy.
+- O `404` com `issue: 'event_started'` (T14-A1) passa a ter ecrã onde aparecer: o detalhe de um evento que começou entre a listagem e o clique.
+
+**Pendências** — nenhuma para esta decisão. A **CA-002.3** ("o detalhe exibe os mesmos dados da listagem, sem divergência") depende de `GET /api/events/{id}` e `GET /api/events` servirem o mesmo conteúdo; está pedida confirmação ao `backend` no quadro.

@@ -1,3 +1,5 @@
+import { Link } from 'wouter';
+
 import { Etiqueta } from '../../shared/componentes/Etiqueta';
 import { IndicadorFavorito } from '../../shared/componentes/IndicadorFavorito';
 import estilos from './CartaoJogo.module.css';
@@ -16,11 +18,12 @@ function sigla(nome: string): string {
 /**
  * Cartao de jogo do catalogo (RF-004).
  *
- * NAO navega e NAO tem botao: nao existe tela de detalhe nem roteamento decidido, e o
- * design-system proibe qualquer afordancia de "jogar" (RN-004, CA-004.4). Pela mesma
- * razao do cartao de evento, fica de leitura ate haver para onde ir.
+ * O nome do jogo navega para o detalhe (DT-015), e a area clicavel estende-se a faixa
+ * de identificacao. O que continua proibido e qualquer afordancia de **jogar**
+ * (RN-004, CA-004.4): o cartao leva ao detalhe e a mais nada. O espaco da imagem fica
+ * fora da area da ligacao, para que nada no cartao se pareca com um botao de jogo.
  *
- * O indicador de favorito da seccao 9.4 e o unico controle do cartao (RF-006).
+ * O indicador de favorito da seccao 9.4 fica acima da ligacao, como controle proprio.
  */
 export function CartaoJogo({ jogo }: CartaoJogoProps) {
   return (
@@ -32,7 +35,11 @@ export function CartaoJogo({ jogo }: CartaoJogoProps) {
         </span>
       </div>
       <div className={estilos.identificacao}>
-        <h3 className={estilos.nome}>{jogo.nome}</h3>
+        <h3 className={estilos.nome}>
+          <Link href={`/cassino/${encodeURIComponent(jogo.id)}`} className={estilos.ligacao}>
+            {jogo.nome}
+          </Link>
+        </h3>
         <div className={estilos.rodapeCartao}>
           <Etiqueta variante="neutra">{rotularCategoria(jogo.categoria)}</Etiqueta>
           <IndicadorFavorito tipo="jogo" id={jogo.id} nome={jogo.nome} />

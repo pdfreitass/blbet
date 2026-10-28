@@ -63,13 +63,20 @@ describe('CatalogoJogos', () => {
     const { container } = renderizar(<CatalogoJogos jogos={JOGOS} />);
     const grelha = container.querySelector('ul');
 
-    expect(grelha?.querySelectorAll('a, input, select, [role="button"]')).toHaveLength(0);
+    expect(grelha?.querySelectorAll('input, select, [role="button"]')).toHaveLength(0);
 
     // Um botão por cartão, e é o favorito.
     const botoes = [...(grelha?.querySelectorAll('button') ?? [])];
     expect(botoes).toHaveLength(JOGOS.length);
     for (const botao of botoes) {
       expect(botao.getAttribute('aria-label')).toContain('favoritos');
+    }
+
+    // Uma ligação por cartão, e leva ao detalhe — não a jogar.
+    const ligacoes = [...(grelha?.querySelectorAll('a') ?? [])];
+    expect(ligacoes).toHaveLength(JOGOS.length);
+    for (const ligacao of ligacoes) {
+      expect(ligacao.getAttribute('href')).toMatch(/^\/cassino\//);
     }
   });
 });
