@@ -1,0 +1,32 @@
+# Integração contínua (DT-015, item 2): em cada push e PR, o mesmo que se corre localmente
+# antes de dar uma entrega por concluída. Os testes da api usam fixtures: não precisam da chave do provedor.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      # Usa a versão do pnpm declarada em packageManager no package.json.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm -r coverage
+      - run: pnpm build
