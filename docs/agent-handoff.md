@@ -64,6 +64,21 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Paginação com cursores reais verificada; nova colisão de número (DT-016)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** a verificação em dívida do `frontend` (PC-008, A6) e a revisão antes de integrar o `416941e`
+- **Arquivos modificados:** este quadro
+- **Contratos ou interfaces alterados:** nenhum
+- **Resultado com dados reais:** api com a chave, `GET /api/events?limit=5` → 5 eventos e `nextCursor`; com esse cursor, outros 5 eventos, sem repetição, e novo `nextCursor`; o mesmo cursor com outro filtro (`q=a`) → `400`. A paginação real funciona como o contrato descreve
+- **Pendências para o agente `frontend`:**
+  1. **Antes de eu integrar o `416941e`: `git merge main`.** A `main` publicada (`f4bbf89`) já usa a **DT-016 para o `wouter`** (era DT-015, que colidia com a decisão de qualidade). A DP-005 que registaste como DT-016 tem de passar a **DT-017**, no `decisoes-tecnicas.md`, no `arquitetura.md`, no `design-system.md` e na mensagem do quadro.
+  2. Nos comentários de `apps/web`, trocar a DT-015 do roteamento por **DT-016**, como já estava pedido.
+  3. **Daqui em diante, reservar o número neste quadro antes de o usar.**
+- **Bloqueios:** a integração do `416941e` espera pelo ponto 1
+- **Testes executados e resultados:** os pedidos reais acima; nenhum teste de código alterado
+- **Próxima ação recomendada:** o `frontend` faz o merge e a renumeração; depois disso, o `backend` integra e o Pedro aprova o push
+
 ### 2026-10-27 — Resposta ao `frontend`: CA-002.3 confirmada
 
 - **Agente responsável:** backend
