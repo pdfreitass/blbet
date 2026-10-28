@@ -32,6 +32,15 @@ export interface OpcoesPedido {
   /** Sinal de cancelamento, para abandonar um pedido que deixou de interessar. */
   readonly signal?: AbortSignal;
   /**
+   * Metodo HTTP. Por omissao `GET`, que e o que as leituras de esportes fazem.
+   *
+   * So o `GET` passa pelo cache: uma escrita repetida tem de chegar mesmo ao
+   * servidor, e a resposta de uma escrita nao serve a nenhuma outra tela.
+   */
+  readonly metodo?: 'GET' | 'POST' | 'DELETE';
+  /** Corpo a enviar, serializado em JSON. Ausente em `GET` e `DELETE` sem carga. */
+  readonly corpo?: unknown;
+  /**
    * Vai a rede mesmo havendo resposta recente guardada.
    *
    * Usado quando o utilizador pede explicitamente para recarregar -- "Tentar
@@ -62,7 +71,9 @@ export async function pedir<T>(
    * completo, com a query, por isso cada pagina e cada termo de busca sao entradas
    * distintas.
    */
-  const guardado = opcoes.ignorarCache === true ? undefined : lerDoCache(caminho);
+  const metodo = opcoes.metodo ?? 'GET';
+  const podeUsarCache = metodo === 'GET' && opcoes.ignorarCache !== true;
+  const guardado = podeUsarCache ? lerDoCache(caminho) : undefined;
 
   if (guardado !== undefined) {
     const analisadoDoCache = schema.safeParse(guardado);
@@ -78,7 +89,19 @@ export async function pedir<T>(
 
   try {
     resposta = await fetch(caminho, {
-      headers: { Accept: 'application/json' },
+      method: metodo,
+      headers: {
+        Accept: 'application/json',
+        ...(opcoes.corpo === undefined ? {} : { 'Content-Type': 'application/json' }),
+      },
+      ...(opcoes.corpo === undefined ? {} : { body: JSON.stringify(opcoes.corpo) }),
+      /*
+       * O cookie de sessao e `HttpOnly` e nao e legivel aqui (DT-020): o que esta
+       * linha faz e mandar o navegador ANEXA-LO ao pedido. Em desenvolvimento o Vite
+       * encaminha `/api` e e a mesma origem, onde isto nao muda nada; fica explicito
+       * para o dia em que a api estiver noutra origem.
+       */
+      credentials: 'include',
       // `signal: undefined` nao passa com `exactOptionalPropertyTypes`; `null` e o
       // valor que a API de fetch aceita para "sem cancelamento".
       signal: opcoes.signal ?? null,
@@ -131,8 +154,10 @@ export async function pedir<T>(
   }
 
   // So respostas bem sucedidas e validas entram no cache. Falhas nunca, para que
-  // "Tentar novamente" va mesmo a rede.
-  guardarNoCache(caminho, corpo);
+  // "Tentar novamente" va mesmo a rede; escritas nunca, pela razao acima.
+  if (metodo === 'GET') {
+    guardarNoCache(caminho, corpo);
+  }
 
   return { ok: true, dados: analisado.data };
 }
@@ -160,3 +185,13 @@ function ehEstadoRepetivel(estado: number): boolean {
 function falhar(codigo: FalhaApi['codigo'], retryable: boolean): Resultado<never> {
   return { ok: false, falha: { codigo, retryable, mensagem: mensagemDe(codigo) } };
 }
+
+/**
+ * Validador para as rotas que respondem `204` sem corpo (secao 7.2).
+ *
+ * `lerJson` devolve `null` quando nao ha corpo nenhum para ler, e isto aceita-o. Nao
+ * se inventa aqui um corpo vazio: a ausencia de corpo e a resposta.
+ */
+export const SEM_CONTEUDO: Validador<null> = {
+  safeParse: () => ({ success: true, data: null }),
+};

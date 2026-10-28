@@ -15,12 +15,21 @@ import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { MaisResultados } from '../shared/componentes/MaisResultados';
 import { NaoEncontrado } from '../shared/componentes/NaoEncontrado';
 import { NavegacaoPrincipal } from '../shared/componentes/NavegacaoPrincipal';
+import { ContaProvider } from '../shared/conta/contexto';
 import { FavoritosProvider } from '../shared/favoritos/contexto';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { DetalheJogo } from '../modules/cassino/DetalheJogo';
 import { DetalheEvento } from '../modules/esportes/DetalheEvento';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
+import { AlterarSenha } from '../modules/conta/AlterarSenha';
+import { CriarConta } from '../modules/conta/CriarConta';
+import { Dispositivos } from '../modules/conta/Dispositivos';
+import { Entrar } from '../modules/conta/Entrar';
+import { Recuperar } from '../modules/conta/Recuperar';
+import { Redefinir } from '../modules/conta/Redefinir';
+import { ResumoConta } from '../modules/conta/ResumoConta';
+import { VerificarEmail } from '../modules/conta/VerificarEmail';
 import { Perfil } from '../modules/perfil/Perfil';
 import estilos from './App.module.css';
 import { ListaFavoritos } from './ListaFavoritos';
@@ -28,9 +37,11 @@ import { ListaFavoritos } from './ListaFavoritos';
 
 export function App() {
   return (
-    <FavoritosProvider>
-      <Aplicacao />
-    </FavoritosProvider>
+    <ContaProvider>
+      <FavoritosProvider>
+        <Aplicacao />
+      </FavoritosProvider>
+    </ContaProvider>
   );
 }
 
@@ -59,6 +70,22 @@ function Aplicacao() {
           <Route path="/busca" component={Busca} />
           <Route path="/favoritos" component={Favoritos} />
           <Route path="/perfil" component={PerfilDaRota} />
+          {/*
+            Os ecras de conta (DT-020). Nao sao um sexto destino da navegacao: RF-001
+            e CA-001.2 fixam cinco, e `ehDestinoAtivo` marca o Perfil tambem em /conta.
+            Os caminhos `/conta/verificar` e `/conta/nova-senha` NAO sao escolha minha:
+            sao os que a api ja poe nos links dos e-mails
+            (`accounts-service.ts`, sobre `PUBLIC_URL`). Mudar um deles parte um e-mail
+            ja enviado, por isso ficam onde a api os espera -- e o pedido para os
+            escrever no contrato esta no quadro.
+          */}
+          <Route path="/conta/entrar" component={Entrar} />
+          <Route path="/conta/criar" component={CriarConta} />
+          <Route path="/conta/verificar" component={VerificarEmail} />
+          <Route path="/conta/recuperar" component={Recuperar} />
+          <Route path="/conta/nova-senha" component={Redefinir} />
+          <Route path="/conta/alterar-senha" component={AlterarSenha} />
+          <Route path="/conta/dispositivos" component={Dispositivos} />
           {/* Endereco desconhecido tem saida, como tudo o resto (CA-008.4). */}
           <Route component={NaoEncontrado} />
         </Switch>
@@ -138,6 +165,8 @@ function PerfilDaRota() {
   return (
     <>
       <h1 className={estilos.titulo}>Perfil</h1>
+      {/* A conta real primeiro; o perfil demonstrativo de RF-007 a seguir, intacto. */}
+      <ResumoConta />
       <Perfil />
     </>
   );

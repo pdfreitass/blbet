@@ -1,0 +1,81 @@
+/* Resumo da conta no topo do perfil (DT-020). So tokens -- design-system seccao 5. */
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.titulo {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.nota {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+  max-width: var(--layout-measure);
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.campo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.rotulo {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+/* O e-mail e texto de terceiro e pode ser longo: nao empurra a linha (RNF-001). */
+.valor {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  overflow-wrap: anywhere;
+}
+
+.ligacoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.ligacoes a {
+  color: var(--color-brand);
+}
+
+.sair {
+  align-self: flex-start;
+  min-height: var(--target-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.sair:hover:not(:disabled) {
+  background-color: var(--color-surface-raised);
+}
+
+.sair:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}

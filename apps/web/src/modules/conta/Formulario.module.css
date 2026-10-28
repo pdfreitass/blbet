@@ -1,0 +1,126 @@
+/* Formularios da area de conta (DT-020). So tokens -- design-system seccao 5. */
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  max-width: var(--layout-measure);
+}
+
+.titulo {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  font-weight: var(--weight-semibold);
+}
+
+.descricao {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rotulo {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.entrada {
+  min-height: var(--target-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-inset);
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+}
+
+/* A cor NAO e o unico sinal: ha `aria-invalid` e a mensagem por baixo. */
+.entradaInvalida {
+  border-color: var(--color-danger);
+}
+
+.apoio {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+}
+
+.erroCampo {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-danger);
+}
+
+.aviso {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-primary);
+}
+
+.avisoSucesso {
+  border-left-color: var(--color-success);
+}
+
+.acao {
+  min-height: var(--target-min);
+  padding-inline: var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-brand);
+  color: var(--color-text-on-brand);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease-standard);
+}
+
+.acao:hover:not(:disabled) {
+  background-color: var(--color-brand-strong);
+}
+
+.acao:disabled {
+  background-color: var(--color-surface-overlay);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.acaoPerigo {
+  background-color: transparent;
+  border: 1px solid var(--color-border-interactive);
+  color: var(--color-danger);
+}
+
+.acaoPerigo:hover:not(:disabled) {
+  background-color: var(--color-surface-raised);
+}
+
+.saidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.saidas a {
+  color: var(--color-brand);
+}

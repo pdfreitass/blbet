@@ -22,8 +22,15 @@ export function instalarServidorFalso(encaminhar: Encaminhador): void {
       const url = typeof entrada === 'string' ? entrada : String(entrada);
       const { estado, corpo } = encaminhar(url);
 
+      /*
+       * `204` nao pode ter corpo: o construtor de `Response` recusa-o. As rotas de
+       * conta (DT-020) respondem assim, e sem esta distincao o servidor falso
+       * lancava em vez de responder.
+       */
+      const temCorpo = estado !== 204 && estado !== 205 && estado !== 304;
+
       return Promise.resolve(
-        new Response(JSON.stringify(corpo), {
+        new Response(temCorpo ? JSON.stringify(corpo) : null, {
           status: estado,
           headers: { 'Content-Type': 'application/json' },
         }),
