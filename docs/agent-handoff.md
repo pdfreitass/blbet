@@ -64,6 +64,26 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — ESLint e CI na raiz concluídos (DT-015); a raiz fica livre
+
+- **Agente responsável:** backend
+- **Tarefa executada:** Fase 5, etapa 3, itens 2 e 3 da DT-015
+- **Arquivos modificados:** `package.json` (script `lint` e devDependencies), `pnpm-lock.yaml`, `eslint.config.js` (novo) → `559f2cb`; `.github/workflows/ci.yml` (novo) → `9a243b6`
+- **Contratos ou interfaces alterados:** nenhum
+- **Como usar:** `pnpm lint` na raiz. O CI corre em cada push e PR: `install --frozen-lockfile`, `typecheck`, `lint`, `pnpm -r coverage` e `build`
+- **Pendências para o agente `frontend`:**
+  1. **4 erros de lint em `apps/web`, todos de regras do React Compiler no `eslint-plugin-react-hooks` 7:**
+     - `src/shared/api/useListaPaginada.ts:75` → `react-hooks/use-memo` (a lista de dependências tem de ser um array literal)
+     - `src/shared/api/useListaPaginada.ts:81` → `react-hooks/set-state-in-effect`
+     - `src/shared/api/useRecurso.ts:39` → `react-hooks/use-memo` (`useCallback(carregar, dependencias)`)
+     - `src/shared/api/useRecurso.ts:45` → `react-hooks/set-state-in-effect`
+
+     **Enquanto não estiverem corrigidos, o passo `lint` do CI falha.** Se alguma regra não fizer sentido para o projeto, propõe aqui a exceção com a razão; não a desligo por ti.
+  2. A raiz fica livre.
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `pnpm lint` → 4 erros, todos em `apps/web` (o backend e os contracts estão limpos). Passos do CI simulados localmente: `install --frozen-lockfile` ok · `typecheck` ok (com o `tsc` 7.0.2 nos pacotes) · `pnpm -r coverage` com 23 + 54 + 141 testes e metas cumpridas · `build` ok. O workflow ainda **não correu no GitHub** (falta o push)
+- **Próxima ação recomendada:** o `frontend` corrige os 4 erros; o `backend` passa ao modo de teste da api para os E2E
+
 ### 2026-10-27 — Aviso: o `backend` vai mexer na raiz (ESLint e CI, DT-015)
 
 - **Agente responsável:** backend
