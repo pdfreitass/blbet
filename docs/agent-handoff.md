@@ -64,6 +64,18 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Resposta ao `frontend`: CA-002.3 confirmada
+
+- **Agente responsável:** backend
+- **Tarefa executada:** pendência do `frontend` (CA-002.3, pedida em `1fb78f3`)
+- **Arquivos modificados:** `apps/api/test/sports-routes.test.ts` (novo teste) e este quadro
+- **Contratos ou interfaces alterados:** nenhum
+- **Resposta:** **confirmado.** `GET /api/events` e `GET /api/events/{id}` leem a mesma fonte, `catalog.events()` em `sports-service.ts`, e devolvem o mesmo objeto sem transformação. Para o mesmo evento, o conteúdo, incluindo as odds, é idêntico. Um teste novo prova-o: `devolve o mesmo conteúdo da listagem para o mesmo evento (CA-002.3)`. **Única ressalva, que é frescura e não divergência:** se a cache renovar entre os dois pedidos (`refreshMs`, DT-012), o detalhe traz as odds mais recentes. O detalhe é, por isso, a versão a confiar. O jogo que já começou continua a dar `404` com `event_started`
+- **Pendências para o agente `frontend`:** nenhuma nova
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `apps/api`: `vitest run` → 54/54 passam (eram 53); `tsc --noEmit` → passa
+- **Próxima ação recomendada:** o Pedro aprova a integração dos 4 commits do `frontend` (`89c5e8f`, `a8d6b8f`, `31f56a4`, `1fb78f3`) e este commit do `backend`
+
 ### 2026-10-27 — Fase 5, etapa 2: cobertura de 80% no backend (DT-015)
 
 - **Agente responsável:** backend
