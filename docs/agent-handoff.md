@@ -49,20 +49,61 @@
 
 ## Seção Backend
 
-**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-27
+**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-28
 
 ### Situação
 
-T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbook API, cache e rotas `GET /api/competitions`, `/api/events`, `/api/events/{id}`) **concluídas e integradas**. O RF-007 do `frontend` (`7400b27`) foi revisto e integrado pelo `backend` na `main` local em `928843f`. O `origin/main` está em `ad3b8c5`: o push do `928843f` espera aprovação do Pedro.
+**Modo de teste da api entregue (DT-018).** Era a pendência que o `frontend` tinha comigo e o que faltava para a etapa 4 da Fase 5 (E2E). Com `SPORTS_MODE=recorded`, a api serve respostas gravadas, sem chave e sem rede. **Os E2E deixam de estar bloqueados.** Trabalho feito na `feat/backend-foundation`, **por commitar** — espera aprovação do Pedro.
 
-- **Arquivos modificados:** ver o histórico abaixo
-- **Contratos ou interfaces alterados:** rotas de esportes da secção 7.1 do `api-contract.md`, acordadas (T-014). Sem alterações pendentes
-- **Pendências para o agente `frontend`:** nenhuma
+- **Arquivos modificados:** ver a entrada de 2026-10-28 no histórico abaixo
+- **Contratos ou interfaces alterados:** nenhum. As rotas, os esquemas e os formatos são exatamente os mesmos nos dois modos
+- **Pendências para o agente `frontend`:** os E2E podem começar — ver a entrada abaixo para o que a gravação cobre e o que não cobre
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
-- **Testes executados e resultados:** na `main` em `928843f`: typecheck ok · contracts 23/23, api 49/49, web 106/106 · build ok
-- **Próxima ação recomendada:** Pedro decide o push e vê os jogos reais no ecrã (`pnpm dev:api` com a chave + `pnpm dev:web`); depois, próxima tarefa do `backend` segundo o `agent-tasks.md`
+- **Testes executados e resultados:** typecheck ok · contracts 23/23, api **65/65** (eram 54), web 141/141 · cobertura da api 96,64% instruções / 87,23% ramos / 97,77% funções / 99,55% linhas · build ok · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · servidor compilado em `SPORTS_MODE=recorded` verificado com pedidos reais
+- **Próxima ação recomendada:** Pedro aprova o commit; o `frontend` arranca os E2E. Do lado do `backend`, ficam os achados S-1 (limite de pedidos) e S-2 (tamanho máximo do cursor) da revisão de segurança
 
 ### Histórico
+
+### 2026-10-28 — Modo de teste da api com respostas gravadas (DT-018); os E2E ficam desbloqueados
+
+- **Agente responsável:** backend
+- **Tarefa executada:** Fase 5, etapa 4 (a parte do `backend`); pendência registada pelo `frontend` em 2026-10-27
+- **Arquivos modificados:**
+  - `apps/api/src/modules/sports/recorded/recording.ts` (novo) — manifesto, carregamento validado e `SportsProvider` sobre a gravação;
+  - `apps/api/src/config/env.ts` — `SPORTS_MODE` e `SPORTS_NOW`;
+  - `apps/api/src/server.ts` — escolhe o provedor e o relógio conforme o modo;
+  - `apps/api/recordings/` (novo) — `recording.json`, mais `competitions.json` e `events-EPL.json` **movidos** de `apps/api/test/fixtures/`;
+  - `apps/api/test/recorded-recording.test.ts` (novo), `apps/api/test/env.test.ts`, e o caminho das gravações em `sports-catalog.test.ts`, `sports-routes.test.ts`, `sportsbook-adapter.test.ts`, `sportsbook-client.test.ts`;
+  - `apps/api/.env.example`, `apps/api/README.md` (secção nova e tabela de rotas, que estava desatualizada);
+  - `docs/decisoes-tecnicas.md` (DT-018 e índice), `docs/agent-tasks.md`, este quadro.
+- **Contratos ou interfaces alterados:** **nenhum.** Mesmas rotas, mesmos esquemas, mesmo envelope nos dois modos
+- **Como usar, `frontend`:**
+
+  ```
+  set SPORTS_MODE=recorded && pnpm dev:api
+  ```
+
+  Sem chave, sem rede, sempre a mesma resposta. O proxy do Vite para `127.0.0.1:3333` não muda.
+- **O que a gravação dá, exatamente** (para não escreveres asserções contra o que não existe):
+  1. **`GET /api/competitions`** → **uma** competição: `English Premier League` (`Xa0f-wjcs-tANp`).
+  2. **`GET /api/events`** → **dois** jogos, por esta ordem: `YmT4-Albq-rMNm` Liverpool × Arsenal FC (2026-11-01T16:30Z) e `OVc2-Alcu-Ynsy` Newcastle United × Everton (2026-11-02T20:00Z). Ambos com `matchResult` e `totalGoals` preenchidos, e `origin: "provider"`.
+  3. **O relógio está parado** em `2026-10-27T10:00:00Z`, que é o instante da gravação. É por isso que os dois jogos estão sempre por começar.
+  4. **`SPORTS_NOW`** move o relógio. Com `SPORTS_NOW=2026-11-01T17:00:00Z` o Liverpool × Arsenal já começou: sai da lista, e `GET /api/events/YmT4-Albq-rMNm` dá `404` com `details: [{ field: "path.id", issue: "event_started" }]`. **É a única forma de alcançar esse estado nos E2E** — verifiquei os dois casos com o servidor compilado a correr.
+- **O que a gravação não dá, e é limitação real:** só `EPL`, só dois jogos. **Não há paginação para exercitar** (`nextCursor` vem sempre `null` com o `limit` por omissão), nem jogo sem odds, nem lista vazia. Isto não é escolha de desenho: é o que existe gravado no repositório, e **não invento respostas do provedor**. Se precisares de mais, diz aqui o quê, e gravo da próxima vez que houver sessão com a chave do Pedro
+- **Decisões que tomei e porquê, em duas linhas:** parei o relógio em vez de reescrever as datas das gravações, porque um dado alterado deixa de ser uma gravação fiel; e a gravação é validada no arranque pelos mesmos esquemas das respostas reais, para que uma gravação estragada recuse o arranque em vez de servir lixo
+- **Pendências para o Pedro:**
+  1. **Aprovar o commit** (nada foi commitado).
+  2. **O ambiente desta sessão não é o da DT-008.** Estou num clone em `C:\Users\Usuario\blbet`, na `feat/backend-foundation`, **sem worktrees** — não na estrutura `C:\Users\pedro\blbet` + duas worktrees que o quadro descreve. Decide se a DT-008 passa a descrever também este ambiente ou se é para reconstruir as worktrees.
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm install --frozen-lockfile` → ok (sem alterações ao lockfile; **não instalei nenhuma dependência nova**);
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts 23/23 · api **65/65** (eram 54: 11 novos) · web 141/141;
+  - `pnpm --filter @blbet/api coverage` → passa a meta da DT-015: 96,64% instruções, 87,23% ramos, 97,77% funções, 99,55% linhas;
+  - `pnpm lint` → **4 erros, os mesmos de sempre, todos em `apps/web`**. O `backend` e os `contracts` continuam limpos;
+  - `pnpm build` → ok;
+  - **servidor compilado a correr** (`node apps/api/dist/server.js` com `SPORTS_MODE=recorded`, sem `.env` e sem chave): `GET /health` → `200`; `GET /api/competitions` → a EPL; `GET /api/events` → os dois jogos com as odds acima; com `SPORTS_NOW=2026-11-01T17:00:00Z`, a lista fica com um jogo e o detalhe do outro dá `404 event_started`.
+- **Próxima ação recomendada:** o `frontend` arranca os E2E em `e2e/`; o Pedro aprova o commit. Depois, o `backend` pega nos achados S-1 e S-2 da revisão de segurança
 
 ### 2026-10-27 — ESLint e CI na raiz concluídos (DT-015); a raiz fica livre
 

@@ -49,6 +49,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-015](#dt-015--qualidade-cobertura-integração-contínua-lint-e-e2e) | Cobertura mínima de 80%, GitHub Actions, ESLint na raiz, E2E do `frontend` em `e2e/` | DP-002, DP-003, PA-008 | aprovada |
 | [DT-016](#dt-016--wouter-como-biblioteca-de-rotas-do-frontend) | `wouter` como biblioteca de rotas de `apps/web/`; esquema de endereços e fallback para `index.html` | roteamento (RF-002, RF-004) | aprovada |
 | [DT-017](#dt-017--estratégia-de-estado-da-interface) | Navegação no endereço, dados do servidor em hooks próprios, Context só para o partilhado, mais cache curto de 30 s | DP-005 | aprovada |
+| [DT-018](#dt-018--modo-de-teste-da-api-com-respostas-gravadas) | Modo de teste da api com respostas gravadas e relógio parado, para os E2E | DT-015 (etapa 4), PA-008 | aprovada |
 
 ---
 
@@ -529,3 +530,45 @@ Mais um **cache em memória de validade curta** (30 s) em `shared/api/cache.ts`,
 **Pendências** — nenhuma. A correção da dependência cruzada que esta análise descobriu (a tela de favoritos importava de dois domínios, contra a secção 3 do [`arquitetura.md`](arquitetura.md)) foi feita na mesma entrega: a tela passou para `app/`, que é a casca e cujo papel é compor domínios.
 
 **Nota de numeração** — esta decisão foi registada como DT-016 e renumerada para **DT-017** ao integrar a `main`: o `backend` tinha entretanto usado o DT-015 (qualidade) e o DT-016 passou a ser o roteamento. **Foi a terceira colisão de numeração entre os dois agentes.** A partir daqui, o número é **reservado no quadro antes de ser escrito aqui**.
+
+---
+
+### DT-018 — Modo de teste da api com respostas gravadas
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** `backend`, dentro da etapa 4 da DT-015 já aprovada pelo Pedro
+- **Registado por:** `backend` (número reservado no quadro: o `frontend` deixou DT-018 como próximo livre)
+- **Resolve:** a dependência dos E2E (PA-008, DT-015) em relação ao provedor real
+
+**Contexto** — Os testes end-to-end são do `frontend` e correm contra a api a sério. Sem alternativa ao provedor, só havia dois caminhos, ambos maus: correr com a chave real, gastando a quota de 150 pedidos/dia do plano gratuito (DT-009) e dependendo de jogos que mudam todos os dias; ou correr sem chave, contra `503`, que só exercita o estado de erro. A api já tinha a costura certa para uma terceira via: o catálogo recebe um `SportsProvider` por injeção, e os testes do `backend` já o substituíam por uma versão em memória.
+
+**Decisão** — a api ganha `SPORTS_MODE`, com dois valores:
+
+| Valor | Comportamento |
+|---|---|
+| `live` (omissão) | Chama a Sportsbook API. Sem `SPORTS_PROVIDER_API_KEY`, as rotas de esportes dão `503` |
+| `recorded` | Serve as respostas gravadas de `apps/api/recordings/`. Não precisa de chave e não faz nenhuma chamada de rede |
+
+Acompanham a decisão:
+
+- **As gravações são respostas reais do provedor, reduzidas.** Nenhuma é inventada, e os dados que saem continuam marcados com `origin: "provider"`, porque é o que são. Isto cumpre a regra do `CLAUDE.md` de não criar chamadas fictícias que se apresentem como reais.
+- **O relógio fica parado** no `recordedAt` da gravação. Sem isso, os jogos gravados passariam a "já começados" com o avançar do calendário e as listas esvaziavam-se, porque a DT-010 só mostra jogos futuros. Parar o relógio também impede a cache de expirar: a mesma resposta, sempre.
+- **`SPORTS_NOW`** escolhe outro instante. É assim que os E2E alcançam o jogo que já começou — fora da lista e com `404 event_started` no detalhe —, que de outro modo seria inalcançável.
+- **A gravação é validada no arranque** pelos mesmos esquemas Zod das respostas reais. Gravação malformada é arranque recusado, com o nome do ficheiro, e nunca uma resposta silenciosamente errada.
+- As gravações passam a ser **a única cópia** destes exemplos: os testes do `backend` que antes liam `test/fixtures/` leem agora `recordings/`.
+
+**Alternativas consideradas**
+
+- **Um servidor falso à parte** (MSW, WireMock): rejeitado. Traz dependência nova e um segundo sítio onde a forma das respostas tem de ser mantida a par do provedor.
+- **Reescrever as datas das gravações** para as manter sempre no futuro: rejeitado. Alteraria dados gravados, e um dado alterado deixa de ser uma gravação fiel. Parar o relógio obtém o mesmo efeito sem mentir sobre o conteúdo.
+- **Semear a cache diretamente**, saltando o provedor: rejeitado. Deixaria o adaptador e a validação por exercitar, que é justamente a parte que os E2E devem atravessar.
+
+**Consequências**
+
+- Os E2E correm sem chave, sem rede e sem gastar quota, e são determinísticos.
+- A gravação vale também para desenvolvimento do `frontend` sem consumir quota.
+- **A gravação cobre hoje só a `EPL`, com dois jogos** — é o que existe gravado no repositório. Acrescentar competições exige gravar respostas reais com a chave; o formato está preparado (`events-<NOME>.json` mais uma linha no manifesto).
+- `SPORTS_MODE=recorded` nunca deve ser usado em publicação. Não há salvaguarda no código a impedi-lo: o modo é explícito e o arranque regista um aviso.
+
+**Pendências** — gravar mais competições e mais jogos quando houver uma sessão com a chave, se os E2E precisarem de mais do que dois jogos.

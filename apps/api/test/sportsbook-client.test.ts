@@ -4,8 +4,8 @@ import { createSportsbookClient } from '../src/modules/sports/sportsbook/client.
 import { UpstreamError } from '../src/shared/http/fetch-json.js';
 
 // Respostas reais gravadas (secção 5 do integracoes.md); o fetch é substituído, nada sai da máquina.
-const competitionsBody = readFileSync(new URL('./fixtures/sportsbook-competitions.json', import.meta.url), 'utf8');
-const eventsBody = readFileSync(new URL('./fixtures/sportsbook-epl-events.json', import.meta.url), 'utf8');
+const competitionsBody = readFileSync(new URL('../recordings/competitions.json', import.meta.url), 'utf8');
+const eventsBody = readFileSync(new URL('../recordings/events-EPL.json', import.meta.url), 'utf8');
 
 const config = { apiKey: 'chave-de-teste', host: 'provedor.test', timeoutMs: 1000 };
 

@@ -21,6 +21,12 @@ const envSchema = z.object({
       .default(['EPL', 'LA_LIGA', 'SERIE_A']),
   ),
   SPORTS_REFRESH_MINUTES: optionalText(z.coerce.number().int().min(1).default(60)),
+  // Modo de teste (DT-018): `recorded` serve as respostas gravadas de `recordings/`, sem chave e
+  // sem chamar o provedor. Destina-se aos E2E e ao desenvolvimento sem quota.
+  SPORTS_MODE: optionalText(z.enum(['live', 'recorded']).default('live')),
+  // Só com SPORTS_MODE=recorded: instante em que o relógio fica parado. Por omissão, o
+  // `recordedAt` da gravação.
+  SPORTS_NOW: optionalText(z.iso.datetime().optional()),
 });
 
 export type AppConfig = Readonly<z.infer<typeof envSchema>>;

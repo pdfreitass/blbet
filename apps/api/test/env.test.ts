@@ -14,6 +14,7 @@ describe('loadConfig', () => {
       SPORTS_PROVIDER_SOURCE: 'BET_PARX',
       SPORTS_COMPETITIONS: ['EPL', 'LA_LIGA', 'SERIE_A'],
       SPORTS_REFRESH_MINUTES: 60,
+      SPORTS_MODE: 'live',
     });
     expect(Object.isFrozen(config)).toBe(true);
   });
@@ -33,6 +34,14 @@ describe('loadConfig', () => {
     expect(config.SPORTS_COMPETITIONS).toEqual(['EPL', 'NBA']);
     expect(config.SPORTS_REFRESH_MINUTES).toBe(15);
     expect(() => loadConfig({ SPORTS_REFRESH_MINUTES: '0' })).toThrow(InvalidEnvError);
+  });
+
+  it('aceita o modo de teste e o instante do relógio (DT-018)', () => {
+    const config = loadConfig({ SPORTS_MODE: 'recorded', SPORTS_NOW: '2026-11-01T17:00:00.000Z' });
+    expect(config.SPORTS_MODE).toBe('recorded');
+    expect(config.SPORTS_NOW).toBe('2026-11-01T17:00:00.000Z');
+    expect(() => loadConfig({ SPORTS_MODE: 'gravado' })).toThrow(InvalidEnvError);
+    expect(() => loadConfig({ SPORTS_NOW: '1 de novembro' })).toThrow(InvalidEnvError);
   });
 
   it('rejeita valores inválidos indicando só o nome da variável', () => {
