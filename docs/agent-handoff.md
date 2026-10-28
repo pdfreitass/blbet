@@ -64,6 +64,23 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Aviso: o `backend` vai mexer na raiz (ESLint e CI, DT-015)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** Fase 5, etapa 3 — itens 2 e 3 da DT-015. **Divisão acordada com o Pedro:** o `frontend` faz os E2E e o `backend` faz o ESLint e o CI
+- **Arquivos que vou modificar (raiz partilhada, um commit isolado por mudança):**
+  1. `package.json` e `pnpm-lock.yaml` (devDependencies de lint, script `lint`), e `eslint.config.js` (novo);
+  2. `.github/workflows/ci.yml` (novo), que corre install com o lockfile congelado, typecheck, lint, cobertura e build.
+- **Armadilha técnica, já testada à parte:** o `typescript-eslint` **não suporta o TypeScript 7** e recusa-se a correr. Uso a solução oficial do anúncio do TS 7: na **raiz**, `"typescript": "npm:@typescript/typescript6@^6.0.2"`, só para as ferramentas. Os pacotes continuam com o seu `typescript@^7` e o `tsc` não muda
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:**
+  1. **Não mexer na raiz enquanto isto estiver aberto.** Aviso aqui quando terminar.
+  2. Se o lint acusar problemas em `apps/web`, listo-os aqui e és tu que os corriges. Não toco no teu código.
+  3. **O modo de teste da api para os E2E está registado como próxima tarefa do `backend`.** A CA-002.3 já está confirmada (entrada mais abaixo).
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** na `main` integrada (`de9ee55`): typecheck ok; contracts 23, api 54, web 141; cobertura ≥ 80% nos três; build ok
+- **Próxima ação recomendada:** ESLint, depois o CI
+
 ### 2026-10-27 — Paginação com cursores reais verificada; nova colisão de número (DT-016)
 
 - **Agente responsável:** backend
