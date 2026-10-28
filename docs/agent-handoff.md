@@ -462,7 +462,7 @@
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (o CI falha agora no passo de cobertura, em `packages/contracts`). Registo anterior: auditoria de alinhamento, filtro por competição e teto da busca. Registo anterior: lint, ecrãs de conta da DT-020, E2E e revisão cruzada
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (verificação independente numa worktree limpa; dois achados em `apps/api/`). Registo anterior: o CI falha no passo de cobertura, em `packages/contracts`. Registo anterior: auditoria de alinhamento, filtro por competição e teto da busca. Registo anterior: lint, ecrãs de conta da DT-020, E2E e revisão cruzada
 
 ### Situação
 
@@ -475,13 +475,60 @@
 - **Ficheiros partilhados da raiz que toquei**, com o aviso prévio registado abaixo: `package.json` (`@playwright/test`, scripts `e2e` e `dev:web`), `pnpm-lock.yaml` (**+28 linhas, só acrescentos**) e `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre outra vez**
 - **Reserva de numeração — frontend:** **DT-022 reservada e usada** (caminhos dos ecrãs de conta). Próximo livre: **DT-023**
 - **CI:** o passo `lint` deixou de falhar, mas o `pnpm -r coverage` **falha em `packages/contracts`** (70,21%, abaixo dos 80% da DT-015), porque o `accounts.ts` da DT-020 entrou sem testes. Não é desta branch — o `frontend` não tocou nesse pacote, e a falha existe igual em `origin/feat/backend-foundation` desde `2deb608`; o `lint` é que a tapava. Pedido **A-R9** ao `backend`
-- **Pendências para o agente `backend`:** os nove ajustes A-R1 a **A-R9** da revisão cruzada — e nota que eles só lhe chegam depois de o Pedro integrar, porque o quadro é por branch. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
+- **Pendências para o agente `backend`:** **a A-R10 primeiro** — a base de dados de contas (`apps/api/data/`) **não está ignorada pelo git**, e contém e-mails, hashes de senha e sessões; depois a **A-R11** (a api não cria a pasta da base de dados e o erro de arranque não diz o que falta). E os nove ajustes A-R1 a **A-R9** da revisão cruzada — e nota que eles só lhe chegam depois de o Pedro integrar, porque o quadro é por branch. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
 - **Pendências para o Pedro:** (1) **aprovar o commit** — nada foi commitado; (2) **dizer em que branch devo trabalhar.** Esta sessão está num clone único em `C:/Users/Usuario/blbet`, na `feat/backend-foundation`, que é a do `backend`, e **não mudei de branch nem criei nenhuma**; (3) o `CLAUDE.md` continua desatualizado na secção "Natureza do projeto", e agora também na lista de código existente
 - **Bloqueios:** nenhum
 - **Testes executados e resultados — reais:** `pnpm lint` → **limpo, 0 erros** · `pnpm typecheck` → ok nos três pacotes · `pnpm test` → contracts 25/25, api 102/102, web **187/187** (eram 141) · `pnpm --filter @blbet/web coverage` → 95,13% instruções, 86,33% ramos, 94,90% funções, 95,41% linhas, acima da meta da DT-015 · `pnpm build` → ok nos três · `pnpm e2e` → **12/12** · ecrãs de conta abertos no navegador contra a api a sério
 - **Próxima ação recomendada:** o Pedro integra a branch `feat/frontend-contas`, para que os pedidos cheguem ao `backend`; o `backend` responde aos ajustes A-R1 a A-R8, com prioridade para a **A-R6** (sem saída para quem não confirmou o e-mail) e a **A-R8** (um enumerado novo parte a listagem inteira)
 
 ### Histórico
+
+### 2026-10-28 — Verificação independente da `feat/frontend-contas`, e dois achados em `apps/api/`
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** verificar, numa worktree limpa, tudo o que esta secção afirma; e abrir a aplicação com contas
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo). **Nenhum ficheiro de código**
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**Todos os números deste quadro batem certo.** Corri tudo em `be7559f`, com `pnpm install --frozen-lockfile`:
+
+| Verificação | Quadro dizia | Medido |
+|---|---|---|
+| `pnpm typecheck` | ok nos três | **ok nos três** |
+| `pnpm lint` | limpo | **limpo, 0 erros** |
+| `pnpm test` | 25 / 102 / 187 | **25 / 102 / 187** |
+| `pnpm build` | ok nos três | **ok nos três** |
+| `pnpm e2e` | 12/12 | **12/12** |
+| `pnpm -r coverage` | falha em `packages/contracts`, 70,21% | **falha, 70,21%** |
+| `apps/web` cobertura | 95,13% / 86,33% ramos | **95,13% / 86,33% / 94,90% / 95,41%** |
+
+Nada a corrigir no quadro quanto a números.
+
+**A aplicação com contas funciona de ponta a ponta.** Abri-a contra a api em modo gravado e confirmei no navegador, não por inferência:
+
+- a listagem traz os dois jogos gravados da EPL, com as cotações **sem marca demonstrativa** — são `origin: provider`, e é a opção A da DT-014 a funcionar;
+- o perfil sem sessão mostra o convite a entrar **acima** do perfil demonstrativo, com o divisor e sem fusão (§9.11); o perfil fictício continua com o campo tracejado em todos os campos;
+- o cadastro responde "**se este endereço puder ser usado**" — a resposta condicional da A-A2, sem revelar se a conta existe;
+- entrei com **`  VERIFICACAO@EXEMPLO.TEST `**, em maiúsculas e com espaços, e cheguei à mesma conta (A-A3);
+- o cookie de sessão **não é visível ao JavaScript**: `document.cookie` devolve vazio com a sessão ativa;
+- o resumo da conta mostra o e-mail verdadeiro **sem** campo tracejado, com a etiqueta "E-mail por confirmar", e o perfil demonstrativo continua marcado em baixo — a distinção de §6.3 está de pé;
+- a lista de dispositivos marca a sessão atual com etiqueta de **texto** e o botão diz "Sair deste dispositivo", diferente dos outros (§9.11);
+- a 375px não há rolagem horizontal, com o `user-agent` inteiro na lista.
+
+Os `401` que ficam na consola são de `/api/accounts/me` **antes** de entrar, e são o estado normal que o `useConta` trata como "ainda não entrou" — com a sessão ativa, o mesmo pedido devolve `200`. Não é erro.
+
+#### Dois achados em `apps/api/`, que não corrijo porque não é a minha área
+
+**A-R10 — a base de dados de contas não está ignorada pelo git.** Depois de correr a api com `DATABASE_FILE=data/blbet.db`, o `git status` mostra `apps/api/data/` como não rastreado, e `git check-ignore` confirma que **não há regra nenhuma** a cobri-lo. Os ficheiros são `blbet.db`, `blbet.db-shm` e `blbet.db-wal`, e contêm **endereços de e-mail, hashes de senha e sessões**. Qualquer `git add` com um caminho largo leva-os para o repositório, e um segredo que entra no histórico não sai de lá com um commit a apagá-lo. **Pedido:** uma regra em `apps/api/.gitignore` (que é do `backend`, e evita mexer no `.gitignore` partilhado da raiz) cobrindo `data/` e `*.db*`. **É o mais urgente dos pedidos em aberto** — os outros custam uma correção, este pode custar uma fuga de dados.
+
+**A-R11 — a api não cria a pasta da base de dados, e o arranque falha sem dizer o que fazer.** Com `DATABASE_FILE=data/blbet.db` e a pasta inexistente, o arranque morre com `Error: unable to open database file` e `ERR_SQLITE_ERROR` — que não diz a quem lê que falta criar uma pasta. Resolvi com `mkdir apps/api/data`, mas tive de o descobrir pelo rastreio. **Pedido:** criar a pasta na abertura da base de dados, ou dizer no erro o que falta. **Entretanto**, a instrução de arranque devia mencionar o `mkdir`.
+
+- **Pendências para o agente `backend`:** as de antes (**A-R1 a A-R9**, com prioridade para a A-R6 e a A-R8), mais a **A-R10** (base de dados fora do `.gitignore`, urgente) e a **A-R11** (pasta da base de dados)
+- **Pendências para o Pedro:** (1) **aprovar o commit deste registo** — nada mais foi alterado; (2) integrar a `feat/frontend-contas`, para que os pedidos cheguem ao `backend`; (3) o **`CLAUDE.md` continua desatualizado**: a secção "Natureza do projeto" não menciona contas, revistas pela DT-020, e a lista de código existente ainda diz que o perfil "é só um estado vazio"
+- **Bloqueios:** nenhum. **PD-006**, **PD-007**, mais gravações para os E2E e a **A-R8** continuam onde estavam, e não contornei nenhum
+- **Reserva de numeração — frontend:** nenhum número reservado. Próximo livre: **DT-023**
+- **Testes executados e resultados:** os da tabela acima, todos corridos nesta worktree
+- **Próxima ação recomendada:** o `backend` trata a **A-R10** antes de tudo o resto; o Pedro integra esta branch
 
 ### 2026-10-28 — O CI continua a falhar, agora no passo de cobertura — e é em `packages/contracts`
 
