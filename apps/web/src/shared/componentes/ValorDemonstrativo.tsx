@@ -20,8 +20,8 @@ interface ValorDemonstrativoProps {
  * evento, informacao de jogo (design-system 6.3). Nao se aplica a rotulos, titulos
  * nem mensagens de estado: marca-los diluiria o sinal.
  *
- * Variante `real` (opcao B da DIV-001) ausente de proposito: nao esbocada, nao
- * comentada, nao desativada, enquanto o Pedro nao decidir.
+ * Nao ha variante para dado real, e nao e para criar: a DT-014 escolheu a opcao A.
+ * Quem decide se um valor passa por aqui e o `ValorDeDado`, pelo `origin`.
  */
 export function ValorDemonstrativo({
   children,

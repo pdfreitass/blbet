@@ -37,12 +37,12 @@
   width: 100%;
   min-height: var(--target-min);
   padding: var(--space-2) var(--space-1);
-  border: none;
-  background: none;
+  /* E uma ligacao (DT-015): sem sublinhado, porque o destino ativo ja se distingue
+     pela marca e pela cor, e um sublinhado em cinco itens seria ruido. */
+  text-decoration: none;
   color: var(--color-text-secondary);
   font-size: var(--text-xs);
   line-height: var(--leading-xs);
-  cursor: pointer;
   transition: color var(--duration-quick) var(--ease-standard);
 }
 

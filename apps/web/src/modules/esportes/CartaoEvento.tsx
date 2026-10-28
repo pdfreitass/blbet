@@ -1,4 +1,5 @@
 import type { SportEvent } from '@blbet/contracts';
+import { Link } from 'wouter';
 
 import { Etiqueta } from '../../shared/componentes/Etiqueta';
 import { IndicadorFavorito } from '../../shared/componentes/IndicadorFavorito';
@@ -19,9 +20,15 @@ const ROTULO_SITUACAO: Record<string, string> = {
 /**
  * Cartao de evento com os seus mercados.
  *
- * A superficie NAO e operavel: o design-system preve que leve ao detalhe, mas essa
- * tela nao existe e nao ha roteamento decidido. O unico controle e o indicador de
- * favorito, como a seccao 9.2 autoriza.
+ * **A area que navega e o CABECALHO, nao o cartao inteiro.** A seccao 9.2 do
+ * design-system previa "toda a superficie" como area de navegacao, mas isso entra em
+ * conflito com CA-003.3: cobrir as odds com uma ligacao fa-las responder ao clique, e
+ * quem clica numa odd e nao percebe para onde foi pode ler aquilo como selecao. A odd
+ * e texto marcado como dado, e continua a nao reagir a nada. O cabecalho -- equipas,
+ * competicao, hora -- e area generosa e inequivoca.
+ *
+ * O indicador de favorito fica ACIMA da area da ligacao, para continuar a ser um
+ * controle proprio (e por isso nao esta dentro do `<a>`, que seria marcacao invalida).
  */
 export function CartaoEvento({ evento }: CartaoEventoProps) {
   const descricao = `${evento.homeTeam.name} contra ${evento.awayTeam.name}`;
@@ -34,13 +41,14 @@ export function CartaoEvento({ evento }: CartaoEventoProps) {
       <div className={estilos.cabecalho}>
         <div>
           <p className={estilos.contexto}>
-            {/* A competicao e o titulo do grupo em ListaEventos; aqui fica o esporte. */}
             <span>{evento.competition.sport === 'soccer' ? 'Futebol' : evento.competition.sport}</span>
             <Etiqueta variante="informacao">{situacao}</Etiqueta>
           </p>
           <p className={estilos.participantes}>
-            <span>{evento.homeTeam.name}</span>
-            <span>{evento.awayTeam.name}</span>
+            <Link href={`/eventos/${encodeURIComponent(evento.id)}`} className={estilos.ligacao}>
+              <span>{evento.homeTeam.name}</span>
+              <span>{evento.awayTeam.name}</span>
+            </Link>
           </p>
         </div>
         <p className={estilos.instante}>

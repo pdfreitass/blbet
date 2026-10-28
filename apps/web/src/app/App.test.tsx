@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { erroDaApi, EVENTO_COMPLETO, EVENTO_SEM_MERCADOS, paginaDeEventos } from '../test/fixtures';
@@ -50,8 +50,8 @@ describe('App', () => {
 
     const navegacao = screen.getByRole('navigation', { name: 'Navegação principal' });
 
-    expect(navegacao.querySelectorAll('button')).toHaveLength(5);
-    expect(screen.getByRole('button', { current: 'page' }).textContent).toContain('Esportes');
+    expect(navegacao.querySelectorAll('a')).toHaveLength(5);
+    expect(screen.getByRole('link', { current: 'page' }).textContent).toContain('Esportes');
   });
 
   it('mostra o esqueleto enquanto carrega e anuncia o que está a carregar (CA-008.1)', () => {
@@ -184,7 +184,7 @@ describe('App — falha da api (RF-008)', () => {
     render(<App />);
 
     await screen.findByRole('alert');
-    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Cassino/ }));
 
     // O cassino é demonstrativo e não depende da api.
     expect(screen.getByRole('heading', { name: 'Rolos de Exemplo' })).toBeTruthy();
@@ -203,7 +203,7 @@ describe('App — busca', () => {
     });
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Busca/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Busca/ }));
     fireEvent.change(screen.getByLabelText('Buscar'), { target: { value: 'newcastle' } });
 
     expect(await screen.findByLabelText(JOGO_DESCRICAO)).toBeTruthy();
@@ -214,7 +214,7 @@ describe('App — busca', () => {
     responderSempre(200, paginaDeEventos([]));
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Busca/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Busca/ }));
     fireEvent.change(screen.getByLabelText('Buscar'), { target: { value: 'zzzz' } });
 
     expect(await screen.findByText('Nada encontrado')).toBeTruthy();
@@ -230,7 +230,7 @@ describe('App — busca', () => {
     });
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Busca/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Busca/ }));
     const campo = screen.getByLabelText('Buscar');
 
     for (const valor of ['a', 'ar', 'ars', 'arse']) {
@@ -261,7 +261,7 @@ describe('App — favoritos (RF-006)', () => {
       screen.getByRole('button', { name: `Remover ${JOGO_DESCRICAO} dos favoritos`, pressed: true }),
     ).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Favoritos/ }));
 
     expect(await screen.findByRole('heading', { name: 'Jogos esportivos' })).toBeTruthy();
   });
@@ -275,7 +275,7 @@ describe('App — favoritos (RF-006)', () => {
 
     // O jogo começou: a api deixa de o trazer na listagem (DT-010).
     responderSempre(200, paginaDeEventos([]));
-    fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Favoritos/ }));
 
     expect(
       await screen.findByText('1 jogo favoritado já começou e deixou de estar disponível.'),
@@ -286,7 +286,7 @@ describe('App — favoritos (RF-006)', () => {
     render(<App />);
 
     await screen.findByLabelText(JOGO_DESCRICAO);
-    fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Favoritos/ }));
 
     expect(screen.getByText('Ainda não há favoritos')).toBeTruthy();
   });
@@ -308,11 +308,11 @@ describe('App — favoritos (RF-006)', () => {
   it('marca um jogo do cassino e ele aparece nos favoritos', async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Cassino/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Cassino/ }));
     fireEvent.click(
       screen.getByRole('button', { name: 'Adicionar Rolos de Exemplo aos favoritos' }),
     );
-    fireEvent.click(screen.getByRole('button', { name: /Favoritos/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Favoritos/ }));
 
     expect(await screen.findByRole('heading', { name: 'Jogos de cassino' })).toBeTruthy();
   });
@@ -366,18 +366,244 @@ describe('App — perfil (RF-007)', () => {
   it('o perfil é alcançável pela navegação principal (CA-007.1)', () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Perfil/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Perfil/ }));
 
-    expect(screen.getByRole('button', { current: 'page' }).textContent).toContain('Perfil');
+    expect(screen.getByRole('link', { current: 'page' }).textContent).toContain('Perfil');
     expect(screen.getByText('Visitante de demonstração')).toBeTruthy();
   });
 
   it('o perfil não expõe nenhuma operação financeira (CA-007.3)', () => {
     const { container } = render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Perfil/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Perfil/ }));
 
     // O conteúdo do perfil não tem controle nenhum; a navegação fica fora do <main>.
     expect(container.querySelectorAll('main a, main button, main input')).toHaveLength(0);
+  });
+});
+
+describe('App — paginação por cursor (PC-008)', () => {
+  it('oferece carregar mais quando a api diz que há mais página', async () => {
+    responderSempre(200, {
+      data: [EVENTO_COMPLETO],
+      meta: { nextCursor: 'cursor-2' },
+    });
+    render(<App />);
+
+    expect(await screen.findByRole('button', { name: 'Carregar mais jogos' })).toBeTruthy();
+  });
+
+  it('acrescenta a página seguinte à lista, sem substituir a primeira', async () => {
+    instalarServidorFalso((url) =>
+      url.includes('cursor=cursor-2')
+        ? { estado: 200, corpo: { data: [EVENTO_SEM_MERCADOS], meta: { nextCursor: null } } }
+        : { estado: 200, corpo: { data: [EVENTO_COMPLETO], meta: { nextCursor: 'cursor-2' } } },
+    );
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Carregar mais jogos' }));
+
+    expect(await screen.findByLabelText('Real Madrid contra Barcelona')).toBeTruthy();
+    // A primeira página continua lá.
+    expect(screen.getByLabelText(JOGO_DESCRICAO)).toBeTruthy();
+  });
+
+  it('diz que a lista acabou, em vez de terminar em silêncio', async () => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+    render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    expect(screen.getByText('Fim da lista de jogos.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Carregar mais/ })).toBeNull();
+  });
+
+  it('junta os eventos da segunda página ao grupo da competição que já estava', async () => {
+    instalarServidorFalso((url) =>
+      url.includes('cursor=cursor-2')
+        ? { estado: 200, corpo: { data: [EVENTO_COMPLETO], meta: { nextCursor: null } } }
+        : { estado: 200, corpo: { data: [EVENTO_COMPLETO], meta: { nextCursor: 'cursor-2' } } },
+    );
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Carregar mais jogos' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /Carregar mais/ })).toBeNull(),
+    );
+
+    // Um só cabeçalho de competição, apesar de os eventos virem de páginas diferentes
+    // (DIV-F02: agrupa-se o que foi recebido).
+    expect(screen.getAllByRole('heading', { name: 'English Premier League' })).toHaveLength(1);
+  });
+});
+
+describe('App — rotas (DT-015)', () => {
+  /** Abre a aplicação já num endereço, como quem chega por link ou recarrega. */
+  function abrirEm(caminho: string) {
+    window.history.replaceState(null, '', caminho);
+    return render(<App />);
+  }
+
+  it('o endereço decide a tela: recarregar no cassino não volta aos esportes', () => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+    abrirEm('/cassino');
+
+    expect(screen.getByRole('heading', { name: 'Cassino', level: 1 })).toBeTruthy();
+    expect(screen.getByRole('link', { current: 'page' }).textContent).toContain('Cassino');
+  });
+
+  it('a busca sobrevive a recarregar, porque o termo está no endereço', async () => {
+    instalarServidorFalso((url) => ({
+      estado: 200,
+      corpo: url.includes('q=arsenal') ? paginaDeEventos([EVENTO_COMPLETO]) : paginaDeEventos([]),
+    }));
+    abrirEm('/busca?q=arsenal');
+
+    expect((screen.getByLabelText('Buscar') as HTMLInputElement).value).toBe('arsenal');
+    expect(await screen.findByLabelText(JOGO_DESCRICAO)).toBeTruthy();
+  });
+
+  it('clicar no cartão abre o detalhe do evento', async () => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+    render(<App />);
+
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    // A listagem devolve uma página; o detalhe devolve um recurso único.
+    responderSempre(200, { data: EVENTO_COMPLETO });
+    fireEvent.click(screen.getByRole('link', { name: /Newcastle United/ }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: /Newcastle United/ })).toBeTruthy();
+    expect(window.location.pathname).toBe('/eventos/evt-1');
+  });
+
+  /*
+   * O motivo de tudo isto: antes, o "voltar" do navegador saía da aplicação. Agora
+   * volta à listagem.
+   */
+  it('o voltar do navegador regressa à listagem, em vez de sair da aplicação', async () => {
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+    render(<App />);
+    await screen.findByLabelText(JOGO_DESCRICAO);
+
+    responderSempre(200, { data: EVENTO_COMPLETO });
+    fireEvent.click(screen.getByRole('link', { name: /Newcastle United/ }));
+    await screen.findByRole('heading', { level: 1, name: /Newcastle United/ });
+
+    responderSempre(200, paginaDeEventos([EVENTO_COMPLETO]));
+    act(() => {
+      window.history.back();
+    });
+
+    await waitFor(() => expect(window.location.pathname).toBe('/'));
+  });
+
+  it('um endereço desconhecido mostra uma tela com saída, e não um ecrã vazio', () => {
+    responderSempre(200, paginaDeEventos([]));
+    abrirEm('/isto-nao-existe');
+
+    expect(screen.getByRole('heading', { name: 'Esta página não existe' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ir para os esportes' })).toBeTruthy();
+  });
+
+  it('o destino continua marcado quando se está numa tela abaixo dele', async () => {
+    responderSempre(200, { data: EVENTO_COMPLETO });
+    abrirEm('/eventos/evt-1');
+
+    await screen.findByRole('heading', { level: 1, name: /Newcastle United/ });
+
+    expect(screen.getByRole('link', { current: 'page' }).textContent).toContain('Esportes');
+  });
+});
+
+describe('App — detalhe de evento', () => {
+  it('mostra os mercados do evento pedido à api', async () => {
+    responderSempre(200, { data: EVENTO_COMPLETO });
+    window.history.replaceState(null, '', '/eventos/evt-1');
+    render(<App />);
+
+    await screen.findByRole('heading', { level: 1, name: /Newcastle United/ });
+
+    expect(screen.getByText('1,94')).toBeTruthy();
+    expect(screen.getByText('Mais/menos 2,50 gols')).toBeTruthy();
+  });
+
+  /*
+   * O issue event_started (T14-A1) existia desde a revisão da T-014 e nunca tinha
+   * tido ecrã onde aparecer. Passa a ter: é o caso de clicar num jogo que começou
+   * entre a listagem e o clique.
+   */
+  it('um jogo que já começou diz isso, em vez de "não encontrámos"', async () => {
+    responderSempre(
+      404,
+      erroDaApi('NOT_FOUND', false, [{ field: 'path.id', issue: 'event_started' }]),
+    );
+    window.history.replaceState(null, '', '/eventos/evt-1');
+    render(<App />);
+
+    expect(
+      await screen.findByText('Este jogo já começou e deixou de estar disponível.'),
+    ).toBeTruthy();
+    // E tem saída (CA-008.4).
+    expect(screen.getByRole('link', { name: 'Ver os jogos disponíveis' })).toBeTruthy();
+  });
+
+  it('o favorito está visível no detalhe, e não só na listagem (RF-006)', async () => {
+    responderSempre(200, { data: EVENTO_COMPLETO });
+    window.history.replaceState(null, '', '/eventos/evt-1');
+    render(<App />);
+
+    expect(
+      await screen.findByRole('button', { name: `Adicionar ${JOGO_DESCRICAO} aos favoritos` }),
+    ).toBeTruthy();
+  });
+
+  it('nenhuma cotação do detalhe é operável (RN-003, CA-003.3)', async () => {
+    responderSempre(200, { data: EVENTO_COMPLETO });
+    window.history.replaceState(null, '', '/eventos/evt-1');
+    const { container } = render(<App />);
+
+    await screen.findByRole('heading', { level: 1, name: /Newcastle United/ });
+
+    for (const lista of container.querySelectorAll('dl')) {
+      expect(lista.querySelectorAll('a, button, input, [role="button"], [disabled]')).toHaveLength(
+        0,
+      );
+    }
+  });
+});
+
+describe('App — detalhe de jogo do cassino', () => {
+  it('mostra o jogo do catálogo demonstrativo', () => {
+    responderSempre(200, paginaDeEventos([]));
+    window.history.replaceState(null, '', '/cassino/jog-fict-001');
+    render(<App />);
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Rolos de Exemplo' })).toBeTruthy();
+    expect(screen.getByText('Jogo demonstrativo')).toBeTruthy();
+  });
+
+  it('diz que o jogo não pode ser jogado, e não oferece como (RN-004, CA-004.4)', () => {
+    responderSempre(200, paginaDeEventos([]));
+    window.history.replaceState(null, '', '/cassino/jog-fict-001');
+    const { container } = render(<App />);
+
+    expect(screen.getByText(/não pode ser jogado/)).toBeTruthy();
+
+    // O único botão do conteúdo é o favorito; a única ligação é o trilho de volta.
+    const main = container.querySelector('main');
+    for (const botao of main?.querySelectorAll('button') ?? []) {
+      expect(botao.getAttribute('aria-label')).toContain('favoritos');
+    }
+    expect(main?.querySelectorAll('a')).toHaveLength(1);
+  });
+
+  it('um jogo que não existe cai na tela de endereço desconhecido', () => {
+    responderSempre(200, paginaDeEventos([]));
+    window.history.replaceState(null, '', '/cassino/jog-inexistente');
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Esta página não existe' })).toBeTruthy();
   });
 });

@@ -42,10 +42,12 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-008](#dt-008--worktrees-e-versões-da-fundação) | Worktrees em pastas irmãs; versões da fundação | PA-006 | aprovada |
 | [DT-009](#dt-009--sportsbook-api-como-provedor-esportivo-de-testes) | Sportsbook API (RapidAPI, plano gratuito) como provedor esportivo de desenvolvimento e testes | BLQ-001 em parte | aprovada, só para testes |
 | [DT-010](#dt-010--âmbito-inicial-dos-dados-esportivos) | Mercados, formato das odds, fonte única e só jogos futuros | PD-004, PD-007, PC-006 | aprovada |
+| [DT-011](#dt-011--tema-escuro-único-com-tokens-semânticos) | Tema escuro único nesta fase, com tokens semânticos para um tema claro posterior | decisão de tema do `design-system.md` | aprovada |
 | [DT-012](#dt-012--competições-e-frequência-de-atualização-no-plano-gratuito) | Premier League, La Liga e Serie A, atualizadas de hora em hora | DP-009 | aprovada, só no plano gratuito |
 | [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
 | [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a) | Marcar só o dado fictício (opção A do `design-system.md`); o dado real não leva selo | DIV-001 (interface), DP-004, PC-010 | aprovada |
 | [DT-015](#dt-015--qualidade-cobertura-integração-contínua-lint-e-e2e) | Cobertura mínima de 80%, GitHub Actions, ESLint na raiz, E2E do `frontend` em `e2e/` | DP-002, DP-003, PA-008 | aprovada |
+| [DT-016](#dt-016--wouter-como-biblioteca-de-rotas-do-frontend) | `wouter` como biblioteca de rotas de `apps/web/`; esquema de endereços e fallback para `index.html` | roteamento (RF-002, RF-004) | aprovada |
 
 ---
 
@@ -314,6 +316,36 @@ Conflitos entre documentos, registados em vez de resolvidos em silêncio. Os doc
 
 ---
 
+### DT-011 — Tema escuro único, com tokens semânticos
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `frontend`
+- **Resolve:** a decisão de tema proposta na secção 2 do [`design-system.md`](design-system.md)
+
+**Contexto** — A secção 2 do `design-system.md` propôs, na T-005, um tema escuro único em vez de dois temas. O Pedro aprovou a direção visual em 2026-10-26 e a decisão de tema em 2026-10-27, comunicada pelo `backend` no quadro. Fica registada aqui porque uma decisão aprovada que vive só num documento de desenho não é encontrável por quem procura decisões.
+
+**Decisão** — **tema escuro como tema canónico e único nesta fase.** As custom properties são declaradas em `:root` com `color-scheme: dark`. Os nomes dos tokens são **semânticos** (`surface-raised`, `text-secondary`), não literais (`cinza-900`), precisamente para que um tema claro posterior seja uma redefinição de valores sob um seletor, sem tocar em componente nenhum.
+
+**Alternativas consideradas** — dois temas desde o início, rejeitada por três razões registadas na secção 2:
+
+- dois temas **duplicam a verificação**: cada par de cor tem de ser recalculado contra a WCAG 2.2 AA e cada tela revista duas vezes;
+- **nenhum requisito pede tema claro.** A RNF-002 pede contraste, não escolha de tema;
+- a **PD-002** (público-alvo) está aberta, e sem saber os dispositivos e as condições de acesso predominantes, prometer dois temas é escolher sem informação.
+
+**Consequências**
+
+- Os 28 pares de contraste calculados na secção 4 do `design-system.md` continuam a ser o conjunto a verificar; não duplicam.
+- Acrescentar um tema claro passa a ser redefinir valores sob `[data-theme="light"]`, mais `prefers-color-scheme` se for decidido. É a razão técnica de a nomenclatura ser semântica.
+- Nenhum componente lê valor literal de cor — já é regra da secção 5 do `design-system.md` e está verificada por varredura a cada entrega.
+
+**Pendências** — se a **PD-002** vier a mostrar acesso predominantemente diurno em ambiente claro, o tema claro entra e esta decisão é revista. O risco está registado como R2 na secção 10 do `design-system.md`.
+
+**Nota de numeração** — esta decisão foi reservada como DT-009 na T-005 e depois renumerada para DT-010, porque o `backend` usou ambos os números entretanto (provedor esportivo e âmbito dos dados esportivos). Ficou em **DT-011**. Para evitar uma terceira colisão, está proposto no quadro que o número seja reservado aí antes de ser usado.
+
+---
+
 ### DT-012 — Competições e frequência de atualização no plano gratuito
 
 - **Data:** 2026-10-27
@@ -415,3 +447,33 @@ A RN-002 passa a ter esta regra: **os dados esportivos (eventos, competições e
 - A raiz (`.github/`, configuração do ESLint, `package.json`) é partilhada: avisa-se no quadro antes de mexer, e cada mudança vai num commit isolado.
 - Cada agente põe a meta de cobertura no seu pacote. Exclusões só com justificação no próprio ficheiro de configuração.
 - A T-007 fica concluída.
+
+---
+
+### DT-016 — `wouter` como biblioteca de rotas do frontend
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `frontend`
+- **Resolve:** o roteamento de `apps/web/`, necessário para as telas de detalhe (RF-002, RF-004)
+
+**Contexto** — Até aqui o destino ativo era estado local em `App.tsx`, sem URL. Isso tem três consequências que se tornam graves com telas de detalhe: o botão (e o gesto) "voltar" do navegador **sai da aplicação**, recarregar a página volta ao início, e nenhum ecrã é endereçável. A visão exige caminhos percorríveis "sem becos sem saída", e um "voltar" que fecha o produto é exatamente isso. Nenhum requisito pede URL partilhável e o `index.html` leva `noindex`, por isso não há argumento de SEO: o que decidiu foi o comportamento do histórico, sobretudo em mobile (RNF-001).
+
+**Decisão** — usar **`wouter`** (versão `3.13.0`, publicada em 2026-09-30; licença Unlicense; sem dependências próprias). A proposta com as quatro opções está no quadro, no registo do `frontend` de 2026-10-27.
+
+**Alternativas consideradas**
+
+- **History API à mão**, sem dependência: defensável, e era a alternativa. Rejeitada porque a parte difícil não é emparelhar caminhos — é sincronizar o histórico com o React sem perder eventos, tratar `popstate`, cliques com tecla modificadora e reposição de rolagem. Seria código próprio a manter numa área onde é fácil errar em silêncio.
+- **`react-router`**: 17 a 30 kB comprimidos num pacote de ~100 kB, por funcionalidades que este produto não usa (carregadores de dados, rotas aninhadas profundas). Rejeitada pela proporção.
+- **Manter o estado local**: não resolve nenhuma das três consequências. Recomendada a recusa, e recusada.
+
+**Consequências**
+
+- Custo no pacote: **~1,5 kB** comprimido, menos de 1,5 % do total.
+- **Risco aceite:** o `wouter` tem um só mantenedor. Mitigação: a superfície usada são três ou quatro hooks, a licença é de domínio público, e substituí-lo é trabalho contido.
+- O esquema de endereços passa a ser: `/` (esportes), `/eventos/:id`, `/cassino`, `/cassino/:id`, `/busca?q=…`, `/favoritos`, `/perfil`. O termo de busca em `?q=` espelha o parâmetro do contrato (regra A7), e recarregar mantém a busca.
+- **Publicação:** o servidor que servir o `dist` tem de devolver `index.html` em qualquer caminho. Em desenvolvimento o Vite já o faz; em produção é configuração de quem publicar, e fica registado aqui para não ser descoberto no primeiro deploy.
+- O `404` com `issue: 'event_started'` (T14-A1) passa a ter ecrã onde aparecer: o detalhe de um evento que começou entre a listagem e o clique.
+
+**Pendências** — nenhuma para esta decisão. A **CA-002.3** ("o detalhe exibe os mesmos dados da listagem, sem divergência") depende de `GET /api/events/{id}` e `GET /api/events` servirem o mesmo conteúdo; está pedida confirmação ao `backend` no quadro.

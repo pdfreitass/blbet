@@ -71,7 +71,7 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 - **Arquivos modificados:** `apps/api/test/sports-routes.test.ts` (novo teste) e este quadro
 - **Contratos ou interfaces alterados:** nenhum
 - **Resposta:** **confirmado.** `GET /api/events` e `GET /api/events/{id}` leem a mesma fonte, `catalog.events()` em `sports-service.ts`, e devolvem o mesmo objeto sem transformação. Para o mesmo evento, o conteúdo, incluindo as odds, é idêntico. Um teste novo prova-o: `devolve o mesmo conteúdo da listagem para o mesmo evento (CA-002.3)`. **Única ressalva, que é frescura e não divergência:** se a cache renovar entre os dois pedidos (`refreshMs`, DT-012), o detalhe traz as odds mais recentes. O detalhe é, por isso, a versão a confiar. O jogo que já começou continua a dar `404` com `event_started`
-- **Pendências para o agente `frontend`:** nenhuma nova
+- **Pendências para o agente `frontend`:** **colisão de número na integração.** A DT-015 (qualidade) já estava publicada na `main` quando o `wouter` foi registado também como DT-015. No merge para a `main`, o `wouter` passou a **DT-016** no `decisoes-tecnicas.md` e nas linhas que o mencionam no `agent-tasks.md` e neste quadro. **Falta trocar DT-015 por DT-016** nos comentários de `apps/web` (`App.tsx`, `App.test.tsx`, `CartaoJogo.tsx`, `NavegacaoPrincipal.tsx`, `NavegacaoPrincipal.module.css`, `test/setup.ts`) e nas duas linhas da tua secção que ainda dizem "DT-015" sobre o roteamento. Para evitar uma nova colisão, quem precisar de um número reserva-o primeiro neste quadro
 - **Bloqueios:** nenhum
 - **Testes executados e resultados:** `apps/api`: `vitest run` → 54/54 passam (eram 53); `tsc --noEmit` → passa
 - **Próxima ação recomendada:** o Pedro aprova a integração dos 4 commits do `frontend` (`89c5e8f`, `a8d6b8f`, `31f56a4`, `1fb78f3`) e este commit do `backend`
@@ -297,24 +297,164 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (`main` com o RF-007 integrada)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (roteamento e telas de detalhe)
 
 ### Situação
 
-**RF-007 integrado; a branch está alinhada com a `main`.** Fiz `git merge main` (merge `fe9c0bf`), sem conflitos, e as verificações continuam verdes depois dele. As cinco áreas de RF-001 estão construídas e integradas.
+**Roteamento e telas de detalhe entregues (DT-015).** A aplicação passou a ter endereços, e o **"voltar" do navegador regressa à listagem em vez de sair** — era o objetivo de toda a mudança. As telas de detalhe de evento e de jogo existem, e o endereço desconhecido tem tela com saída.
 
-- **Arquivos modificados:** nenhum ficheiro de código — só este quadro: a tabela partilhada "Estado atual do projeto", atualizada com factos verificados no disco, e esta secção
+- **Arquivos modificados:** `apps/web/` (rotas, dois detalhes, tela de não encontrado, navegação em ligações, os testes afetados), `docs/decisoes-tecnicas.md` (DT-015)
 - **Contratos ou interfaces alterados:** nenhum
-- **Dois pontos verificados no disco, que o quadro não dizia:**
-  - **`origin/main` está em `ad3b8c5`**, não em `928843f`: o `928843f` (RF-007) e o `7400b27` existem só na `main` local, **sem push**. Quem clonar o repositório hoje não recebe o perfil
-  - A secção `Backend` deste quadro descrevia um estado anterior à T-014 e à T-015. **Assinalei em vez de corrigir**, por ser a secção do outro agente, e o `backend` atualizou-a em `5c50a52` — confirmado por leitura desse commit. **Pendência fechada**
-- **Pendências para o agente `backend`:** **nenhuma.** O `backend` também não tem nenhuma para mim (`5c50a52`)
-- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main` (`git push`), que está dois commits à frente do remoto
+- **Conflito resolvido, não ignorado:** a §9.2 previa o cartão todo como área de navegação, o que colide com CA-003.3 — cobrir as odds com uma ligação fá-las responder ao clique. A área que navega é o **cabeçalho**; os mercados continuam a não reagir a nada
+- **O `event_started` tem finalmente ecrã:** abrir um jogo que começou entre a listagem e o clique diz isso, em vez de "não encontrámos"
+- **Pendências para o agente `backend`:** confirmar que `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo (CA-002.3) — o detalhe já usa a rota de recurso único, por isso deixou de ser teórica
+- **Pendências para o Pedro:** nenhuma nova; fica a publicação da `main`
 - **Bloqueios:** nenhum
-- **Testes executados e resultados — depois do merge:** `pnpm install` → já atualizado; typecheck → **passa**; `vitest run` → **106 testes em 11 ficheiros, todos passam**; build → **passa** em 310ms
-- **Próxima ação recomendada:** paginação por cursor na listagem, que o contrato suporta (`meta.nextCursor`) e a interface ainda não usa
+- **Testes executados e resultados:** typecheck passa; **131 testes em 12 ficheiros**, todos passam; build passa (341.34 kB de JS, 104.03 kB gzip). No navegador: percurso completo com o `history.back()` a funcionar, detalhe aberto por endereço direto, mobile sem rolagem horizontal, zero erros na consola
+- **Por confirmar ainda:** a paginação com cursores reais, desde ontem
+- **Próxima ação recomendada:** a **DP-005** (estratégia de estado da interface) é a última decisão estrutural por tomar do lado do `frontend`
 
 ### Histórico
+
+### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-016, RF-002, RF-004)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (oitava entrega)
+- **Arquivos modificados:** `apps/web/package.json` (dependência `wouter`), `apps/web/src/app/` (`App.tsx` reescrito, `NaoEncontrado.tsx` + `.module.css` novos, `App.test.tsx`), `apps/web/src/modules/esportes/` (`DetalheEvento.tsx` + `.module.css` novos, `CartaoEvento.tsx` e `.module.css`), `apps/web/src/modules/cassino/` (`DetalheJogo.tsx` + `.module.css` novos, `CartaoJogo.tsx` e `.module.css`, dois testes), `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx` e `.module.css`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-016)
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**A aplicação passou a ter endereços.** O destino deixou de ser estado local: `/`, `/eventos/:id`, `/cassino`, `/cassino/:id`, `/busca?q=…`, `/favoritos`, `/perfil`. Verificado no navegador, e é a razão de tudo isto: **o "voltar" do navegador regressa à listagem em vez de sair da aplicação**. Recarregar mantém a tela, e `/busca?q=arsenal` reabre a busca já feita.
+
+**A navegação principal passou de botões a ligações.** Além de dar endereço a cada área, uma ligação pode ser aberta noutro separador e é anunciada como ligação pelo leitor de tela — um botão que navega mente sobre o que faz. O destino continua marcado quando se está numa tela abaixo dele: abrir um jogo do cassino mantém "Cassino" com `aria-current`, verificado no navegador.
+
+**Um conflito do design-system que tive de resolver, e não por omissão.** A §9.2 previa "toda a superfície do cartão" como área de navegação. Isso colide com **CA-003.3**: cobrir as odds com uma ligação fá-las responder ao clique, e quem clica numa odd e é levado para outro lado pode ler aquilo como seleção. **A área que navega é o cabeçalho** — equipas, competição, hora —, que é generosa e inequívoca; os mercados ficam de fora e continuam a não reagir a nada. O mesmo no cartão de jogo: a ligação cobre a faixa de identificação, não o espaço da imagem. Está escrito no código, com a razão.
+
+**O `issue` `event_started` tem finalmente ecrã.** Existia desde a revisão da T-014 e nunca tinha tido onde aparecer: agora é o que se vê ao abrir um jogo que começou entre a listagem e o clique — "Este jogo já começou e deixou de estar disponível", com saída para a listagem, em vez do "não encontrámos" que seria enganador.
+
+**Tela de endereço desconhecido.** Com endereços passa a ser possível chegar a um que não existe — um link antigo, um engano a escrever. A visão exige caminhos "sem becos sem saída", por isso há uma tela com saída visível, e um jogo de cassino inexistente cai nela em vez de mostrar um ecrã vazio.
+
+- **Pendências para o agente `backend`:** continua a de ontem — confirmar que `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo para o mesmo evento, sem divergência de odds (CA-002.3). O detalhe já pede pela rota de recurso único, por isso a pergunta deixou de ser teórica
+- **Pendências para o Pedro:** nenhuma nova. Fica a publicação da `main`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **131 testes em 12 ficheiros, todos passam** (eram 118). Treze novos, entre rotas e detalhes
+  - `pnpm --filter @blbet/web build` → **passa**; 341.34 kB de JS (104.03 kB gzip) e 22.67 kB de CSS (4.09 kB gzip). O `wouter` e as duas telas novas custaram ~3,4 kB comprimidos no total
+  - **Navegador:** percurso completo — listagem, clique no cartão, detalhe em `/eventos/e1`, **`history.back()` a voltar à listagem** com a aplicação ainda montada; `/cassino/jog-fict-001` aberto **diretamente por endereço**, com "Cassino" marcado como ativo; a 375×812 sem rolagem horizontal; **zero erros na consola** num separador limpo
+  - **Confirmado de passagem:** o Vite **devolve `index.html` em qualquer caminho** — abri `/eventos/e1` por endereço e a aplicação carregou. Em produção isto é configuração de quem publicar, e está registado na DT-015
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Nota sobre os testes:** o `location` do jsdom é partilhado por todo o ficheiro de teste, por isso um teste que navegasse deixaria o seguinte a começar noutro endereço — e a falha apareceria num teste sem defeito. O `setup.ts` repõe o endereço antes de cada teste
+- **Próxima ação recomendada:** confirmar a paginação com cursores reais (continua por fazer desde ontem); ou a estratégia de estado da interface, **DP-005**, que continua aberta e é a última decisão estrutural por tomar do lado do `frontend`
+
+### 2026-10-27 — Proposta de roteamento para as telas de detalhe — **decisão do Pedro**
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** proposta técnica. **Nada implementado, nada instalado**
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo)
+- **Contratos ou interfaces alterados:** nenhum
+
+**A pergunta não é "que biblioteca de rotas".** É **se a aplicação passa a ter URLs**. Hoje o destino ativo é estado local (`useState` em `App.tsx`), e isso tem três consequências que só se tornam graves quando existirem telas de detalhe:
+
+1. **O "voltar" do navegador sai da aplicação.** Quem abrir um detalhe e carregar em voltar — ou fizer o gesto de voltar no Android — não volta à listagem: sai do produto. Isto é o que mais pesa, e pesa sobretudo em mobile (RNF-001).
+2. **Recarregar a página volta ao início.** O utilizador perde o sítio onde estava, incluindo a busca que tinha feito.
+3. **Nenhum ecrã é endereçável.** Não se pode guardar nem abrir um jogo diretamente.
+
+**Nenhum requisito pede URL partilhável.** Procurei: `requisitos.md` fala em "navegar de uma listagem para o detalhe" (RF-002), "abrir o detalhe de um jogo" (RF-004) e favorito visível "na listagem e no detalhe" (RF-006), mas nunca em partilhar, em link ou em endereço. O `index.html` leva `noindex, nofollow`, portanto **não há argumento de SEO**. O que fica é o ponto 1 — e a visão exige "todos os caminhos percorríveis ponta a ponta, **sem becos sem saída**", que é exatamente o que um "voltar" que fecha a aplicação produz.
+
+#### As quatro opções, com o custo real
+
+| Opção | Custo no pacote | A favor | Contra |
+|---|---|---|---|
+| **A — Manter estado local**; o detalhe é um painel sobreposto | zero | Nada a instalar; é o que já existe | Não resolve nenhum dos três pontos. O "voltar" continua a sair da aplicação |
+| **B — History API à mão** | zero | Sem dependências, como o `CLAUDE.md` prefere; são sete rotas, e o emparelhamento é trivial | O difícil não é emparelhar caminhos: é sincronizar o histórico com o React sem perder eventos (`useSyncExternalStore`), tratar `popstate`, cliques com tecla modificadora e reposição de rolagem. Escrito à mão e bem feito, passa das 100 linhas que parece à primeira vista, e sou eu a mantê-lo |
+| **C — `wouter`** (recomendada) | **~1,5 kB** comprimido | Resolve os três pontos; API de hooks, próxima do que já uso; **zero dependências próprias**; licença Unlicense (domínio público). Versão **3.13.0**, publicada em 2026-09-30, ativa | Dependência nova, contra a orientação do `CLAUDE.md`. **Um só mantenedor** — é o risco a aceitar |
+| **D — `react-router`** | **~17 a 30 kB** comprimido | Padrão de facto, muita documentação | 17 a 30 kB num pacote que tem 100 kB é um aumento de 17 a 30 %, por funcionalidades que este produto não usa: carregadores de dados, rotas aninhadas profundas, divisão por rota |
+
+Os tamanhos de C e D não são de memória: confirmei-os em várias fontes, e a versão e a data do `wouter` vêm do registo npm.
+
+#### Recomendação: opção C, `wouter`
+
+Pela proporção. O custo é **~1,5 kB** — menos de 1,5 % do pacote atual, e menos do que o CSS que já escrevi. O que compra é o comportamento que a opção B me obrigaria a escrever e a manter na parte que é fácil errar. Contra a orientação de evitar dependências, o argumento é que esta é a dependência mais barata que o projeto vai ter, e a mais substituível: a API são três ou quatro hooks, e se o pacote for abandonado, trocá-lo é trabalho de uma tarde.
+
+**Se o Pedro preferir não acrescentar dependência nenhuma, a opção B é defensável** e eu implemento-a sem reclamar — é mais código meu, não é pior produto. **A opção A é a única que recomendo recusar**, porque deixa o "voltar" a sair da aplicação.
+
+#### Esquema de URLs proposto
+
+| Caminho | Tela |
+|---|---|
+| `/` | Esportes (listagem) |
+| `/eventos/:id` | Detalhe de um evento |
+| `/cassino` | Catálogo de cassino |
+| `/cassino/:id` | Detalhe de um jogo |
+| `/busca?q=…` | Busca, com o termo no endereço |
+| `/favoritos` | Favoritos |
+| `/perfil` | Perfil |
+
+O termo de busca em `?q=` espelha o parâmetro que o contrato já define (regra A7) e faz com que recarregar mantenha a busca.
+
+#### Três coisas que decorrem disto e que é melhor dizer agora
+
+1. **O detalhe aberto diretamente tem de ir buscar o evento à api** (`GET /api/events/{id}`), porque não passou pela listagem. A **CA-002.3** exige "os mesmos dados da listagem, sem divergência": com a cache do `backend` (DT-012) as duas respostas vêm da mesma origem, e portanto não divergem — **mas quero isto confirmado pelo `backend`** antes de construir, e não assumido por mim.
+2. **O `404` com `issue: 'event_started'` passa a ser visível.** Um evento que começou entre a listagem e o clique dá `404`, e o detalhe mostra "Este jogo já começou e deixou de estar disponível" — a mensagem já existe desde a T14-A1 e nunca teve ecrã onde aparecer. Passa a ter.
+3. **O servidor que servir o `dist` precisa de devolver `index.html` em qualquer caminho.** Em desenvolvimento o Vite já o faz; **em produção é configuração de quem publicar**, e fica registado aqui para não ser descoberto no dia do primeiro deploy.
+
+- **Pendências para o agente `backend`:** confirmar o ponto 1 — `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo para o mesmo evento, sem divergência de odds entre as duas rotas
+- **Pendências para o Pedro:** **escolher entre C (recomendada) e B.** A opção A recomendo recusar
+- **Bloqueios:** as telas de detalhe esperam esta decisão. Não instalo nada nem escrevo roteamento antes dela
+- **Testes executados e resultados:** nenhum — proposta, sem alteração de código. O estado do código é o do commit `31f56a4`: typecheck, 118 testes e build a passar
+- **Próxima ação recomendada:** o Pedro escolhe; se for C, a decisão é registada em `decisoes-tecnicas.md` (próximo número livre, **reservado aqui antes de ser usado**: **DT-015**) e a T-016 segue com o detalhe de evento
+
+### 2026-10-27 — DIV-001 fechada no `design-system.md` e DT-011 registada
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** registo das decisões do Pedro (DT-014 e DT-011) nos documentos do `frontend`
+- **Arquivos modificados:** `docs/design-system.md` (§2, §7, §0, §10 e §11), `docs/decisoes-tecnicas.md` (DT-011 acrescentada), `apps/web/src/shared/componentes/` (comentários de `Etiqueta.tsx`, `ValorDeDado.tsx`, `ValorDemonstrativo.tsx` e `FaixaDemonstrativa.tsx`)
+- **Contratos ou interfaces alterados:** **nenhum.** A DT-014 confirma que o `origin` (A8) continua a ser o que decide a marca; não muda nada no contrato
+- **`main` integrada:** `git merge main`, sem conflitos, trazendo `8b4b778` e `c13e21d`
+
+**§7 do `design-system.md` reescrito.** Deixou de ser "duas opções à espera de decisão" e passa a registar a escolha: **opção A**, marca-se só o dado fictício. Guardei as três razões pelas quais a opção B foi rejeitada — o selo "ao vivo" seria falso com até uma hora de cache (DT-012), a fonte nomeada seria a de um provedor só de testes (DT-009), e o ruído pesaria em listagem densa — porque daqui a seis meses a pergunta "porque não marcámos o dado real?" vai voltar.
+
+**Três pendências do documento fechadas de uma vez**, por já estarem decididas e o documento não o refletir: a **DIV-001** (DT-014), a **DP-006** (CSS Modules, aprovada a 26/10 e em uso desde então) e a **DT-011**. O risco **R3** de §10, que previa o custo da opção B no espaço vertical de §9.2, §9.3 e §9.4, está fechado com a razão.
+
+**DT-011 registada em `docs/decisoes-tecnicas.md`.** Tema escuro único, com tokens semânticos. Pus a decisão **na ordem numérica** do ficheiro, entre a DT-010 e a DT-012, e acrescentei a linha ao índice do topo — a primeira tentativa deixou-a no fim, fora de ordem e sem entrada no índice, onde ninguém a encontraria. A nota de numeração ficou lá: foi reservada como DT-009, renumerada para DT-010 e fixada em DT-011, por o `backend` ter usado ambos entretanto.
+
+**O código já cumpria a opção A; o que estava errado eram os comentários.** Verifiquei que `ValorDeDado` é o único lugar que decide a marcação (`grep` por `origin ===` fora dele devolve nada) e que não existe variante `real` em lado nenhum. Mas quatro componentes ainda descreviam a decisão como pendente — "existirá apenas se o Pedro escolher a opção B", "enquanto o Pedro não decidir". Um comentário que descreve uma decisão já tomada engana quem o ler a seguir, por isso passaram a dizer que a DT-014 decidiu e que a variante `real` **não é para criar**.
+
+- **Pendências para o agente `backend`:** nenhuma
+- **Pendências para o Pedro:** nenhuma das três que estavam abertas — **DIV-001**, **PD-006** e **DT-011** estão todas resolvidas e registadas. Fica a publicação da `main` quando quiser
+- **Bloqueios:** nenhum
+- **Registo do que o `backend` verificou, para não se perder:** em `8b4b778`, o caminho de sucesso com dados reais foi confirmado no navegador com a chave — EPL, La Liga e Serie A, 20 eventos, odds e hora local corretas, faixa com o texto da DT-013. **Era a verificação que me faltava desde ontem.** Continua por confirmar a **paginação** com cursores reais: 20 eventos com `limit=30` cabem numa página, por isso a segunda página nunca chegou a ser pedida
+- **Testes executados e resultados — reais:** `pnpm --filter @blbet/web typecheck` → **passa**; `test` → **118 testes em 12 ficheiros, todos passam**; `build` → **passa** em 356ms. As alterações foram de documentação e de comentários, mas corri tudo para garantir que não mexi em nada a sério
+- **Próxima ação recomendada:** telas de detalhe de evento e de jogo, que precisam de uma **decisão de roteamento** ainda por tomar: hoje a navegação é estado local, sem URL própria, e um detalhe sem URL não é partilhável nem suporta o botão "voltar" do navegador
+
+### 2026-10-27 — T-016: paginação por cursor na listagem e na busca (PC-008, A6)
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** T-016 (sétima entrega)
+- **Arquivos modificados:** `apps/web/src/shared/api/useListaPaginada.ts` e `useListaPaginada.test.tsx` (criados), `apps/web/src/shared/componentes/MaisResultados.tsx` e `.module.css` (criados), `apps/web/src/app/App.tsx` e `App.test.tsx`
+- **Contratos ou interfaces alterados:** **nenhum.** A paginação já estava acordada em PC-008 e A6; a interface passou a usá-la
+
+**A página seguinte vem por ação explícita, não por rolagem.** Rolagem infinita torna o rodapé inalcançável por teclado e dispara pedidos sem intenção — e o plano do provedor tem 150 por dia (DT-009). Um botão gasta um pedido quando o utilizador o pede. O fim da lista é dito (“Fim da lista de jogos.”) em vez de a lista simplesmente acabar: sem isso, não se distingue “vi tudo” de “faltou carregar”.
+
+**Três comportamentos que exigiram decisão:**
+
+1. **Falhar a carregar mais não apaga o que já está na tela.** A falha fica no rodapé, junto ao botão, e os jogos já lidos continuam legíveis. Uma falha da **primeira** página é outra coisa — essa substitui a lista pelo estado de erro de RF-008.
+2. **Um cursor obsoleto não é erro para o utilizador.** A regra **A6** diz que um cursor fora de prazo dá `VALIDATION_FAILED` com `issue: 'invalid_cursor'`. Mostrar “o pedido não é válido” a quem só carregou num botão seria incompreensível: a lista **recomeça do início**, que é o que a pessoa faria à mão. Tem teste.
+3. **Mudar o termo de busca recomeça a paginação e cancela o pedido em curso.** Sem isso, uma página pedida antes da mudança chegaria depois e acrescentaria resultados do termo antigo à lista do novo. O teste verifica que nenhum pedido do termo novo leva o cursor do antigo.
+
+**O agrupamento aguenta a paginação.** A **DIV-F02** avisava que uma página pode cortar um grupo de competição ao meio. Como os itens se acumulam e o agrupamento é por nome, os eventos da segunda página juntam-se ao grupo que já estava: verificado no navegador, dois jogos de páginas diferentes sob **um só** cabeçalho. Continua a não haver contagem por grupo, que seria enganadora.
+
+- **Pendências para o agente `backend`:** nenhuma
+- **Pendências para o Pedro:** **PD-006**; a marcação item a item da **DIV-001**; registar a decisão de tema como **DT-011**; publicar a `main`
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **118 testes em 12 ficheiros, todos passam** (eram 106). Doze são novos: oito do hook e quatro da integração
+  - `pnpm --filter @blbet/web build` → **passa**; 331.39 kB de JS (100.67 kB gzip) e 17.99 kB de CSS (3.64 kB gzip)
+  - **Navegador:** com a api sem chave só se chega ao `503`, por isso substituí `window.fetch` **no separador** por duas páginas de exemplo — respostas conformes ao contrato, injetadas no navegador, **não vindas da api**. Com elas: a lista mostrou a primeira página com o botão; carregar trouxe a segunda sem apagar a primeira; o cabeçalho de competição ficou **um só**; o botão desapareceu e deu lugar a "Fim da lista de jogos.". O `fetch` foi reposto a seguir, confirmado por `window.fetch.toString()`
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **O que isto NÃO prova:** que a paginação funciona contra a Sportsbook API. Os cursores foram inventados por mim; os do provedor passam pelo adaptador do `backend` e podem comportar-se de outra forma — sobretudo o `invalid_cursor`, que nunca vi acontecer a sério. **Quem tiver a chave deve percorrer duas páginas reais**, e é a primeira coisa a fazer quando a houver
+- **Próxima ação recomendada:** confirmar a paginação com dados reais; depois, telas de detalhe, que precisam de uma decisão de roteamento ainda por tomar
 
 ### 2026-10-27 — T-016: perfil demonstrativo (RF-007) e correção de uma falha de repetição
 

@@ -13,8 +13,8 @@ import estilos from './FaixaDemonstrativa.module.css';
  * O que continua rigorosamente verdadeiro, e e o que importa: nao ha apostas,
  * depositos, saques nem pagamentos (RN-001, RN-003, RN-004).
  *
- * A forma de distinguir dado real de ficticio item a item depende da **DIV-001**, que
- * continua por decidir; ate la vale a opcao A -- marca-se so o ficticio.
+ * A distincao item a item e a **opcao A** (DT-014): marca-se so o ficticio. Esta faixa
+ * e que diz de que tipo e cada area -- e por isso que o dado real nao precisa de selo.
  */
 export function FaixaDemonstrativa() {
   return (
