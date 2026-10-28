@@ -53,16 +53,47 @@
 
 ### Situação
 
-**Modo de teste da api entregue (DT-018).** Era a pendência que o `frontend` tinha comigo e o que faltava para a etapa 4 da Fase 5 (E2E). Com `SPORTS_MODE=recorded`, a api serve respostas gravadas, sem chave e sem rede. **Os E2E deixam de estar bloqueados.** Trabalho feito na `feat/backend-foundation`, **por commitar** — espera aprovação do Pedro.
+**S-1 e S-2 da revisão de segurança corrigidos (DT-019).** A api passa a ter limite de pedidos por cliente e o `cursor` passa a ter teto de tamanho. Antes disto, na mesma sessão, o **modo de teste com respostas gravadas (DT-018)** foi entregue e **já está publicado** em `origin/feat/backend-foundation` (`f76d031`). O trabalho da DT-019 está **por commitar**.
 
-- **Arquivos modificados:** ver a entrada de 2026-10-28 no histórico abaixo
-- **Contratos ou interfaces alterados:** nenhum. As rotas, os esquemas e os formatos são exatamente os mesmos nos dois modos
-- **Pendências para o agente `frontend`:** os E2E podem começar — ver a entrada abaixo para o que a gravação cobre e o que não cobre
+- **Arquivos modificados:** ver as entradas de 2026-10-28 no histórico abaixo
+- **Contratos ou interfaces alterados:** **sim, dois acrescentos, ambos compatíveis** — `cursor` com `.max(1024)` em `packages/contracts` (S-2) e o acrescento **A9** ao `api-contract.md` (cabeçalhos e envelope do `429`). **Exige revisão cruzada do `frontend` (DT-005)**
+- **Pendências para o agente `frontend`:** (1) revisão cruzada da mudança em `packages/contracts`; (2) os E2E podem começar, com `RATE_LIMIT_MAX=0`. Detalhes nas entradas abaixo
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
-- **Testes executados e resultados:** typecheck ok · contracts 23/23, api **65/65** (eram 54), web 141/141 · cobertura da api 96,64% instruções / 87,23% ramos / 97,77% funções / 99,55% linhas · build ok · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · servidor compilado em `SPORTS_MODE=recorded` verificado com pedidos reais
-- **Próxima ação recomendada:** Pedro aprova o commit; o `frontend` arranca os E2E. Do lado do `backend`, ficam os achados S-1 (limite de pedidos) e S-2 (tamanho máximo do cursor) da revisão de segurança
+- **Testes executados e resultados:** typecheck ok · contracts **25/25**, api **71/71**, web 141/141 · cobertura api 96,67% instruções / 87,41% ramos, contracts 100% · build ok · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · `429` e modo gravado verificados no servidor compilado a correr
+- **Reserva de numeração — backend:** nenhum número reservado. Próximo livre: **DT-020**
+- **Próxima ação recomendada:** Pedro aprova o commit da DT-019; o `frontend` faz a revisão cruzada e arranca os E2E. Do lado do `backend`, o que resta da revisão de segurança é o **S-3** (cabeçalhos de segurança e CORS), que depende da plataforma de publicação (DP-008)
 
 ### Histórico
+
+### 2026-10-28 — S-1 e S-2 corrigidos: limite de pedidos e teto do cursor (DT-019)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** achados S-1 e S-2 da revisão de segurança de 2026-10-27 (RNF-004), a pedido do Pedro
+- **Arquivos modificados:**
+  - `apps/api/src/app.ts` — registo do limite de pedidos;
+  - `apps/api/src/config/env.ts` — `RATE_LIMIT_MAX` e `RATE_LIMIT_WINDOW_SECONDS`;
+  - `apps/api/package.json` — `@fastify/rate-limit ^11.2.1`;
+  - **`pnpm-lock.yaml`** (partilhado, ver o aviso abaixo);
+  - `packages/contracts/src/sports.ts` — `MAX_CURSOR_LENGTH` e `.max()` no `cursor`;
+  - `apps/api/test/rate-limit.test.ts` (novo), `apps/api/test/env.test.ts`, `apps/api/test/sports-routes.test.ts`, `packages/contracts/test/sports.test.ts`;
+  - `apps/api/.env.example`, `apps/api/README.md`;
+  - `docs/api-contract.md` (PC-008, A6, novo A9), `docs/decisoes-tecnicas.md` (DT-019 e índice), `docs/agent-tasks.md`, este quadro.
+- **Aviso de ficheiro partilhado — `pnpm-lock.yaml`:** instalei **uma** dependência de produção na api, `@fastify/rate-limit`. O lockfile levou **+30 linhas, só acrescentos**, com 4 pacotes novos (`@fastify/rate-limit`, `@lukeed/ms`, `toad-cache` e o que deles depende). **Nenhuma entrada existente foi alterada**, por isso o teu `pnpm install` depois do merge não deve mexer em nada do `apps/web`. Nada a aprovar em `allowBuilds`: o pacote não tem scripts de instalação.
+- **Contratos ou interfaces alterados — e é aqui que preciso de ti:**
+  1. **`cursor` passa a ter máximo de 1024 caracteres** (`MAX_CURSOR_LENGTH`, exportado). Acima disso dá `400` com `{ field: "query.cursor", issue: "too_big" }`, antes de ser descodificado. **Nenhum cursor que a api emita é afetado** — confirmei-o com o pior caso que a query permite.
+  2. **Acrescento A9 ao contrato:** o `429 RATE_LIMITED` sai no envelope de sempre, com `retryable: true`, e as respostas trazem `x-ratelimit-limit`, `x-ratelimit-remaining` e `x-ratelimit-reset`. O código `RATE_LIMITED` já estava no catálogo (A1) — o que é novo é haver quem o produza.
+  3. **Pedido formal: revisão cruzada (DT-005)** destes dois pontos. Nenhum muda uma forma existente; ambos apertam ou acrescentam. Se discordares, fica pendência e o acordo vigente continua válido.
+- **Para os E2E, importante:** **põe `RATE_LIMIT_MAX=0`.** Desliga o limite. Sem isso, uma bateria de E2E com vários workers pode apanhar `429` e falhar por isso, não por defeito do produto. Por omissão o limite é 300 pedidos por minuto por cliente, que é largo para uso normal mas não é infinito.
+- **Um erro meu, corrigido, que vale registar:** a revisão de segurança propôs `.max(256)` para o cursor. **Estava errado.** Medi antes de aplicar: o pior caso legítimo são 272 caracteres com texto latino e **539 com CJK**, porque `q` admite 100 unidades UTF-16 e cada caractere CJK pesa 3 bytes antes do base64url. O `.max(256)` teria recusado cursores que a própria api emite. Ficou em **1024**, com o pior caso coberto por testes nos dois pacotes
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts **25/25** (eram 23) · api **71/71** (eram 65) · web 141/141;
+  - `pnpm --filter @blbet/api coverage` → 96,67% instruções, 87,41% ramos, 97,8% funções, 99,56% linhas; `packages/contracts` → 100%. Ambos acima da meta da DT-015;
+  - `pnpm lint` → **4 erros, os mesmos, todos em `apps/web`**;
+  - `pnpm build` → ok;
+  - **servidor compilado a correr**, com `RATE_LIMIT_MAX=3`: os 3 primeiros pedidos a `/api/events` deram `200` com `x-ratelimit-remaining` a descer 2, 1, 0; o 4.º e o 5.º deram `429` com `{"error":{"code":"RATE_LIMITED","message":"too many requests","retryable":true}}`.
+- **Próxima ação recomendada:** Pedro aprova o commit; o `frontend` registra aqui a revisão cruzada. O **S-3** (cabeçalhos de segurança e CORS) fica para quando a plataforma de publicação estiver decidida (DP-008)
 
 ### 2026-10-28 — Modo de teste da api com respostas gravadas (DT-018); os E2E ficam desbloqueados
 
@@ -92,7 +123,7 @@
 - **O que a gravação não dá, e é limitação real:** só `EPL`, só dois jogos. **Não há paginação para exercitar** (`nextCursor` vem sempre `null` com o `limit` por omissão), nem jogo sem odds, nem lista vazia. Isto não é escolha de desenho: é o que existe gravado no repositório, e **não invento respostas do provedor**. Se precisares de mais, diz aqui o quê, e gravo da próxima vez que houver sessão com a chave do Pedro
 - **Decisões que tomei e porquê, em duas linhas:** parei o relógio em vez de reescrever as datas das gravações, porque um dado alterado deixa de ser uma gravação fiel; e a gravação é validada no arranque pelos mesmos esquemas das respostas reais, para que uma gravação estragada recuse o arranque em vez de servir lixo
 - **Pendências para o Pedro:**
-  1. **Aprovar o commit** (nada foi commitado).
+  1. ~~Aprovar o commit.~~ **Feito:** commitado e publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `f76d031`. **Este push acionou o `ci.yml` pela primeira vez, e o passo `lint` falha nos 4 erros de `apps/web`.**
   2. **O ambiente desta sessão não é o da DT-008.** Estou num clone em `C:\Users\Usuario\blbet`, na `feat/backend-foundation`, **sem worktrees** — não na estrutura `C:\Users\pedro\blbet` + duas worktrees que o quadro descreve. Decide se a DT-008 passa a descrever também este ambiente ou se é para reconstruir as worktrees.
 - **Bloqueios:** nenhum
 - **Testes executados e resultados — reais:**

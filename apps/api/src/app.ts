@@ -1,3 +1,4 @@
+import rateLimit from '@fastify/rate-limit';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ErrorCode } from '@blbet/contracts';
 import type { AppConfig } from './config/env.js';
@@ -38,6 +39,18 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
   });
 
   app.setNotFoundHandler((_request, reply) => reply.status(404).send(errorBody('NOT_FOUND', 'route not found')));
+
+  // S-1 — limite de pedidos por cliente. A cache (DT-012) protege a quota do provedor, não a api:
+  // um cliente só já basta para a sobrecarregar. O 429 sai no envelope da PC-001, como os outros.
+  if (config.RATE_LIMIT_MAX > 0) {
+    app.register(rateLimit, {
+      max: config.RATE_LIMIT_MAX,
+      timeWindow: config.RATE_LIMIT_WINDOW_SECONDS * 1000,
+      // O plugin lança o que este construtor devolve: um AppError cai no tratamento normal e sai
+      // no envelope da PC-001, com `retryable: true` pela tabela de `errors.ts`.
+      errorResponseBuilder: () => new AppError('RATE_LIMITED', 'too many requests'),
+    });
+  }
 
   app.register(healthRoutes);
   app.register(sportsRoutes, { sports: deps.sports, now: deps.now ?? (() => new Date()) });

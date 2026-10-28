@@ -15,6 +15,8 @@ describe('loadConfig', () => {
       SPORTS_COMPETITIONS: ['EPL', 'LA_LIGA', 'SERIE_A'],
       SPORTS_REFRESH_MINUTES: 60,
       SPORTS_MODE: 'live',
+      RATE_LIMIT_MAX: 300,
+      RATE_LIMIT_WINDOW_SECONDS: 60,
     });
     expect(Object.isFrozen(config)).toBe(true);
   });

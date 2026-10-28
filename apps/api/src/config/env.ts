@@ -27,6 +27,10 @@ const envSchema = z.object({
   // Só com SPORTS_MODE=recorded: instante em que o relógio fica parado. Por omissão, o
   // `recordedAt` da gravação.
   SPORTS_NOW: optionalText(z.iso.datetime().optional()),
+  // S-1 — pedidos por cliente em cada janela. `0` desliga o limite, o que serve aos E2E, que
+  // fazem muitos pedidos seguidos e não devem apanhar 429 por isso.
+  RATE_LIMIT_MAX: optionalText(z.coerce.number().int().min(0).default(300)),
+  RATE_LIMIT_WINDOW_SECONDS: optionalText(z.coerce.number().int().min(1).default(60)),
 });
 
 export type AppConfig = Readonly<z.infer<typeof envSchema>>;

@@ -37,8 +37,28 @@ O `.env` não é versionado. As variáveis são validadas no arranque (`src/conf
 | `LOG_LEVEL` | `info` | `fatal` … `trace`, `silent` |
 | `SPORTS_MODE` | `live` | `live`, `recorded` (DT-018) |
 | `SPORTS_NOW` | `recordedAt` da gravação | instante ISO, só com `recorded` |
+| `RATE_LIMIT_MAX` | `300` | pedidos por janela e por cliente; `0` desliga (DT-019) |
+| `RATE_LIMIT_WINDOW_SECONDS` | `60` | 1 ou mais |
 
 As variáveis do provedor esportivo estão em [`.env.example`](.env.example).
+
+## Limite de pedidos (S-1, DT-019)
+
+Cada cliente tem `RATE_LIMIT_MAX` pedidos por janela de `RATE_LIMIT_WINDOW_SECONDS`. Ao passar do
+limite, a api responde `429` no envelope de sempre, com `retryable: true`:
+
+```json
+{ "error": { "code": "RATE_LIMITED", "message": "too many requests", "retryable": true } }
+```
+
+As respostas trazem `x-ratelimit-limit`, `x-ratelimit-remaining` e `x-ratelimit-reset`, para o
+cliente se poder conter antes de ser travado.
+
+**`RATE_LIMIT_MAX=0` desliga o limite.** É o que os testes end-to-end devem usar: fazem muitos
+pedidos seguidos e não devem apanhar `429` por isso.
+
+Isto protege a **api**. A quota do provedor é protegida por outra coisa — a cache da DT-012 —, e uma
+não substitui a outra.
 
 ## Modo de teste com respostas gravadas (DT-018)
 

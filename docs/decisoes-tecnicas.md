@@ -50,6 +50,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-016](#dt-016--wouter-como-biblioteca-de-rotas-do-frontend) | `wouter` como biblioteca de rotas de `apps/web/`; esquema de endereços e fallback para `index.html` | roteamento (RF-002, RF-004) | aprovada |
 | [DT-017](#dt-017--estratégia-de-estado-da-interface) | Navegação no endereço, dados do servidor em hooks próprios, Context só para o partilhado, mais cache curto de 30 s | DP-005 | aprovada |
 | [DT-018](#dt-018--modo-de-teste-da-api-com-respostas-gravadas) | Modo de teste da api com respostas gravadas e relógio parado, para os E2E | DT-015 (etapa 4), PA-008 | aprovada |
+| [DT-019](#dt-019--limite-de-pedidos-na-api-e-teto-do-cursor) | Limite de pedidos por cliente (`@fastify/rate-limit`) e teto de 1024 caracteres no cursor | S-1 e S-2 da revisão de segurança (RNF-004) | aprovada |
 
 ---
 
@@ -572,3 +573,49 @@ Acompanham a decisão:
 - `SPORTS_MODE=recorded` nunca deve ser usado em publicação. Não há salvaguarda no código a impedi-lo: o modo é explícito e o arranque regista um aviso.
 
 **Pendências** — gravar mais competições e mais jogos quando houver uma sessão com a chave, se os E2E precisarem de mais do que dois jogos.
+
+---
+
+### DT-019 — Limite de pedidos na api e teto do cursor
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** Pedro (mandou avançar com o S-1 e o S-2); `backend` nos valores concretos
+- **Registado por:** `backend` (número reservado no quadro)
+- **Resolve:** S-1 e S-2 da revisão de segurança de 2026-10-27 (RNF-004)
+
+**Contexto** — A revisão de segurança da api não encontrou nada crítico, mas deixou dois achados. O **S-1 (médio)**: a api não tinha limite de pedidos por cliente. A cache da DT-012 protege a quota do provedor, não a api — um cliente só, em ciclo, sobrecarrega-a sem nunca tocar no provedor. O **S-2 (baixo)**: o `cursor` de `eventsQuerySchema` não tinha tamanho máximo e ia direto a `JSON.parse`.
+
+**Decisão — S-1: limite de pedidos**
+
+`@fastify/rate-limit` 11.2.1, registado na app, com duas variáveis:
+
+| Variável | Omissão | Papel |
+|---|---|---|
+| `RATE_LIMIT_MAX` | `300` | pedidos por janela e por cliente; `0` desliga |
+| `RATE_LIMIT_WINDOW_SECONDS` | `60` | duração da janela |
+
+- O `429` sai no **envelope da PC-001**, com `retryable: true`. Conseguido lançando o `AppError` que já existia, em vez de acrescentar um caminho de erro novo: o plugin lança o que o `errorResponseBuilder` devolver, e um `AppError` cai no tratamento normal.
+- As respostas trazem `x-ratelimit-limit`, `x-ratelimit-remaining` e `x-ratelimit-reset` (acrescento A9 do contrato, anunciado no quadro).
+- **`RATE_LIMIT_MAX=0` desliga o limite**, e é o que os E2E devem usar. Sem esta saída, um limite apertado tornaria os E2E intermitentes — falhariam por `429` e não por defeito do produto.
+- O limite é **global**, incluindo `/health`. Com 300 por minuto, nenhuma sonda razoável se aproxima disso.
+
+**Decisão — S-2: teto do cursor**
+
+`cursor` passa a ter `.max(MAX_CURSOR_LENGTH)`, com `MAX_CURSOR_LENGTH = 1024`.
+
+**O `.max(256)` que a própria revisão propôs estava errado, e medir mostrou-o:** o cursor é a codificação em base64url dos filtros que o emitiram, e como `q` admite 100 unidades UTF-16, o pior caso medido é **272 caracteres com texto latino e 539 com CJK** (3 bytes por caractere). 256 teria recusado cursores legítimos emitidos pela própria api. 1024 cobre o pior caso com folga e continua a travar uma entrada arbitrariamente grande. Um cursor acima do teto dá `400` com `issue: "too_big"`, antes de ser descodificado.
+
+**Alternativas consideradas**
+
+- **S-1 sem dependência**, com um contador caseiro: rejeitado. Limitar pedidos tem detalhes que se acertam mal à primeira — janelas deslizantes, chave por IP com IPv6, cabeçalhos padronizados — e o plugin oficial do Fastify trata-os.
+- **Limitar só as rotas de esportes**: rejeitado por agora. O custo de defender também `/health` é nulo, e a regra única é mais fácil de raciocinar.
+- **Derivar o teto do cursor dos limites do esquema**, em vez de uma constante: rejeitado. Daria uma expressão difícil de ler para proteger contra um caso que a medição já cobre com folga.
+
+**Consequências**
+
+- **`pnpm-lock.yaml` mudou** (ficheiro partilhado): +30 linhas, só acrescentos, 4 pacotes novos — `@fastify/rate-limit`, `@lukeed/ms`, `toad-cache` e dependências diretas suas. Nenhuma entrada existente foi alterada. Anunciado no quadro.
+- **`packages/contracts` mudou**, logo exige **revisão cruzada do `frontend`** (DT-005). A mudança é apertar um limite, não mudar uma forma: nenhum cursor que a api emita é afetado.
+- O S-3 da revisão (cabeçalhos de segurança e CORS) **continua aberto**, ligado à plataforma de publicação (DP-008).
+
+**Pendências** — revisão cruzada do `frontend` à mudança em `packages/contracts`; e, antes de publicar, decidir se o limite por omissão serve para o tráfego real, que hoje ninguém conhece.
