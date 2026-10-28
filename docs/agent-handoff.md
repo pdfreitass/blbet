@@ -53,7 +53,7 @@
 
 ### Situação
 
-**S-1 e S-2 da revisão de segurança corrigidos (DT-019).** A api passa a ter limite de pedidos por cliente e o `cursor` passa a ter teto de tamanho. Antes disto, na mesma sessão, o **modo de teste com respostas gravadas (DT-018)** foi entregue e **já está publicado** em `origin/feat/backend-foundation` (`f76d031`). O trabalho da DT-019 está **por commitar**.
+**S-1 e S-2 da revisão de segurança corrigidos (DT-019).** A api passa a ter limite de pedidos por cliente e o `cursor` passa a ter teto de tamanho. Antes disto, na mesma sessão, o **modo de teste com respostas gravadas (DT-018)** foi entregue e **já está publicado** em `origin/feat/backend-foundation` (`f76d031`). A DT-019 também já está publicada, com aprovação do Pedro — `22516bd`.
 
 - **Arquivos modificados:** ver as entradas de 2026-10-28 no histórico abaixo
 - **Contratos ou interfaces alterados:** **sim, dois acrescentos, ambos compatíveis** — `cursor` com `.max(1024)` em `packages/contracts` (S-2) e o acrescento **A9** ao `api-contract.md` (cabeçalhos e envelope do `429`). **Exige revisão cruzada do `frontend` (DT-005)**
@@ -61,7 +61,7 @@
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
 - **Testes executados e resultados:** typecheck ok · contracts **25/25**, api **71/71**, web 141/141 · cobertura api 96,67% instruções / 87,41% ramos, contracts 100% · build ok · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · `429` e modo gravado verificados no servidor compilado a correr
 - **Reserva de numeração — backend:** nenhum número reservado. Próximo livre: **DT-020**
-- **Próxima ação recomendada:** Pedro aprova o commit da DT-019; o `frontend` faz a revisão cruzada e arranca os E2E. Do lado do `backend`, o que resta da revisão de segurança é o **S-3** (cabeçalhos de segurança e CORS), que depende da plataforma de publicação (DP-008)
+- **Próxima ação recomendada:** o `frontend` faz `git merge` desta branch (ou espera a integração na `main`), a revisão cruzada e arranca os E2E. Do lado do `backend`, o que resta da revisão de segurança é o **S-3** (cabeçalhos de segurança e CORS), que depende da plataforma de publicação (DP-008)
 
 ### Histórico
 
@@ -93,7 +93,8 @@
   - `pnpm lint` → **4 erros, os mesmos, todos em `apps/web`**;
   - `pnpm build` → ok;
   - **servidor compilado a correr**, com `RATE_LIMIT_MAX=3`: os 3 primeiros pedidos a `/api/events` deram `200` com `x-ratelimit-remaining` a descer 2, 1, 0; o 4.º e o 5.º deram `429` com `{"error":{"code":"RATE_LIMITED","message":"too many requests","retryable":true}}`.
-- **Próxima ação recomendada:** Pedro aprova o commit; o `frontend` registra aqui a revisão cruzada. O **S-3** (cabeçalhos de segurança e CORS) fica para quando a plataforma de publicação estiver decidida (DP-008)
+- **Pendências para o Pedro:** ~~aprovar o commit.~~ **Feito:** commitado e publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `22516bd`. O passo `lint` do `ci.yml` continua a falhar nos 4 erros de `apps/web`, que não são deste commit
+- **Próxima ação recomendada:** o `frontend` registra aqui a revisão cruzada. O **S-3** (cabeçalhos de segurança e CORS) fica para quando a plataforma de publicação estiver decidida (DP-008)
 
 ### 2026-10-28 — Modo de teste da api com respostas gravadas (DT-018); os E2E ficam desbloqueados
 
