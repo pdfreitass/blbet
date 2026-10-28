@@ -11,6 +11,8 @@
 
 import { apiErrorSchema } from '@blbet/contracts';
 
+import { guardarNoCache, lerDoCache } from './cache';
+
 import { mensagemDe, type FalhaApi } from './erros';
 
 /**
@@ -26,9 +28,17 @@ export interface Validador<T> {
 
 export type Resultado<T> = { readonly ok: true; readonly dados: T } | { readonly ok: false; readonly falha: FalhaApi };
 
-/** Sinal de cancelamento, para abandonar um pedido que deixou de interessar. */
 export interface OpcoesPedido {
+  /** Sinal de cancelamento, para abandonar um pedido que deixou de interessar. */
   readonly signal?: AbortSignal;
+  /**
+   * Vai a rede mesmo havendo resposta recente guardada.
+   *
+   * Usado quando o utilizador pede explicitamente para recarregar -- "Tentar
+   * novamente", ou a lista a recomecar depois de um cursor obsoleto. Nesses casos
+   * servir o cache daria a mesma resposta e o pedido pareceria nao ter feito nada.
+   */
+  readonly ignorarCache?: boolean;
 }
 
 /** Lancado so para interromper: quem chama distingue-o de uma falha a mostrar. */
@@ -46,6 +56,24 @@ export async function pedir<T>(
   schema: Validador<T>,
   opcoes: OpcoesPedido = {},
 ): Promise<Resultado<T>> {
+  /*
+   * Resposta recente para este mesmo caminho serve (DT-016): evita que voltar do
+   * detalhe para a listagem mostre o esqueleto outra vez. A chave e o caminho
+   * completo, com a query, por isso cada pagina e cada termo de busca sao entradas
+   * distintas.
+   */
+  const guardado = opcoes.ignorarCache === true ? undefined : lerDoCache(caminho);
+
+  if (guardado !== undefined) {
+    const analisadoDoCache = schema.safeParse(guardado);
+
+    // Se o que esta no cache ja nao bate certo com o esquema -- por exemplo depois de
+    // o contrato mudar durante o desenvolvimento -- ignora-se e vai-se a rede.
+    if (analisadoDoCache.success) {
+      return { ok: true, dados: analisadoDoCache.data };
+    }
+  }
+
   let resposta: Response;
 
   try {
@@ -101,6 +129,10 @@ export async function pedir<T>(
   if (!analisado.success) {
     return falhar('RESPOSTA_INVALIDA', false);
   }
+
+  // So respostas bem sucedidas e validas entram no cache. Falhas nunca, para que
+  // "Tentar novamente" va mesmo a rede.
+  guardarNoCache(caminho, corpo);
 
   return { ok: true, dados: analisado.data };
 }

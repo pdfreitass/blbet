@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 
-import { obterEventos } from '../../shared/api/esportes';
-import { useRecurso } from '../../shared/api/useRecurso';
-import { EsqueletoLista, EstadoErro, NadaCadastrado } from '../../shared/componentes/Estados';
-import { useFavoritos } from '../../shared/favoritos/contexto';
-import { CartaoJogo } from '../cassino/CartaoJogo';
-import type { JogoDemonstrativo } from '../cassino/tipos';
-import { CartaoEvento } from '../esportes/CartaoEvento';
+import { obterEventos } from '../shared/api/esportes';
+import { useRecurso } from '../shared/api/useRecurso';
+import { EsqueletoLista, EstadoErro, NadaCadastrado } from '../shared/componentes/Estados';
+import { useFavoritos } from '../shared/favoritos/contexto';
+import { CartaoJogo } from '../modules/cassino/CartaoJogo';
+import type { JogoDemonstrativo } from '../modules/cassino/tipos';
+import { CartaoEvento } from '../modules/esportes/CartaoEvento';
 import estilos from './ListaFavoritos.module.css';
 
 interface ListaFavoritosProps {
@@ -19,6 +19,12 @@ const EVENTOS_POR_PAGINA = 30;
 /**
  * Reune o que foi favoritado (RF-006). Desmarcar remove daqui de imediato, porque a
  * lista deriva do estado partilhado e nao de uma copia (CA-006.3).
+ *
+ * **Vive em `app/`, e nao em `modules/favoritos/`, de proposito.** Esta tela mostra
+ * coisas de dois dominios -- cartoes de esportes e de cassino -- e a seccao 3 do
+ * `arquitetura.md` diz que modulos de dominio nao dependem uns dos outros. A casca e
+ * que compoe dominios, e e esse o seu papel. A logica dos favoritos continua em
+ * `shared/favoritos/`, que qualquer dominio pode usar.
  *
  * Os eventos sao cruzados com a listagem da api em vez de serem pedidos um a um: com
  * 150 pedidos por dia (DT-009), um pedido por favorito seria desperdicio. A

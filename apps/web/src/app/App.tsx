@@ -13,6 +13,7 @@ import {
 } from '../shared/componentes/Estados';
 import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { MaisResultados } from '../shared/componentes/MaisResultados';
+import { NaoEncontrado } from '../shared/componentes/NaoEncontrado';
 import { NavegacaoPrincipal } from '../shared/componentes/NavegacaoPrincipal';
 import { FavoritosProvider } from '../shared/favoritos/contexto';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
@@ -20,10 +21,10 @@ import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { DetalheJogo } from '../modules/cassino/DetalheJogo';
 import { DetalheEvento } from '../modules/esportes/DetalheEvento';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
-import { ListaFavoritos } from '../modules/favoritos/ListaFavoritos';
 import { Perfil } from '../modules/perfil/Perfil';
 import estilos from './App.module.css';
-import { NaoEncontrado } from './NaoEncontrado';
+import { ListaFavoritos } from './ListaFavoritos';
+
 
 export function App() {
   return (

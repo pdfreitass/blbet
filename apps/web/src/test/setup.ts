@@ -3,6 +3,8 @@
 import { afterEach, beforeEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+import { limparCache } from '../shared/api/cache';
+
 afterEach(() => {
   cleanup();
 });
@@ -16,4 +18,11 @@ afterEach(() => {
  */
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
+
+  /*
+   * O cache das leituras (DT-016) vive num módulo, e portanto sobrevive entre testes:
+   * sem isto, um teste receberia a resposta preparada pelo anterior e nunca chegaria
+   * ao servidor falso que ele próprio instalou.
+   */
+  limparCache();
 });

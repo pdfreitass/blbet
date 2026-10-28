@@ -240,24 +240,109 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (roteamento e telas de detalhe)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (DP-005 decidida, DT-016)
 
 ### Situação
 
-**Roteamento e telas de detalhe entregues (DT-015).** A aplicação passou a ter endereços, e o **"voltar" do navegador regressa à listagem em vez de sair** — era o objetivo de toda a mudança. As telas de detalhe de evento e de jogo existem, e o endereço desconhecido tem tela com saída.
+**DP-005 decidida e registada como DT-016.** Com ela saíram as duas correções que a análise tinha prometido: o cache curto e a dependência cruzada. **Não há decisões em aberto do lado do `frontend`.**
 
-- **Arquivos modificados:** `apps/web/` (rotas, dois detalhes, tela de não encontrado, navegação em ligações, os testes afetados), `docs/decisoes-tecnicas.md` (DT-015)
+- **Arquivos modificados:** `shared/api/cache.ts` e `cache.test.ts` (novos), o cliente e os dois hooks, `ListaFavoritos` movido para `app/`, `NaoEncontrado` movido para `shared/componentes/`, `docs/decisoes-tecnicas.md`, `docs/arquitetura.md` e `docs/design-system.md`
 - **Contratos ou interfaces alterados:** nenhum
-- **Conflito resolvido, não ignorado:** a §9.2 previa o cartão todo como área de navegação, o que colide com CA-003.3 — cobrir as odds com uma ligação fá-las responder ao clique. A área que navega é o **cabeçalho**; os mercados continuam a não reagir a nada
-- **O `event_started` tem finalmente ecrã:** abrir um jogo que começou entre a listagem e o clique diz isso, em vez de "não encontrámos"
-- **Pendências para o agente `backend`:** confirmar que `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo (CA-002.3) — o detalhe já usa a rota de recurso único, por isso deixou de ser teórica
-- **Pendências para o Pedro:** nenhuma nova; fica a publicação da `main`
+- **Um defeito que os testes apanharam:** ao ligar o cache, dois testes falharam com razão — um pedido explícito do utilizador ("Tentar novamente", ou a lista a recomeçar depois de um cursor obsoleto) estava a ser servido pelo cache, o que faria o botão parecer não ter feito nada. O cliente passou a aceitar `ignorarCache`
+- **Duas dependências cruzadas corrigidas**, não uma: `ListaFavoritos` importava de dois domínios (passou para `app/`), e `DetalheJogo` importava da casca (o `NaoEncontrado` passou para `shared/`). A verificação dá agora vazio nos dois sentidos
+- **Pendências para o agente `backend`:** nenhuma nova; continua a CA-002.3
+- **Pendências para o Pedro:** nenhuma
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **131 testes em 12 ficheiros**, todos passam; build passa (341.34 kB de JS, 104.03 kB gzip). No navegador: percurso completo com o `history.back()` a funcionar, detalhe aberto por endereço direto, mobile sem rolagem horizontal, zero erros na consola
-- **Por confirmar ainda:** a paginação com cursores reais, desde ontem
-- **Próxima ação recomendada:** a **DP-005** (estratégia de estado da interface) é a última decisão estrutural por tomar do lado do `frontend`
+- **Testes executados e resultados:** typecheck passa; **141 testes em 13 ficheiros**, todos passam; build passa (341.89 kB de JS, 104.22 kB gzip). No navegador, medido com contador: voltar aos esportes dá **zero pedidos novos** e a lista aparece sem esqueleto
+- **Próxima ação recomendada:** confirmar a paginação com cursores reais — a única verificação em dívida
 
 ### Histórico
+
+### 2026-10-27 — DP-005 decidida (DT-016): cache curto e correção da dependência cruzada
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** registo da DP-005 como **DT-016**, e as duas correções que saíram da análise
+- **Arquivos modificados:** `apps/web/src/shared/api/` (`cache.ts` e `cache.test.ts` novos; `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`), `apps/web/src/app/` (`ListaFavoritos.tsx` e `.module.css` **movidos para cá**, `App.tsx`, `App.test.tsx`), `apps/web/src/shared/componentes/NaoEncontrado.tsx` e `.module.css` (**movidos de `app/`**), `apps/web/src/modules/cassino/DetalheJogo.tsx`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-016), `docs/arquitetura.md` e `docs/design-system.md` (DP-005 fechada)
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**A decisão foi registar o que já existia, e não trocá-lo.** A estratégia formou-se entrega a entrega e está coerente: navegação no endereço, dados do servidor nos hooks próprios, Context só para o que é lido em muitos sítios e muda pouco, o resto em `useState`. A DT-016 acrescenta as regras e, sobretudo, **os sinais que a invalidam** — mutações, revalidação ao focar a janela, o mesmo dado em telas distantes, ou mais de uma dúzia de hooks. Nenhum se verifica hoje.
+
+**O cache de 30 s, e o defeito que os testes apanharam.** Foi acrescentado `shared/api/cache.ts` (~70 linhas, sem dependência) para que voltar do detalhe não refaça o pedido. Ao ligá-lo, **dois testes passaram a falhar, e tinham razão**: um pedido que o utilizador faz explicitamente — "Tentar novamente", ou a lista a recomeçar depois de um cursor obsoleto — estava a ser servido pelo cache, o que devolveria a mesma resposta e faria o botão parecer não ter feito nada. O cliente passou a aceitar `ignorarCache`, e os hooks passam-no em qualquer repetição. **Não teria encontrado isto por inspeção**; os testes que já existiam é que o apanharam.
+
+Outras duas decisões do cache, ambas com razão: só entram respostas **bem sucedidas e válidas** (uma falha nunca é guardada, para o "tentar novamente" ir mesmo à rede), e há um **teto de 50 entradas** com remoção da menos usada, porque cada termo de busca é uma chave própria e uma sessão longa faria o mapa crescer sem fim.
+
+**A dependência cruzada está corrigida, e apareceu outra pelo caminho.** `ListaFavoritos` importava de `cassino` e de `esportes`, contra a secção 3 do `arquitetura.md`. Passou para `app/`: a casca é que compõe domínios, e é esse o seu papel; a lógica continua em `shared/favoritos/`. Ao verificar, encontrei **uma segunda**, que a proposta não tinha visto: `modules/cassino/DetalheJogo` importava `NaoEncontrado` de `app/` — um domínio a importar da casca, que é a inversão errada. O componente passou para `shared/componentes/`, porque é usado pelos dois.
+
+Depois das duas, a verificação dá vazio nos dois sentidos: nenhum domínio importa de outro, e nenhum domínio importa da casca.
+
+- **Pendências para o agente `backend`:** nenhuma nova. Continua a confirmação da CA-002.3
+- **Pendências para o Pedro:** nenhuma. **Não há decisões em aberto do lado do `frontend`** — DIV-001, DP-005, DP-006, PD-006 e o roteamento estão todos decididos ou adiados por escolha
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **141 testes em 13 ficheiros, todos passam** (eram 131). Dez novos, do cache
+  - `pnpm --filter @blbet/web build` → **passa**; 341.89 kB de JS (104.22 kB gzip) e 22.76 kB de CSS (4.10 kB gzip). O cache custou ~0,2 kB
+  - **Navegador:** medido com um contador de pedidos — ir ao cassino e voltar aos esportes dá **zero pedidos novos**, com a lista a aparecer sem esqueleto. Era exatamente o que o cache devia resolver. `/favoritos` aberto por endereço direto, com o destino marcado; o único erro na consola é o `502` da api desligada, que é o estado esperado sem ela a correr
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Próxima ação recomendada:** confirmar a paginação com cursores reais, que continua por fazer desde ontem e é a única verificação em dívida
+
+### 2026-10-27 — Proposta para a DP-005 (estratégia de estado da interface) — **decisão do Pedro**
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** proposta técnica. **Nada implementado, nada instalado**
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo)
+- **Contratos ou interfaces alterados:** nenhum
+
+**A aplicação já tem uma estratégia de estado; o que falta é decidi-la.** Ela foi-se formando entrega a entrega, e está coerente. A proposta é **registá-la como decisão**, com a regra de quando deixa de servir — não trocá-la por outra.
+
+#### O que existe hoje, por tipo de estado
+
+| Tipo | Onde vive hoje | Exemplos |
+|---|---|---|
+| **Navegação** | O endereço (DT-015) | Destino ativo, id do evento, termo da busca em `?q=` |
+| **Dados do servidor** | `useRecurso` e `useListaPaginada`, em `shared/api` | Eventos, detalhe de evento |
+| **Partilhado entre telas** | Context, em `shared/favoritos` | Favoritos, com persistência local |
+| **Local de um componente** | `useState` | Filtro de categoria no cassino, texto do campo de busca |
+
+#### A premissa que muda a resposta: **repetir um pedido não custa quota**
+
+O instinto é pedir uma biblioteca de cache por causa do limite de 150 pedidos/dia. **Mas esse limite é do `backend` para o provedor, não do `frontend` para o `backend`.** A **DT-012** diz que cada competição é atualizada no máximo uma vez por hora, com cache em memória, com teto de **73 pedidos/dia** — e esse teto não muda, por muitas vezes que a interface chame `/api/events`.
+
+Ou seja: um pedido repetido ao `backend` custa latência local e mais nada. **O argumento mais forte para uma biblioteca de cache no cliente não se aplica a este projeto.**
+
+#### Recomendação: registar o que existe, com uma adição pequena
+
+1. **Navegação no endereço.** Já decidido (DT-015). Tudo o que faz sentido guardar ou partilhar — tela, item aberto, termo de busca — vive aí, não em estado de componente.
+2. **Dados do servidor nos hooks próprios**, em `shared/api`. Sem biblioteca. São ~200 linhas que já fazem o que este produto precisa: três estados de RF-008, cancelamento do pedido anterior, repetição decidida pelo servidor (A1), paginação por cursor.
+3. **Uma adição que resolve um incómodo real:** hoje, voltar do detalhe para a listagem **refaz o pedido e mostra o esqueleto outra vez**. Não gasta quota, mas pisca. Proponho um **cache em memória com validade curta** (30 s) em `shared/api`, partilhado entre montagens, com a chave igual ao caminho pedido. São ~40 linhas, sem dependência, e resolvem exatamente esse caso.
+4. **Context só para o que é lido em muitos sítios e muda pouco.** Hoje é só os favoritos. A regra impede que o Context se torne o depósito de tudo, que é como ele costuma estragar o desempenho.
+5. **Tudo o resto fica em `useState`**, no componente que o usa.
+
+#### Quando esta decisão deixa de servir
+
+Registo os sinais, para a revisão ser por facto e não por gosto. **Qualquer um destes justifica reavaliar** — e aí a candidata é o TanStack Query ou o SWR, não um estado global caseiro:
+
+- aparecerem **mutações** (escrever no servidor), que trazem invalidação e atualização otimista;
+- for preciso **revalidar ao voltar à janela** ou em intervalo;
+- o mesmo dado do servidor passar a ser lido por **telas distantes ao mesmo tempo**, com necessidade de ficarem em sincronia;
+- o número de hooks de dados passar de **uma dúzia**, altura em que o código próprio deixa de ser mais simples do que a biblioteca.
+
+Nenhum destes se verifica hoje: o produto **não escreve nada no servidor** — não há apostas, depósitos nem perfil editável (RN-001, RN-004), e os favoritos são locais (RN-005).
+
+#### Um defeito de arquitetura que encontrei ao fazer isto
+
+A secção 3 do `arquitetura.md` diz: *"os módulos de domínio podem depender de **compartilhado**, mas não uns dos outros"*. **`modules/favoritos/ListaFavoritos.tsx` viola isto**: importa `CartaoJogo` de `cassino` e `CartaoEvento` de `esportes`.
+
+Não foi descuido de arrumação — é consequência de a tela de favoritos ter de mostrar coisas de dois domínios. **A correção que proponho** é mover essa tela para `app/`, que é a casca e cujo papel é precisamente compor domínios; `shared/favoritos` já tem a lógica e fica onde está. É uma mudança de ficheiro e de importações, sem alterar comportamento nem testes de comportamento.
+
+Não a fiz já porque sai do âmbito do que estava a propor, e porque mexe na organização que o `arquitetura.md` descreve. **Fica como pendência registada**, não como coisa que alguém descobre daqui a dois meses.
+
+- **Pendências para o agente `backend`:** nenhuma nova. Continua a confirmação da CA-002.3
+- **Pendências para o Pedro:** aprovar (ou corrigir) a estratégia acima, para ser registada como decisão; e dizer se quer a correção da dependência cruzada agora ou depois
+- **Bloqueios:** nenhum. A estratégia proposta é a que já está em uso, por isso nada espera por esta decisão
+- **Reserva de numeração:** se for registada, fica **DT-016** — reservada aqui antes de ser usada
+- **Testes executados e resultados:** nenhum — proposta, sem alteração de código. O estado é o do commit `1fb78f3`: typecheck, 131 testes e build a passar
+- **Próxima ação recomendada:** o Pedro decide; depois, o cache curto de 30 s e a correção da dependência cruzada, que são as duas coisas concretas que saem daqui
 
 ### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-015, RF-002, RF-004)
 

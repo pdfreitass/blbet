@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { PedidoCancelado, type Resultado } from './cliente';
+import { PedidoCancelado, type OpcoesPedido, type Resultado } from './cliente';
 import type { FalhaApi } from './erros';
 
 export interface EstadoRecurso<T> {
@@ -18,8 +18,11 @@ export interface EstadoRecurso<T> {
  * uma resposta lenta de um termo antigo chegaria depois da do termo atual e
  * substituiria o resultado certo pelo errado.
  */
+/** O que o hook passa a quem carrega: o sinal, e se e para ignorar o cache. */
+export type OpcoesCarregamento = OpcoesPedido & { signal: AbortSignal };
+
 export function useRecurso<T>(
-  carregar: (opcoes: { signal: AbortSignal }) => Promise<Resultado<T>>,
+  carregar: (opcoes: OpcoesCarregamento) => Promise<Resultado<T>>,
   dependencias: readonly unknown[],
 ): EstadoRecurso<T> {
   const [estado, setEstado] = useState<{
@@ -41,7 +44,8 @@ export function useRecurso<T>(
 
     setEstado((anterior) => ({ ...anterior, carregando: true }));
 
-    executar({ signal: controlador.signal })
+    // Uma repeticao pedida pelo utilizador vai sempre a rede (DT-016).
+    executar({ signal: controlador.signal, ignorarCache: tentativa > 0 })
       .then((resultado) => {
         if (!ativo) {
           return;

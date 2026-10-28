@@ -47,6 +47,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-013](#dt-013--dados-esportivos-reais-informativos-e-restantes-dados-fictícios) | Cotações esportivas reais e informativas; cassino e restantes valores fictícios. Nova redação da RN-002 | DIV-001 em parte | aprovada |
 | [DT-014](#dt-014--marcar-só-o-dado-fictício-opção-a) | Marcar só o dado fictício (opção A do `design-system.md`); o dado real não leva selo | DIV-001 (interface), DP-004, PC-010 | aprovada |
 | [DT-015](#dt-015--wouter-como-biblioteca-de-rotas-do-frontend) | `wouter` como biblioteca de rotas de `apps/web/`; esquema de endereços e fallback para `index.html` | roteamento (RF-002, RF-004) | aprovada |
+| [DT-016](#dt-016--estratégia-de-estado-da-interface) | Navegação no endereço, dados do servidor em hooks próprios, Context só para o partilhado, mais cache curto de 30 s | DP-005 | aprovada |
 
 ---
 
@@ -449,3 +450,52 @@ A RN-002 passa a ter esta regra: **os dados esportivos (eventos, competições e
 - O `404` com `issue: 'event_started'` (T14-A1) passa a ter ecrã onde aparecer: o detalhe de um evento que começou entre a listagem e o clique.
 
 **Pendências** — nenhuma para esta decisão. A **CA-002.3** ("o detalhe exibe os mesmos dados da listagem, sem divergência") depende de `GET /api/events/{id}` e `GET /api/events` servirem o mesmo conteúdo; está pedida confirmação ao `backend` no quadro.
+
+---
+
+### DT-016 — Estratégia de estado da interface
+
+- **Data:** 2026-10-27
+- **Estado:** aprovada
+- **Decidido por:** Pedro
+- **Registado por:** `frontend`
+- **Resolve:** DP-005
+
+**Contexto** — A estratégia de estado de `apps/web/` foi-se formando entrega a entrega e nunca foi registada. O instinto inicial era instalar uma biblioteca de estado de servidor (TanStack Query, SWR) por causa do limite de 150 pedidos/dia do plano gratuito. **Verificou-se que esse limite é do `backend` para o provedor, não do `frontend` para o `backend`:** a DT-012 põe cache em memória no servidor, com teto de 73 pedidos/dia, e esse teto não muda por muitas vezes que a interface chame `/api/events`. O argumento mais forte para uma biblioteca de cache no cliente não se aplica a este projeto.
+
+**Decisão** — cada tipo de estado tem um lugar, e é este:
+
+| Tipo | Onde vive | Exemplos |
+|---|---|---|
+| **Navegação** | O endereço (DT-015) | Tela ativa, id do evento, termo da busca em `?q=` |
+| **Dados do servidor** | `useRecurso` e `useListaPaginada`, em `shared/api/` | Eventos, detalhe de evento |
+| **Partilhado entre telas** | Context, em `shared/` | Favoritos |
+| **Local de um componente** | `useState` | Filtro de categoria, texto do campo de busca |
+
+Mais um **cache em memória de validade curta** (30 s) em `shared/api/cache.ts`, com chave igual ao caminho pedido. Sem dependência. Guarda só respostas bem sucedidas e válidas, e **é ignorado quando o utilizador pede explicitamente para recarregar** — "Tentar novamente", ou a lista a recomeçar depois de um cursor obsoleto —, porque aí servir o cache daria a mesma resposta e o pedido pareceria não ter feito nada.
+
+**Regras que acompanham a decisão**
+
+- **Context só para o que é lido em muitos sítios e muda pouco.** Hoje é só os favoritos. Isto impede que o Context se torne o depósito de tudo, que é como ele costuma estragar o desempenho.
+- **Tudo o que faça sentido guardar, partilhar ou recuperar ao recarregar vive no endereço**, não em estado de componente.
+- Nenhum dado do servidor é copiado para estado de cliente.
+
+**Alternativas consideradas**
+
+- **TanStack Query** ou **SWR**: rejeitadas por agora. Trazem invalidação por mutação, atualização otimista e revalidação — e este produto **não escreve nada no servidor** (RN-001, RN-004), com os favoritos a serem locais (RN-005). Seria pagar por metade de uma biblioteca que não se usa.
+- **Um estado global caseiro** (Zustand-like, ou um Context grande): rejeitado. Não há estado de cliente partilhado para além dos favoritos, e um depósito global atrairia estado que pertence ao endereço.
+
+**Consequências**
+
+- `shared/api/` passa a ser o único sítio que fala com a api: nenhum componente chama `fetch`.
+- O cache vive só na memória da página; recarregar limpa-o, e é isso que se quer.
+- Nos testes, o cache tem de ser limpo entre casos — vive num módulo e sobreviveria de um teste para o seguinte. Está no `setup.ts`.
+
+**Quando esta decisão deixa de servir** — qualquer um destes sinais justifica reavaliar, e aí a candidata é o TanStack Query ou o SWR, não um estado global caseiro:
+
+- aparecerem **mutações** (escrever no servidor), que trazem invalidação e atualização otimista;
+- for preciso **revalidar ao voltar à janela** ou em intervalo;
+- o mesmo dado do servidor passar a ser lido por **telas distantes ao mesmo tempo**, com necessidade de sincronia;
+- o número de hooks de dados passar de **uma dúzia**.
+
+**Pendências** — nenhuma. A correção da dependência cruzada que esta análise descobriu (a tela de favoritos importava de dois domínios, contra a secção 3 do [`arquitetura.md`](arquitetura.md)) foi feita na mesma entrega: a tela passou para `app/`, que é a casca e cujo papel é compor domínios.
