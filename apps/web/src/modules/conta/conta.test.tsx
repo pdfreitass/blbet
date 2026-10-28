@@ -473,7 +473,7 @@ describe('estados partilhados da área de conta', () => {
     responderSempre(200, { data: { ...CONTA, emailVerified: false } });
     renderizarConta(<ResumoConta />);
 
-    expect(await screen.findByText('Por confirmar')).toBeTruthy();
+    expect(await screen.findByText('E-mail por confirmar')).toBeTruthy();
   });
 
   it('e-mail inválido no pedido de recuperação não gasta um pedido', () => {

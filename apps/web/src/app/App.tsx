@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 import { Route, Switch, useSearchParams } from 'wouter';
 
-import { obterEventos } from '../shared/api/esportes';
+import { obterCompeticoes, obterEventos } from '../shared/api/esportes';
 import { useListaPaginada } from '../shared/api/useListaPaginada';
+import { useRecurso } from '../shared/api/useRecurso';
 import { useTermoAdiado } from '../shared/api/useTermoAdiado';
 import { CampoBusca } from '../shared/componentes/CampoBusca';
 import {
@@ -21,6 +22,7 @@ import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { DetalheJogo } from '../modules/cassino/DetalheJogo';
 import { DetalheEvento } from '../modules/esportes/DetalheEvento';
+import { FiltroCompeticao } from '../modules/esportes/FiltroCompeticao';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
 import { AlterarSenha } from '../modules/conta/AlterarSenha';
 import { CriarConta } from '../modules/conta/CriarConta';
@@ -98,19 +100,68 @@ function Aplicacao() {
 const EVENTOS_POR_PAGINA = 30;
 
 function Esportes() {
+  /*
+   * A competicao filtrada vive no endereco, com o NOME DO PARAMETRO DO CONTRATO
+   * (`competitionId`, regra A7), como o termo de busca. Recarregar mantem o filtro e o
+   * endereco pode ser guardado ou partilhado.
+   */
+  const [parametros, definirParametros] = useSearchParams();
+  const competicaoId = parametros.get('competitionId') ?? undefined;
+
+  const carregarCompeticoes = useCallback(
+    (opcoes: { signal: AbortSignal }) => obterCompeticoes(opcoes),
+    [],
+  );
+  const competicoes = useRecurso(carregarCompeticoes, []);
+
   const carregar = useCallback(
     (cursor: string | undefined, opcoes: { signal: AbortSignal }) =>
       obterEventos(
-        { limit: EVENTOS_POR_PAGINA, ...(cursor === undefined ? {} : { cursor }) },
+        {
+          limit: EVENTOS_POR_PAGINA,
+          ...(competicaoId === undefined ? {} : { competitionId: competicaoId }),
+          ...(cursor === undefined ? {} : { cursor }),
+        },
         opcoes,
       ),
-    [],
+    [competicaoId],
   );
-  const lista = useListaPaginada(carregar, []);
+  const lista = useListaPaginada(carregar, [competicaoId]);
+
+  const alterarCompeticao = useCallback(
+    (id: string | undefined) => {
+      definirParametros(id === undefined ? {} : { competitionId: id });
+    },
+    [definirParametros],
+  );
+
+  const disponiveis = competicoes.dados?.data ?? [];
+  /* Filtro desconhecido no endereco: mostra-se o identificador, que e o que se sabe. */
+  const nomeFiltrado =
+    disponiveis.find((competicao) => competicao.id === competicaoId)?.name ?? competicaoId;
+
+  /*
+   * O filtro aparece com DUAS competicoes ou mais. Com uma so, um `select` de uma
+   * opcao nao filtra nada e sugere uma escolha que nao existe. A excecao e haver
+   * filtro no endereco: ai o controle tem de estar la, ou nao ha como o desfazer.
+   *
+   * Uma falha a carregar as competicoes NAO estraga a pagina: o filtro desaparece e a
+   * listagem continua -- e o que ela mostra sem filtro e a lista completa.
+   */
+  const mostrarFiltro = disponiveis.length > 1 || competicaoId !== undefined;
 
   return (
     <>
       <h1 className={estilos.titulo}>Esportes</h1>
+
+      {mostrarFiltro ? (
+        <FiltroCompeticao
+          competicoes={disponiveis}
+          selecionada={competicaoId}
+          onAlterar={alterarCompeticao}
+        />
+      ) : null}
+
       {lista.carregando ? <EsqueletoLista descricao="os jogos" linhas={4} /> : null}
 
       {!lista.carregando && lista.falha !== null ? (
@@ -121,7 +172,15 @@ function Esportes() {
       ) : null}
 
       {!lista.carregando && lista.falha === null ? (
-        lista.itens.length === 0 ? (
+        lista.itens.length === 0 && competicaoId !== undefined ? (
+          /* Ha filtro aplicado: CA-008.3 exige texto distinto do conjunto vazio, e
+             CA-005.2 e CA-005.4 exigem mostrar o critério e dar saída. */
+          <NadaEncontrado
+            criterio={nomeFiltrado ?? ''}
+            rotuloLimpar="Ver todas as competições"
+            onLimpar={() => alterarCompeticao(undefined)}
+          />
+        ) : lista.itens.length === 0 ? (
           <NadaCadastrado conjunto="jogos" />
         ) : (
           <>

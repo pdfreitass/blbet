@@ -6,9 +6,16 @@
  * em vez de continuar a verificar uma forma que ja nao existe.
  */
 
-import { eventSchema, paginatedSchema, type SportEvent } from '@blbet/contracts';
+import {
+  competitionSchema,
+  eventSchema,
+  paginatedSchema,
+  type Competition,
+  type SportEvent,
+} from '@blbet/contracts';
 
 const listaDeEventos = paginatedSchema(eventSchema);
+const listaDeCompeticoes = paginatedSchema(competitionSchema);
 
 const COMPETICAO = {
   id: 'cmp-epl',
@@ -51,6 +58,28 @@ export const EVENTO_SEM_MERCADOS: SportEvent = eventSchema.parse({
 
 export function paginaDeEventos(eventos: readonly SportEvent[] = [EVENTO_COMPLETO]) {
   return listaDeEventos.parse({ data: eventos, meta: { nextCursor: null } });
+}
+
+/*
+ * Competicoes da rota `GET /api/competitions`. Note-se o `origin`, que a competicao
+ * embutida no evento nao tem (T14-A3): sao dois esquemas, e este e o completo.
+ */
+export const COMPETICAO_EPL: Competition = competitionSchema.parse({
+  ...COMPETICAO,
+  origin: 'provider',
+});
+
+export const COMPETICAO_LALIGA: Competition = competitionSchema.parse({
+  id: 'cmp-laliga',
+  name: 'Spanish La Liga',
+  sport: 'soccer',
+  origin: 'provider',
+});
+
+export function paginaDeCompeticoes(
+  competicoes: readonly Competition[] = [COMPETICAO_EPL, COMPETICAO_LALIGA],
+) {
+  return listaDeCompeticoes.parse({ data: competicoes, meta: { nextCursor: null } });
 }
 
 /** Erro no envelope acordado (PC-001, A1). */

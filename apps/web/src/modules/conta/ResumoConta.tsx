@@ -86,12 +86,14 @@ export function ResumoConta() {
           <dd className={estilos.valor}>{conta.email}</dd>
         </div>
         <div className={estilos.campo}>
-          <dt className={estilos.rotulo}>E-mail confirmado</dt>
+          {/* O rotulo nao afirma o que o valor pode desmentir: "E-mail confirmado:
+              Por confirmar" lia-se como uma contradicao. */}
+          <dt className={estilos.rotulo}>Confirmação</dt>
           <dd className={estilos.valor}>
             {conta.emailVerified ? (
-              'Sim'
+              <Etiqueta variante="sucesso">E-mail confirmado</Etiqueta>
             ) : (
-              <Etiqueta variante="aviso">Por confirmar</Etiqueta>
+              <Etiqueta variante="aviso">E-mail por confirmar</Etiqueta>
             )}
           </dd>
         </div>
