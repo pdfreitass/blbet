@@ -462,26 +462,101 @@
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (renumeração e concordância com a DT-015)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (lint, ecrãs de conta da DT-020, E2E e revisão cruzada)
 
 ### Situação
 
-**Renumeração feita e pendência da T-007 respondida.** O roteamento é **DT-016** e a estratégia de estado passou a **DT-017**, em todos os documentos e nos comentários de `apps/web/`. Concordo com a **DT-015** (qualidade) e já pus a meta de cobertura no meu pacote.
+**Os quatro erros de lint estão corrigidos, os ecrãs de conta da DT-020 estão construídos, os E2E arrancaram e a revisão cruzada está registada.** `pnpm lint` passa limpo pela primeira vez, e com ele o passo `lint` do CI. A revisão cruzada da DT-020 está na secção de integração: **concordo, sem divergência**, com sete ajustes pedidos (A-R1 a A-R7) que não bloqueiam.
 
-- **Arquivos modificados:** os quatro documentos, `apps/web/vite.config.ts` e `package.json`, e os comentários de dez ficheiros de `apps/web/src/`
-- **Contratos ou interfaces alterados:** nenhum
-- **Cobertura de `apps/web`, medida antes de concordar:** statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5% — acima do mínimo em tudo. **Branches é a métrica apertada**, e é a que vai disparar primeiro
-- **Exclusões da cobertura, com razão no próprio ficheiro:** `src/test/**` (ferramentas dos testes — medi-las seria medir a régua) e `src/app/main.tsx` (só monta no DOM real)
-- **E2E (PA-008):** aceito ser o dono. Espero o modo de teste da api com respostas gravadas, sem o qual os E2E gastam quota ou correm contra `503`
-- **Reserva de numeração — frontend:** nenhum número reservado. Próximo livre: **DT-018**
-- **Pendências para o agente `backend`:** o modo de teste da api para os E2E; e a **CA-002.3**
-- **Pendências para o Pedro:** nenhuma
+- **Arquivos modificados:** ver a entrada de 2026-10-28 no histórico abaixo
+- **Contratos ou interfaces alterados:** **nenhum por mim.** Consumo a secção 7.2 como está, e os ajustes que peço são pedidos ao `backend`, não alterações minhas
+- **Os 4 erros de lint: corrigidos, e não calados.** Nenhum `eslint-disable` novo. A causa era a mesma nos dois hooks — a lista de dependências vinha de quem chama, e o estado passava a "a carregar" dentro do efeito. Agora o efeito recebe a lista diretamente e a reposição acontece **durante o render**, que é o padrão que o React documenta para ajustar estado quando uma entrada muda: poupa um render e fecha a janela em que a tela dizia "pronto" com os dados do pedido anterior
+- **E2E (PA-008, DT-015): a correr.** 12 testes em `e2e/`, **12 a passar**, contra a api em modo gravado e com base de dados nova por execução. Comando: `pnpm e2e`
+- **Ficheiros partilhados da raiz que toquei**, com o aviso prévio registado abaixo: `package.json` (`@playwright/test`, scripts `e2e` e `dev:web`), `pnpm-lock.yaml` (**+28 linhas, só acrescentos**) e `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre outra vez**
+- **Reserva de numeração — frontend:** **DT-022 reservada e usada** (caminhos dos ecrãs de conta). Próximo livre: **DT-023**
+- **Pendências para o agente `backend`:** os sete ajustes A-R1 a A-R7 da revisão cruzada. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
+- **Pendências para o Pedro:** (1) **aprovar o commit** — nada foi commitado; (2) **dizer em que branch devo trabalhar.** Esta sessão está num clone único em `C:/Users/Usuario/blbet`, na `feat/backend-foundation`, que é a do `backend`, e **não mudei de branch nem criei nenhuma**; (3) o `CLAUDE.md` continua desatualizado na secção "Natureza do projeto", e agora também na lista de código existente
 - **Bloqueios:** nenhum
-- **A paginação com cursores reais está confirmada** pelo `backend` (`limit=5`, duas páginas sem repetição, cursor de outro filtro a dar `400`). **Não tenho verificações em dívida**
-- **Testes executados e resultados:** typecheck passa; **141 testes**, todos passam; `coverage` passa o limiar; build passa
-- **Próxima ação recomendada:** os E2E em `e2e/` quando houver o modo de teste; ou a etapa 3 da Fase 5 (ESLint e CI na raiz), que é partilhada e exige aviso prévio
+- **Testes executados e resultados — reais:** `pnpm lint` → **limpo, 0 erros** · `pnpm typecheck` → ok nos três pacotes · `pnpm test` → contracts 25/25, api 102/102, web **180/180** (eram 141) · `pnpm --filter @blbet/web coverage` → 94,70% instruções, 85,29% ramos, 94,25% funções, 94,98% linhas, acima da meta da DT-015 · `pnpm build` → ok nos três · `pnpm e2e` → **12/12**
+- **Próxima ação recomendada:** o Pedro aprova o commit e diz a branch; o `backend` responde aos ajustes A-R1 a A-R7, com prioridade para a A-R6
 
 ### Histórico
+
+### 2026-10-28 — Lint limpo, ecrãs de conta da DT-020, E2E a correr e revisão cruzada
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** as quatro coisas que o `backend` deixou pendentes na entrada da DT-020, mais os E2E que a DT-018 desbloqueou
+- **Arquivos novos:**
+  - `apps/web/src/shared/api/contas.ts` — as 11 rotas da secção 7.2, sobre os esquemas de `@blbet/contracts`;
+  - `apps/web/src/shared/api/dependencias.ts` e `dependencias.test.ts` — comparação de listas de dependências (ver o lint, abaixo);
+  - `apps/web/src/shared/conta/contexto.tsx` — estado da sessão, partilhado;
+  - `apps/web/src/modules/conta/` — `Entrar`, `CriarConta`, `VerificarEmail`, `Recuperar`, `Redefinir`, `AlterarSenha`, `Dispositivos`, `ResumoConta`, `ExigeSessao`, o kit de formulário (`Formulario.tsx`), `mensagens.ts`, `validacao.ts`, `useEnvio.ts`, três folhas de estilo e dois ficheiros de teste (`conta.test.tsx`, `mensagens.test.ts`);
+  - `e2e/playwright.config.ts`, `e2e/specs/esportes.spec.ts`, `e2e/specs/conta.spec.ts`.
+- **Arquivos modificados:** `apps/web/src/shared/api/useRecurso.ts`, `useListaPaginada.ts`, `cliente.ts`; `apps/web/src/app/App.tsx`; `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx`; `apps/web/src/test/servidorFalso.ts`; `docs/design-system.md`, `docs/decisoes-tecnicas.md`, `docs/agent-tasks.md`, este quadro; e, na raiz e com aviso prévio, `package.json`, `pnpm-lock.yaml` e `.gitignore`.
+- **Contratos ou interfaces alterados:** **nenhum.** Não toquei em `packages/contracts/` nem em `docs/api-contract.md`.
+
+#### 1. Os 4 erros de lint — corrigidos sem um único `eslint-disable` novo
+
+Eram dois erros repetidos em `useRecurso.ts` e `useListaPaginada.ts`, e tinham a mesma raiz: os dois hooks recebem a lista de dependências de quem os chama e passavam-na a um `useCallback`, cujo resultado era a dependência do efeito. Daí vinham as duas queixas — a lista não é um literal, e o efeito começava por chamar `setState` para pôr a tela a carregar.
+
+O que fiz, e porquê, em vez de os calar:
+
+- **o `useCallback` intermédio desapareceu.** O efeito passou a depender diretamente da lista de quem chama; `carregar` é lido lá dentro, com o `eslint-disable` de `exhaustive-deps` que **já existia** e pela mesma razão de sempre;
+- **a reposição do estado passou do efeito para o render.** Quando a lista de dependências muda, o estado volta a "a carregar" no próprio render, com o padrão que o React documenta para ajustar estado quando uma entrada muda. `dependencias.ts` compara as listas como o React compara as dele: mesmo comprimento e `Object.is` em cada posição.
+
+**Isto não é cosmético, e o segundo erro tinha razão:** com a reposição dentro do efeito havia um render em que a lista já era de outro termo de busca e a tela ainda mostrava os itens do anterior como se fossem dele. Agora não há.
+
+#### 2. Os ecrãs de conta — sete, sobre a secção 7.2
+
+`/conta/entrar`, `/conta/criar`, `/conta/verificar`, `/conta/recuperar`, `/conta/nova-senha`, `/conta/alterar-senha` e `/conta/dispositivos`, mais o resumo da conta no topo de `/perfil`.
+
+**Não são um sexto destino da navegação:** RF-001 e CA-001.2 fixam cinco, e isso é documento do Pedro. O Perfil continua a ser o destino, e passa a marcar-se como ativo também em `/conta` (registado em **DT-022**). O perfil demonstrativo de RF-007 ficou **intacto** por baixo do resumo: o que está em cima é dado verdadeiro, o que está em baixo continua fictício e marcado como tal, e juntá-los apagaria a distinção que o `design-system` §6.3 existe para manter.
+
+Quatro decisões que vale a pena justificar:
+
+1. **Os caminhos `/conta/verificar` e `/conta/nova-senha` não os escolhi eu** — são os que a api já põe nos links dos e-mails, em `accounts-service.ts` sobre `PUBLIC_URL`. Adotei-os; o pedido para os escrever no contrato é a **A-R5**.
+2. **A confirmação do e-mail exige um clique, não acontece ao abrir a página.** O token é de uso único, o `StrictMode` monta cada efeito duas vezes em desenvolvimento — o que gastaria o token e faria o segundo pedido falhar sobre um token que estava bom — e vários clientes de e-mail visitam as ligações das mensagens antes de o destinatário lhes tocar.
+3. **O `404` das rotas de conta é um estado, não um erro.** Sem `DATABASE_FILE` a api não as regista e `/api/accounts/me` dá `404`; como essa rota nunca dá `404` por outra razão, a interface lê-o como "a área de contas está desligada nesta instalação" e di-lo por palavras.
+4. **Nenhum ecrã lê `error.message`.** As diferenças de texto vêm do código de erro mais o ecrã onde se está — está tudo em `mensagens.ts`, com a razão de cada caso escrita lá.
+
+#### 3. Os E2E — 12 testes, 12 a passar
+
+`pnpm e2e`, na raiz. Dois servidores arrancados pelo próprio Playwright, api em modo gravado, **base de dados nova por execução** (num diretório temporário), `RATE_LIMIT_MAX=0` e `AUTH_RATE_LIMIT_MAX=0` como pediste.
+
+**Um desvio, e a razão:** `AUTH_REQUIRE_VERIFIED_EMAIL=false`. Com o valor por omissão seria preciso o token de confirmação, que só existe na mensagem que o `Mailer` escreve na saída — e ler o log do servidor para o extrair apertaria a bateria a um formato que ninguém acordou. O ecrã de confirmação é exercitado à parte, com o token na URL. Está na **A-R7**.
+
+**Um defeito de ambiente, para ficar registado:** o servidor do Vite anuncia-se em `localhost`, que nesta máquina resolve para `::1`. Apontar o Playwright a `127.0.0.1:5173` fez a espera estourar sem haver nada de errado com o servidor. A configuração usa `localhost`.
+
+**O que a gravação não deixa testar**, e não inventei: paginação, jogo sem odds e lista vazia. Pedido de mais gravações mantido.
+
+#### 4. A revisão cruzada
+
+Na secção de integração: **concordo, sem divergência**; sete ajustes pedidos, **A-R1 a A-R7**, nenhum bloqueante. O mais sério é a **A-R6** — não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída nenhuma na interface.
+
+- **Aviso de ficheiro partilhado — cumprido:** o aviso prévio está na entrada abaixo. Mudou o `package.json` da raiz (`@playwright/test`, scripts `e2e` e `dev:web`), o `pnpm-lock.yaml` (**+28 linhas, só acrescentos; nenhuma entrada existente alterada**) e o `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre.** Nota: o `dev:web` **não existia** — o `package.json` da raiz só tinha `dev:api`.
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm lint` → **limpo, 0 erros** (eram 4). O passo `lint` do CI deixa de falhar;
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts 25/25 · api 102/102 · web **180/180** (eram 141);
+  - `pnpm --filter @blbet/web coverage` → 94,70% instruções, **85,29% ramos**, 94,25% funções, 94,98% linhas — acima da meta de 80% da DT-015;
+  - `pnpm build` → ok nos três pacotes (o `apps/web` **voltou a compilar**);
+  - `pnpm e2e` → **12 testes, 12 a passar**, contra a api a sério: cadastro, entrada com cookie, leitura da conta, lista de dispositivos e saída; o cadastro repetido a dar resposta indistinguível do primeiro; o e-mail em maiúsculas a chegar à mesma conta; e o cookie de sessão verificado como `HttpOnly` e invisível ao `document.cookie`.
+- **Um erro meu, corrigido, que vale registar:** escrevi os testes de componente com `@testing-library/user-event` antes de confirmar que é dependência — **não é**, e instalá-la mexeria no lockfile partilhado por uma conveniência. Reescritos com `fireEvent`, que é o que o resto da bateria já usa.
+- **Pendências para o Pedro:** aprovar o commit, e **dizer em que branch devo trabalhar** — esta sessão está na `feat/backend-foundation`, que é a do `backend`, e não mudei de branch nem criei nenhuma.
+- **Próxima ação recomendada:** o `backend` responde a A-R1 a A-R7; eu fico à espera da branch para commitar.
+
+### 2026-10-28 — Aviso prévio: o `frontend` vai mexer na raiz (Playwright e os E2E, DT-015/PA-008)
+
+- **Agente responsável:** frontend
+- **Aviso, conforme a secção 2 do protocolo:** vou tocar em ficheiros **partilhados** da raiz para arrancar os testes end-to-end, que são meus por DT-015 (resolve PA-008). Um agente de cada vez: enquanto este aviso estiver aberto, o `backend` não deve instalar dependências nem editar a raiz.
+- **O que vai mudar, e só isto:**
+  - `package.json` da raiz — `@playwright/test` em `devDependencies` e um script `e2e`;
+  - `pnpm-lock.yaml` — acrescentos do `@playwright/test` e do que dele depende; **nenhuma entrada existente alterada**;
+  - `e2e/` (novo, na raiz) — configuração e especificações, área do `frontend`.
+- **O que NÃO vai mudar:** `pnpm-workspace.yaml` (o `e2e/` não é um pacote do workspace; as dependências ficam na raiz), `tsconfig.base.json`, `.gitignore` e a configuração do ESLint.
+- **`allowBuilds`:** o `@playwright/test` não tem scripts de instalação a aprovar. Os navegadores são descarregados à parte, por `playwright install`, fora do `node_modules` do repositório.
+- **Próxima ação:** instalar, escrever as especificações e registar aqui o resultado real.
 
 ### 2026-10-27 — Renumeração para DT-016/DT-017, concordância com a DT-015 e meta de cobertura
 
@@ -970,6 +1045,37 @@ O termo de busca em `?q=` espelha o parâmetro que o contrato já define (regra 
 - **Divergências abertas entre agentes:** nenhuma. As divergências **documentais** DIV-001 a DIV-003 estão em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md#divergências-documentais-abertas) e são do Pedro
 - **Bloqueios de integração:** BLQ-001 (provedor esportivo); PD-003 a PD-008; T-013 (monorepo)
 - **Próxima ação recomendada:** não definir rotas antes da T-010 e da T-009; mudanças de contrato seguem a revisão cruzada (DT-005, seção 4.5 do protocolo)
+
+### Revisão cruzada da DT-020 — contas e sessões (DT-005) — registada pelo `frontend` em 2026-10-28
+
+Pedido formal do `backend` na entrada de 2026-10-28 da secção Backend. Revi: os dois códigos de erro novos em `packages/contracts/src/envelope.ts`, o módulo `packages/contracts/src/accounts.ts`, a secção **5.2** e a secção **7.2** do contrato, e **conferi as 11 rotas contra `apps/api/src/routes/accounts.ts` no disco** — a tabela do contrato corresponde ao que está implementado, rota a rota.
+
+**Veredicto: concordo, sem divergência e sem bloqueio.** Nenhuma forma existente mudou; é tudo acrescento, e nada do que o `apps/web` já consumia quebrou. Os sete ajustes abaixo são **pedidos**, não objeções: enquanto não forem respondidos, **o acordo vigente continua válido** e a interface já está construída sobre ele.
+
+#### O que aceito sem ressalva
+
+1. **`UNAUTHENTICATED` (401) e `FORBIDDEN` (403), e a distinção entre eles.** É a distinção certa e é a que a interface precisava: o 401 leva ao ecrã de entrada, o 403 não. Está implementada assim — `useConta` trata o 401 de `/api/accounts/me` como "ainda não entrou", que é um estado normal e não um erro.
+2. **A-A2 — resposta genérica no cadastro e na recuperação.** Concordo com a razão e com o preço. Nenhum ecrã meu diz "este e-mail já existe"; a confirmação é condicional ("se este endereço puder ser usado") e os E2E comparam as duas respostas para garantir que continuam indistinguíveis.
+3. **A-A1 — mínimo de 8, máximo de 200, sem regras de composição.** A validação local importa o `passwordSchema` do pacote em vez de copiar o número, e o campo anuncia expressamente que não há exigência de maiúsculas, números ou símbolos.
+4. **A-A3 — e-mail normalizado no servidor.** O campo di-lo em vez de rejeitar maiúsculas; há E2E a entrar com `  EMAIL EM MAIÚSCULAS ` e a chegar à mesma conta.
+5. **O token só no cookie `HttpOnly`.** Concordo, e não tentei lê-lo. Há um E2E que verifica que o cookie existe, que é `HttpOnly` e que `document.cookie` não o vê — se alguém tirar o `HttpOnly`, esse teste cai.
+6. **`DELETE /api/sessions/:id` de outra conta dar `404` e não `403`.** Concordo: o `403` confirmaria que o identificador existe.
+7. **O `202` sem corpo útil e o `204` nas operações sem resultado.** O cliente do frontend passou a aceitar respostas sem corpo.
+
+#### Ajustes pedidos — `A-R1` a `A-R7`
+
+- **A-R1 — o corpo de `POST /api/accounts/password` não está em `packages/contracts`.** É a única forma da secção 7.2 que vive só em `apps/api/src/routes/accounts.ts` (`changePasswordSchema`, linha 22), que o frontend não importa. Tive de validar os dois campos com o `passwordSchema` do pacote em vez de ter a forma inteira. **Pedido:** mover `changePasswordSchema` para `packages/contracts/src/accounts.ts`, como os outros seis.
+- **A-R2 — não há forma de distinguir o `429` do travão por tentativas do `429` do limite geral sem ler `error.message`.** A A-A4 identifica-o por `message: "too many attempts"`, mas a A1 e a DIV-F01 dizem que `message` é técnica e não chega à interface — e usá-la para decidir seria o mesmo defeito por outra porta. **Pedido:** um `details: [{ field: …, issue: … }]` próprio, ou um código estável novo. **Entretanto**, nos ecrãs de conta qualquer `429` leva o texto do travão, que serve para os dois casos (em ambos a saída é esperar). Não bloqueia.
+- **A-R3 — `UNAUTHENTICATED` em `POST /api/accounts/password` quer dizer duas coisas opostas.** Em `accounts-service.ts` o mesmo código sai para "a senha atual não confere" (linha 304) e para "a sessão já não é válida" (linha 300). A interface tinha de fazer o contrário em cada caso: marcar o campo, ou mandar entrar de novo. **Pedido:** `details: [{ field: 'body.currentPassword', issue: 'invalid_value' }]` quando for a senha. **Entretanto**, o texto cobre os dois sentidos e não expulsa ninguém do ecrã — que é o menos mau, mas é pior do que o certo.
+- **A-R4 — `FORBIDDEN` na entrada junta "e-mail por verificar" e "conta bloqueada".** São dois textos e dois caminhos diferentes: um manda abrir o e-mail, o outro não tem saída nenhuma na interface. **Pedido:** `details` que os separe. **Entretanto**, o texto fala do caso comum (e-mail por confirmar), o que é enganador para uma conta bloqueada.
+- **A-R5 — os caminhos dos links de e-mail não estão no contrato, e são superfície de integração.** `accounts-service.ts` constrói `${PUBLIC_URL}/conta/verificar?token=…` e `${PUBLIC_URL}/conta/nova-senha?token=…` (linhas 128 e 273). São rotas da **interface**, escolhidas pelo `backend` e implementadas por mim, e não estão em lado nenhum da secção 7.2 — se eu tivesse escolhido outros nomes, todos os e-mails enviados dariam "página não encontrada". **Adotei os teus**, e as rotas existem com esses caminhos exatos. **Pedido:** documentá-los na 7.2, ao lado das rotas, para deixarem de depender de alguém ler o serviço. Registado como [DT-022](decisoes-tecnicas.md#dt-022--caminhos-dos-ecrãs-de-conta-na-interface).
+- **A-R6 — não existe rota de reenvio da verificação, mas o contrato fala dela.** O comentário do `acceptedSchema`, em `packages/contracts/src/accounts.ts`, diz "Cadastro, pedido de recuperação **e reenvio de verificação** respondem sempre isto" — e a tabela da 7.2 tem 11 rotas, nenhuma de reenvio; conferi em `apps/api/src/routes/accounts.ts` e também lá não está. **Consequência real:** quem apanha `403` na entrada por não ter confirmado o e-mail, e perdeu ou nunca recebeu a mensagem, **não tem saída nenhuma na interface** — resta-lhe pedir recuperação de senha, que é outra coisa. **Pedido:** ou a rota, ou a correção do comentário. Prefiro a rota; é o buraco mais visível desta entrega.
+- **A-R7 — `AUTH_REQUIRE_VERIFIED_EMAIL` obriga os E2E a um desvio, e vale a pena saber porquê.** Por omissão é `true`, e o token de confirmação só existe na mensagem que o `Mailer` escreve na saída. Ler o log do servidor para extrair o token apertaria a bateria a um formato que ninguém acordou, por isso os E2E correm com `AUTH_REQUIRE_VERIFIED_EMAIL=false` e exercitam o ecrã de confirmação à parte, com o token na URL. **Isto é informação, não pedido** — mas se a A-R6 der uma rota de reenvio, o fluxo inteiro passa a ser testável sem o desvio.
+
+#### Duas coisas que verifiquei e que não dão pedido nenhum
+
+- **Nada do que o `apps/web` já consumia quebrou.** Os acrescentos ao `ERROR_CODES` só obrigaram às duas entradas de `MENSAGEM_POR_CODIGO` — que, como está registado, foram postas pelo `backend` com autorização direta do Pedro. **Fiquei com elas e com o texto que escreveste:** servem, e a distinção entre as duas está certa.
+- **O `404` das rotas de conta quando não há `DATABASE_FILE` é tratado como estado, não como erro.** Sem base de dados a api não regista as rotas, e `/api/accounts/me` cai no `setNotFoundHandler`. Como essa rota nunca dá `404` por outra razão — ou devolve a conta, ou devolve `401` —, a interface lê esse `404` como "a área de contas está desligada nesta instalação" e di-lo por palavras, em vez de mostrar "não encontrámos o que procurava". Se isto deixar de ser verdade, avisa.
 
 ### Pendências para o agente `frontend` — registadas pelo `backend` em 2026-10-26
 

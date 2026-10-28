@@ -53,6 +53,7 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-019](#dt-019--limite-de-pedidos-na-api-e-teto-do-cursor) | Limite de pedidos por cliente (`@fastify/rate-limit`) e teto de 1024 caracteres no cursor | S-1 e S-2 da revisão de segurança (RNF-004) | aprovada |
 | [DT-020](#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo) | O blbet passa a ter contas reais: cadastro, autenticação, sessões e auditoria. **Revê a RN-006**; RN-001 e RN-007 ficam | Pedido do Pedro, 2026-10-28 | aprovada |
 | [DT-021](#dt-021--persistência-sqlite-agora-postgresql-em-produção) | Persistência relacional com migrações versionadas, atrás de uma costura de repositório | DT-020 | aprovada |
+| [DT-022](#dt-022--caminhos-dos-ecrãs-de-conta-na-interface) | Os ecrãs de conta vivem em `/conta/…`, sem sexto destino na navegação; dois caminhos são os que a api já envia por e-mail | DT-016, DT-020 | aprovada |
 
 ---
 
@@ -702,3 +703,38 @@ O que **fica de fora, e porquê**:
 - O SQLite escreve um ficheiro só: não serve para mais de uma instância da api a escrever ao mesmo tempo. Enquanto for uma, chega.
 
 **Pendências** — portar o repositório para PostgreSQL antes de publicar, e decidir onde a base de dados vive (ligado à DP-008).
+
+---
+
+### DT-022 — Caminhos dos ecrãs de conta na interface
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** `frontend`, dentro da sua área (`apps/web/`), sobre caminhos que a api já tinha fixado
+- **Registado por:** `frontend`
+- **Depende de:** [DT-016](#dt-016--roteamento-com-wouter) (roteamento) e [DT-020](#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo)
+
+**Contexto** — A DT-020 trouxe contas reais e sete ecrãs novos à interface. Duas coisas tinham de ser decididas antes de os escrever: onde é que esses ecrãs vivem no endereço, e se passam a ser um destino da navegação principal.
+
+A segunda pergunta já tinha resposta no `requisitos.md`: **RF-001 e CA-001.2 fixam cinco destinos**, e esse documento é do Pedro. Acrescentar um sexto por iniciativa do `frontend` seria mudar um requisito sem decisão dele.
+
+A primeira tinha uma resposta que não era minha: a api **já constrói os links dos e-mails** em `accounts-service.ts`, sobre `PUBLIC_URL`, como `${PUBLIC_URL}/conta/verificar?token=…` e `${PUBLIC_URL}/conta/nova-senha?token=…`. São caminhos da **interface**, escolhidos pelo `backend`, e nunca entraram no `api-contract.md`.
+
+**Decisão**
+
+1. **Os ecrãs de conta vivem em `/conta/…`, e não são um sexto destino.** São sete: `/conta/entrar`, `/conta/criar`, `/conta/verificar`, `/conta/recuperar`, `/conta/nova-senha`, `/conta/alterar-senha` e `/conta/dispositivos`.
+2. **`/conta/verificar` e `/conta/nova-senha` são os caminhos que a api já envia**, letra por letra. Não são escolha do `frontend` e **não podem ser mudados de um lado só**: mudá-los parte todos os e-mails já enviados.
+3. **O destino Perfil marca-se como ativo em `/conta`**, além de `/perfil` — tal como Esportes já cobria `/eventos/:id`. Sem isto, entrar na conta apagava a marca e a navegação ficava sem destino ativo.
+4. **O resumo da conta real fica no topo de `/perfil`, acima do perfil demonstrativo de RF-007, que não é tocado.** O que está em cima é dado verdadeiro de quem entrou; o que está em baixo continua fictício e marcado como tal (`design-system` §6.1 e §6.3).
+
+**Alternativas consideradas**
+
+- **Pendurar tudo em `/perfil/…`** (`/perfil/verificar`, `/perfil/redefinir`): foi o que fiz primeiro, e estava errado — os e-mails da api apontam para `/conta/…`, e os links dariam "página não encontrada". Corrigido antes de qualquer verificação.
+- **Um sexto destino "Conta" na navegação**: rejeitado. Muda RF-001 e CA-001.2, que são do Pedro.
+- **Fundir a conta real com o perfil demonstrativo num só bloco**: rejeitado. Apaga a distinção entre dado verdadeiro e dado fictício, que é a razão de existir do campo tracejado.
+
+**Consequências**
+
+- **Os caminhos de `/conta/verificar` e `/conta/nova-senha` passam a ser superfície de integração**, partilhada entre os dois agentes, e estão documentados num só sítio: aqui. O pedido para os escrever também na secção 7.2 do contrato é a **A-R5** da revisão cruzada.
+- `ehDestinoAtivo`, em `NavegacaoPrincipal.tsx`, ganhou um caso para o Perfil.
+- RF-001 a RF-008 continuam **sem cobrir contas**: os requisitos funcionais das contas não existem, e escrevê-los é pendência da DT-020.

@@ -379,6 +379,8 @@ Se aprovada, a decisão deve ser registada em [`docs/decisoes-tecnicas.md`](deci
 
 Inventário e estados, não implementação. Todos cumprem: foco visível por `:focus-visible` (§4), alvo de toque de 44px (§3.3), nome acessível, e tokens em vez de valores.
 
+> **9.9 a 9.11 são de 2026-10-28** e vieram com a [DT-020](decisoes-tecnicas.md#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo), que trouxe contas reais. Até aí a interface não recolhia nada do utilizador além do termo de busca, e por isso não havia campo de formulário nenhum neste documento.
+
 ### 9.1 Estados de carregamento, erro e vazio — RF-008
 
 Os três são componentes de primeira classe, não variações improvisadas, e aplicam-se a **todas** as áreas que carregam ou filtram dados.
@@ -423,6 +425,42 @@ Acima de `--bp-lg`, os esportes ganham uma coluna lateral com a lista de esporte
 ### 9.8 Etiqueta de estado e de procedência
 
 Componente único usado pelo estado de evento, pela categoria de jogo e pela marcação de procedência de §6 e §7. `--text-xs` em maiúsculas, `--radius-sm`, ícone mais texto. Variantes: `neutra`, `sucesso`, `aviso`, `erro`, `informação`, `demonstrativo`. A variante `real` existirá apenas se o Pedro escolher a Opção B de §7.
+
+### 9.9 Campo de formulário — DT-020
+
+Primeiro componente de entrada de dados do sistema, e por muito tempo o único: até à DT-020 a interface **não recolhia nada** do utilizador além do termo de busca. Vive em `apps/web/src/modules/conta/Formulario.tsx`, e **não em `shared/componentes/`**, porque só a área de conta tem formulários — sobe quando houver um segundo consumidor, e não antes.
+
+- **Rótulo visível e associado**, sempre. Nunca `placeholder` em lugar de rótulo: desaparece ao escrever, e com ele a pergunta.
+- **Contorno `--color-border-interactive`** (3,07:1 no pior caso, cumpre 1.4.11), superfície `--color-surface-inset`, altura mínima `--target-min`.
+- **Erro com três sinais, não um:** `aria-invalid`, a mensagem por baixo ligada por `aria-describedby`, e o contorno em `--color-danger`. A cor é o terceiro, nunca o único (regra 3 de §3.1, e 1.4.1).
+- **Texto de apoio permanente** — a regra do campo — é distinto da mensagem de erro, e os dois podem coexistir; ambos entram no `aria-describedby`.
+- **`noValidate` no formulário.** A validação é a dos esquemas do contrato, não a do navegador: as duas em simultâneo dariam duas mensagens diferentes para o mesmo campo, uma delas no idioma do sistema.
+- **`autocomplete` declarado** (`username`, `current-password`, `new-password`): é o que faz um gestor de senhas funcionar, e um gestor de senhas é a melhor defesa que o utilizador tem.
+
+#### O que este componente nunca anuncia
+
+A senha tem **mínimo de 8 caracteres e nenhuma regra de composição** (A-A1 do contrato, NIST SP 800-63B). O texto de apoio **di-lo expressamente** — "não há exigência de maiúsculas, números ou símbolos" — em vez de ficar calado: um campo calado faz o utilizador assumir as regras habituais e escolher uma senha pior. Nenhum ecrã inventa exigências que a api não tem.
+
+### 9.10 Aviso de formulário — DT-020
+
+Duas variantes, e a diferença é de papel, não de cor:
+
+- **Erro** — `role="alert"`, barra esquerda em `--color-danger`. Interrompe: o que se ia fazer não aconteceu.
+- **Sucesso** — `role="status"`, barra em `--color-success`. Informa: não interrompe a leitura.
+
+Nenhum dos dois mostra `error.message` da api, que é técnica (DIV-F01, RNF-004). O texto vem do código de erro **mais o ecrã onde se está**, porque o mesmo código quer dizer coisas diferentes em sítios diferentes — um `401` na entrada é "a senha não confere", e em qualquer outro lado é "a sessão acabou". A tabela está em `modules/conta/mensagens.ts`.
+
+**Dois textos que o sistema visual proíbe explicitamente:**
+
+1. **"Este e-mail já existe"**, em qualquer forma. A api responde o mesmo exista ou não a conta (A-A2), e a interface não o sabe. A confirmação é condicional: "se este endereço puder ser usado…".
+2. **Qualquer sugestão de que um `429` significa dados errados.** O travão por tentativas dispara **mesmo com a senha certa** (A-A4). O texto diz que pode acontecer com os dados certos, e que a saída é esperar.
+
+### 9.11 Resumo da conta e lista de dispositivos — DT-020
+
+- **O resumo da conta fica acima do perfil demonstrativo, separado por divisor, e nunca fundido com ele** (DT-022). Em cima, dado verdadeiro de quem entrou; em baixo, o perfil fictício de RF-007 com o campo tracejado de §6.1. Juntá-los apagaria a distinção que §6.3 existe para manter — e o e-mail de uma pessoa real num campo tracejado seria uma mentira ao contrário.
+- **O e-mail e o `user-agent` são texto de terceiro**, de comprimento arbitrário e por vezes sem espaços: levam `overflow-wrap: anywhere`, ou empurram a linha e provocam rolagem horizontal (RNF-001).
+- **A sessão atual é marcada por etiqueta com texto** ("Este dispositivo"), e o seu botão diz outra coisa dos restantes ("Sair deste dispositivo", não "Terminar") — porque faz outra coisa.
+- **A lista empilha abaixo de 600px**: não há largura para o botão ao lado do texto.
 
 ---
 
