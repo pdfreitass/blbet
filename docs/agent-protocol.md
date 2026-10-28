@@ -60,7 +60,7 @@ Fronteira por diretório, conforme DT-001 (resolve PA-001):
 | `apps/web/**` — interface, páginas, componentes, estilos, tokens, testes de interface, `package.json` e configuração próprios | `frontend` | Exclusivo |
 | `packages/contracts/**` — esquemas Zod e tipos partilhados | `backend` **escreve** | `frontend` só importa; pede mudanças pelo quadro, com revisão cruzada (4.5) |
 | Raiz do monorepo — `package.json` raiz, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, configurações base de TypeScript, lint e formatação, `.gitignore`, exemplos de variáveis de ambiente | **compartilhado, com aviso prévio** | Ver linha de configuração compartilhada abaixo. Instalar ou atualizar dependência em qualquer app **altera o lockfile** e tem de ser anunciado |
-| Testes end-to-end (Playwright) | **a definir** | Local e dono pendentes (PA-008) |
+| Testes end-to-end (Playwright) — `e2e/` na raiz | `frontend` | DT-015 (resolve PA-008). O `backend` dá à api um modo de teste com respostas gravadas |
 | [`docs/api-contract.md`](api-contract.md) | `backend` **escreve** | `frontend` propõe mudanças pelo quadro, não edita direto |
 | `docs/integracoes.md` | `backend` | Ainda não existe |
 | `docs/design-system.md` | `frontend` | Ainda não existe |

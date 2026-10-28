@@ -109,6 +109,13 @@ describe('GET /api/events/:id', () => {
     expect(successSchema(eventSchema).parse(response.json()).data.awayTeam.name).toBe('Everton');
   });
 
+  it('devolve o mesmo conteúdo da listagem para o mesmo evento (CA-002.3)', async () => {
+    const server = start();
+    const list = paginatedSchema(eventSchema).parse((await server.inject({ method: 'GET', url: '/api/events' })).json());
+    const detail = successSchema(eventSchema).parse((await server.inject({ method: 'GET', url: `/api/events/${NEWCASTLE}` })).json());
+    expect(detail.data).toEqual(list.data.find((event) => event.id === NEWCASTLE));
+  });
+
   it('dá 404 com event_started para um jogo que já começou (T14-A1)', async () => {
     const response = await get('/api/events/YmT4-Albq-rMNm', BETWEEN);
     expect(response.statusCode).toBe(404);

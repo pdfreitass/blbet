@@ -64,6 +64,63 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
+### 2026-10-27 — Resposta ao `frontend`: CA-002.3 confirmada
+
+- **Agente responsável:** backend
+- **Tarefa executada:** pendência do `frontend` (CA-002.3, pedida em `1fb78f3`)
+- **Arquivos modificados:** `apps/api/test/sports-routes.test.ts` (novo teste) e este quadro
+- **Contratos ou interfaces alterados:** nenhum
+- **Resposta:** **confirmado.** `GET /api/events` e `GET /api/events/{id}` leem a mesma fonte, `catalog.events()` em `sports-service.ts`, e devolvem o mesmo objeto sem transformação. Para o mesmo evento, o conteúdo, incluindo as odds, é idêntico. Um teste novo prova-o: `devolve o mesmo conteúdo da listagem para o mesmo evento (CA-002.3)`. **Única ressalva, que é frescura e não divergência:** se a cache renovar entre os dois pedidos (`refreshMs`, DT-012), o detalhe traz as odds mais recentes. O detalhe é, por isso, a versão a confiar. O jogo que já começou continua a dar `404` com `event_started`
+- **Pendências para o agente `frontend`:** **colisão de número na integração.** A DT-015 (qualidade) já estava publicada na `main` quando o `wouter` foi registado também como DT-015. No merge para a `main`, o `wouter` passou a **DT-016** no `decisoes-tecnicas.md` e nas linhas que o mencionam no `agent-tasks.md` e neste quadro. **Falta trocar DT-015 por DT-016** nos comentários de `apps/web` (`App.tsx`, `App.test.tsx`, `CartaoJogo.tsx`, `NavegacaoPrincipal.tsx`, `NavegacaoPrincipal.module.css`, `test/setup.ts`) e nas duas linhas da tua secção que ainda dizem "DT-015" sobre o roteamento. Para evitar uma nova colisão, quem precisar de um número reserva-o primeiro neste quadro
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:** `apps/api`: `vitest run` → 54/54 passam (eram 53); `tsc --noEmit` → passa
+- **Próxima ação recomendada:** o Pedro aprova a integração dos 4 commits do `frontend` (`89c5e8f`, `a8d6b8f`, `31f56a4`, `1fb78f3`) e este commit do `backend`
+
+### 2026-10-27 — Fase 5, etapa 2: cobertura de 80% no backend (DT-015)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** T-007 e Fase 5; registo da DT-015 (cobertura, CI, lint, E2E)
+- **Arquivos modificados:**
+  - `apps/api/package.json` e `packages/contracts/package.json`: `@vitest/coverage-v8 ^5.0.5` e script `coverage`;
+  - `apps/api/vitest.config.ts` e `packages/contracts/vitest.config.ts` (novo): meta de 80%;
+  - `apps/api/test/sportsbook-client.test.ts` (novo);
+  - **`pnpm-lock.yaml`** (partilhado: só entradas do `@vitest/coverage-v8`);
+  - `docs/decisoes-tecnicas.md` (DT-015), `docs/arquitetura.md` (DP-002, DP-003), `docs/agent-protocol.md` (linha dos E2E), `docs/agent-tasks.md`, `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Pendências para o agente `frontend`:**
+  1. Registar no quadro a concordância com a DT-015. É critério de conclusão da T-007.
+  2. Ativar a meta de 80% em `apps/web`: `@vitest/coverage-v8 ^5.0.5`, script `coverage` e `thresholds` no `vite.config.ts`, como em `apps/api/vitest.config.ts`. **Atenção ao lockfile:** fazer `git merge main` antes de instalar, para não colidir.
+  3. Os E2E em `e2e/` são teus. O modo de teste da api, com respostas gravadas, entra numa etapa seguinte do `backend`.
+- **Aviso prévio de configuração partilhada:** na próxima etapa, o `backend` cria `.github/workflows/ci.yml` e a configuração do ESLint na raiz (`eslint.config.js`, `package.json` raiz). Não mexas nesses ficheiros até eu registar aqui que acabei
+- **Bloqueios:** nenhum
+- **Testes executados e resultados:**
+  - `apps/api` com `pnpm coverage`: 53/53 testes; linhas 99,51%, instruções 96,38%, ramos 87,31%, funções 97,61%. O `client.ts` passou de 0% para 100%. Excluído `src/server.ts`, que só arranca o processo;
+  - `packages/contracts` com `pnpm coverage`: 23/23 testes, 100%;
+  - `pnpm -r typecheck` → ok.
+- **Próxima ação recomendada:** Pedro aprova a etapa 3 (ESLint e CI); `frontend` ativa a cobertura em `apps/web`
+
+### 2026-10-27 — Fase 5, etapa 1: revisão de segurança da api (RNF-004)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** Fase 5 do roadmap, revisão de segurança de `apps/api/` e `packages/contracts/`. **Nada alterado no código**
+- **Arquivos modificados:** `docs/agent-handoff.md`
+- **Contratos ou interfaces alterados:** nenhum
+- **Resultado:** **sem achados críticos nem altos.** Verificado:
+  - segredos: só em `apps/api/.env`, fora do git; `.env.example` sem valores; nenhuma chave no histórico do git;
+  - entradas: todas validadas com Zod, com `q` e `limit` limitados;
+  - erros: mensagens sem detalhe técnico, que fica só no log;
+  - logs: cabeçalhos de credenciais redigidos, e o URL do provedor é registado sem a query string;
+  - quota do provedor: a cache partilha o pedido em curso e, se o provedor falhar, espera o intervalo normal antes de voltar a tentar;
+  - dependências: `pnpm audit --prod` sem vulnerabilidades conhecidas.
+- **Achados:**
+  - **S-1 (médio):** a api não tem limite de pedidos por cliente. A cache protege a quota do provedor, mas não a api. Proposta: `@fastify/rate-limit` antes de publicar (dependência nova).
+  - **S-2 (baixo):** o `cursor` de `eventsQuerySchema` não tem tamanho máximo (vai a `JSON.parse`). Proposta: `.max(256)`. Mexe em `packages/contracts`, por isso exige revisão cruzada.
+  - **S-3 (baixo):** sem cabeçalhos de segurança nem CORS explícito. Hoje não pesa, porque o acesso é pelo proxy do Vite; decide-se com a plataforma de publicação (DP-008).
+- **Pendências para o agente `frontend`:** nenhuma por agora. Se a S-2 avançar, peço revisão cruzada
+- **Bloqueios:** as etapas seguintes da Fase 5 dependem do Pedro: meta de cobertura (DP-002), integração contínua (DP-003), lint e dono dos testes E2E (PA-008)
+- **Testes executados e resultados:** `pnpm audit --prod` → sem vulnerabilidades; procura no histórico do git por padrões de chave → nenhuma ocorrência
+- **Próxima ação recomendada:** Pedro decide DP-002, DP-003, lint e PA-008; o `backend` corrige S-1 e S-2 na etapa seguinte
+
 ### 2026-10-27 — DIV-001: opção A escolhida (DT-014)
 
 - **Agente responsável:** backend
@@ -240,11 +297,11 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (DP-005 decidida, DT-016)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (DP-005 decidida, DT-017)
 
 ### Situação
 
-**DP-005 decidida e registada como DT-016.** Com ela saíram as duas correções que a análise tinha prometido: o cache curto e a dependência cruzada. **Não há decisões em aberto do lado do `frontend`.**
+**DP-005 decidida e registada como DT-017.** Com ela saíram as duas correções que a análise tinha prometido: o cache curto e a dependência cruzada. **Não há decisões em aberto do lado do `frontend`.**
 
 - **Arquivos modificados:** `shared/api/cache.ts` e `cache.test.ts` (novos), o cliente e os dois hooks, `ListaFavoritos` movido para `app/`, `NaoEncontrado` movido para `shared/componentes/`, `docs/decisoes-tecnicas.md`, `docs/arquitetura.md` e `docs/design-system.md`
 - **Contratos ou interfaces alterados:** nenhum
@@ -258,14 +315,14 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ### Histórico
 
-### 2026-10-27 — DP-005 decidida (DT-016): cache curto e correção da dependência cruzada
+### 2026-10-27 — DP-005 decidida (DT-017): cache curto e correção da dependência cruzada
 
 - **Agente responsável:** frontend
-- **Tarefa executada:** registo da DP-005 como **DT-016**, e as duas correções que saíram da análise
-- **Arquivos modificados:** `apps/web/src/shared/api/` (`cache.ts` e `cache.test.ts` novos; `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`), `apps/web/src/app/` (`ListaFavoritos.tsx` e `.module.css` **movidos para cá**, `App.tsx`, `App.test.tsx`), `apps/web/src/shared/componentes/NaoEncontrado.tsx` e `.module.css` (**movidos de `app/`**), `apps/web/src/modules/cassino/DetalheJogo.tsx`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-016), `docs/arquitetura.md` e `docs/design-system.md` (DP-005 fechada)
+- **Tarefa executada:** registo da DP-005 como **DT-017**, e as duas correções que saíram da análise
+- **Arquivos modificados:** `apps/web/src/shared/api/` (`cache.ts` e `cache.test.ts` novos; `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`), `apps/web/src/app/` (`ListaFavoritos.tsx` e `.module.css` **movidos para cá**, `App.tsx`, `App.test.tsx`), `apps/web/src/shared/componentes/NaoEncontrado.tsx` e `.module.css` (**movidos de `app/`**), `apps/web/src/modules/cassino/DetalheJogo.tsx`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-017), `docs/arquitetura.md` e `docs/design-system.md` (DP-005 fechada)
 - **Contratos ou interfaces alterados:** **nenhum**
 
-**A decisão foi registar o que já existia, e não trocá-lo.** A estratégia formou-se entrega a entrega e está coerente: navegação no endereço, dados do servidor nos hooks próprios, Context só para o que é lido em muitos sítios e muda pouco, o resto em `useState`. A DT-016 acrescenta as regras e, sobretudo, **os sinais que a invalidam** — mutações, revalidação ao focar a janela, o mesmo dado em telas distantes, ou mais de uma dúzia de hooks. Nenhum se verifica hoje.
+**A decisão foi registar o que já existia, e não trocá-lo.** A estratégia formou-se entrega a entrega e está coerente: navegação no endereço, dados do servidor nos hooks próprios, Context só para o que é lido em muitos sítios e muda pouco, o resto em `useState`. A DT-017 acrescenta as regras e, sobretudo, **os sinais que a invalidam** — mutações, revalidação ao focar a janela, o mesmo dado em telas distantes, ou mais de uma dúzia de hooks. Nenhum se verifica hoje.
 
 **O cache de 30 s, e o defeito que os testes apanharam.** Foi acrescentado `shared/api/cache.ts` (~70 linhas, sem dependência) para que voltar do detalhe não refaça o pedido. Ao ligá-lo, **dois testes passaram a falhar, e tinham razão**: um pedido que o utilizador faz explicitamente — "Tentar novamente", ou a lista a recomeçar depois de um cursor obsoleto — estava a ser servido pelo cache, o que devolveria a mesma resposta e faria o botão parecer não ter feito nada. O cliente passou a aceitar `ignorarCache`, e os hooks passam-no em qualquer repetição. **Não teria encontrado isto por inspeção**; os testes que já existiam é que o apanharam.
 
@@ -299,7 +356,7 @@ Depois das duas, a verificação dá vazio nos dois sentidos: nenhum domínio im
 
 | Tipo | Onde vive hoje | Exemplos |
 |---|---|---|
-| **Navegação** | O endereço (DT-015) | Destino ativo, id do evento, termo da busca em `?q=` |
+| **Navegação** | O endereço (DT-016) | Destino ativo, id do evento, termo da busca em `?q=` |
 | **Dados do servidor** | `useRecurso` e `useListaPaginada`, em `shared/api` | Eventos, detalhe de evento |
 | **Partilhado entre telas** | Context, em `shared/favoritos` | Favoritos, com persistência local |
 | **Local de um componente** | `useState` | Filtro de categoria no cassino, texto do campo de busca |
@@ -312,7 +369,7 @@ Ou seja: um pedido repetido ao `backend` custa latência local e mais nada. **O 
 
 #### Recomendação: registar o que existe, com uma adição pequena
 
-1. **Navegação no endereço.** Já decidido (DT-015). Tudo o que faz sentido guardar ou partilhar — tela, item aberto, termo de busca — vive aí, não em estado de componente.
+1. **Navegação no endereço.** Já decidido (DT-016). Tudo o que faz sentido guardar ou partilhar — tela, item aberto, termo de busca — vive aí, não em estado de componente.
 2. **Dados do servidor nos hooks próprios**, em `shared/api`. Sem biblioteca. São ~200 linhas que já fazem o que este produto precisa: três estados de RF-008, cancelamento do pedido anterior, repetição decidida pelo servidor (A1), paginação por cursor.
 3. **Uma adição que resolve um incómodo real:** hoje, voltar do detalhe para a listagem **refaz o pedido e mostra o esqueleto outra vez**. Não gasta quota, mas pisca. Proponho um **cache em memória com validade curta** (30 s) em `shared/api`, partilhado entre montagens, com a chave igual ao caminho pedido. São ~40 linhas, sem dependência, e resolvem exatamente esse caso.
 4. **Context só para o que é lido em muitos sítios e muda pouco.** Hoje é só os favoritos. A regra impede que o Context se torne o depósito de tudo, que é como ele costuma estragar o desempenho.
@@ -340,15 +397,16 @@ Não a fiz já porque sai do âmbito do que estava a propor, e porque mexe na or
 - **Pendências para o agente `backend`:** nenhuma nova. Continua a confirmação da CA-002.3
 - **Pendências para o Pedro:** aprovar (ou corrigir) a estratégia acima, para ser registada como decisão; e dizer se quer a correção da dependência cruzada agora ou depois
 - **Bloqueios:** nenhum. A estratégia proposta é a que já está em uso, por isso nada espera por esta decisão
-- **Reserva de numeração:** se for registada, fica **DT-016** — reservada aqui antes de ser usada
+- **Reserva de numeração:** se for registada, fica **DT-017** — reservada aqui antes de ser usada
 - **Testes executados e resultados:** nenhum — proposta, sem alteração de código. O estado é o do commit `1fb78f3`: typecheck, 131 testes e build a passar
 - **Próxima ação recomendada:** o Pedro decide; depois, o cache curto de 30 s e a correção da dependência cruzada, que são as duas coisas concretas que saem daqui
 
-### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-015, RF-002, RF-004)
+### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-016, RF-002, RF-004)
+### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-016, RF-002, RF-004)
 
 - **Agente responsável:** frontend
 - **Tarefa executada:** T-016 (oitava entrega)
-- **Arquivos modificados:** `apps/web/package.json` (dependência `wouter`), `apps/web/src/app/` (`App.tsx` reescrito, `NaoEncontrado.tsx` + `.module.css` novos, `App.test.tsx`), `apps/web/src/modules/esportes/` (`DetalheEvento.tsx` + `.module.css` novos, `CartaoEvento.tsx` e `.module.css`), `apps/web/src/modules/cassino/` (`DetalheJogo.tsx` + `.module.css` novos, `CartaoJogo.tsx` e `.module.css`, dois testes), `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx` e `.module.css`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-015)
+- **Arquivos modificados:** `apps/web/package.json` (dependência `wouter`), `apps/web/src/app/` (`App.tsx` reescrito, `NaoEncontrado.tsx` + `.module.css` novos, `App.test.tsx`), `apps/web/src/modules/esportes/` (`DetalheEvento.tsx` + `.module.css` novos, `CartaoEvento.tsx` e `.module.css`), `apps/web/src/modules/cassino/` (`DetalheJogo.tsx` + `.module.css` novos, `CartaoJogo.tsx` e `.module.css`, dois testes), `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx` e `.module.css`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-017)
 - **Contratos ou interfaces alterados:** **nenhum**
 
 **A aplicação passou a ter endereços.** O destino deixou de ser estado local: `/`, `/eventos/:id`, `/cassino`, `/cassino/:id`, `/busca?q=…`, `/favoritos`, `/perfil`. Verificado no navegador, e é a razão de tudo isto: **o "voltar" do navegador regressa à listagem em vez de sair da aplicação**. Recarregar mantém a tela, e `/busca?q=arsenal` reabre a busca já feita.
@@ -369,7 +427,7 @@ Não a fiz já porque sai do âmbito do que estava a propor, e porque mexe na or
   - `pnpm --filter @blbet/web test` → **131 testes em 12 ficheiros, todos passam** (eram 118). Treze novos, entre rotas e detalhes
   - `pnpm --filter @blbet/web build` → **passa**; 341.34 kB de JS (104.03 kB gzip) e 22.67 kB de CSS (4.09 kB gzip). O `wouter` e as duas telas novas custaram ~3,4 kB comprimidos no total
   - **Navegador:** percurso completo — listagem, clique no cartão, detalhe em `/eventos/e1`, **`history.back()` a voltar à listagem** com a aplicação ainda montada; `/cassino/jog-fict-001` aberto **diretamente por endereço**, com "Cassino" marcado como ativo; a 375×812 sem rolagem horizontal; **zero erros na consola** num separador limpo
-  - **Confirmado de passagem:** o Vite **devolve `index.html` em qualquer caminho** — abri `/eventos/e1` por endereço e a aplicação carregou. Em produção isto é configuração de quem publicar, e está registado na DT-015
+  - **Confirmado de passagem:** o Vite **devolve `index.html` em qualquer caminho** — abri `/eventos/e1` por endereço e a aplicação carregou. Em produção isto é configuração de quem publicar, e está registado na DT-016
   - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
 - **Nota sobre os testes:** o `location` do jsdom é partilhado por todo o ficheiro de teste, por isso um teste que navegasse deixaria o seguinte a começar noutro endereço — e a falha apareceria num teste sem defeito. O `setup.ts` repõe o endereço antes de cada teste
 - **Próxima ação recomendada:** confirmar a paginação com cursores reais (continua por fazer desde ontem); ou a estratégia de estado da interface, **DP-005**, que continua aberta e é a última decisão estrutural por tomar do lado do `frontend`
@@ -430,7 +488,7 @@ O termo de busca em `?q=` espelha o parâmetro que o contrato já define (regra 
 - **Pendências para o Pedro:** **escolher entre C (recomendada) e B.** A opção A recomendo recusar
 - **Bloqueios:** as telas de detalhe esperam esta decisão. Não instalo nada nem escrevo roteamento antes dela
 - **Testes executados e resultados:** nenhum — proposta, sem alteração de código. O estado do código é o do commit `31f56a4`: typecheck, 118 testes e build a passar
-- **Próxima ação recomendada:** o Pedro escolhe; se for C, a decisão é registada em `decisoes-tecnicas.md` (próximo número livre, **reservado aqui antes de ser usado**: **DT-015**) e a T-016 segue com o detalhe de evento
+- **Próxima ação recomendada:** o Pedro escolhe; se for C, a decisão é registada em `decisoes-tecnicas.md` (próximo número livre, **reservado aqui antes de ser usado**: **DT-015** — que acabou por ser o DT-016, ver a nota de numeração) e a T-016 segue com o detalhe de evento
 
 ### 2026-10-27 — DIV-001 fechada no `design-system.md` e DT-011 registada
 
