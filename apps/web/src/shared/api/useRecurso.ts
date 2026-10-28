@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { PedidoCancelado, type OpcoesPedido, type Resultado } from './cliente';
+import { mesmasDependencias } from './dependencias';
 import type { FalhaApi } from './erros';
 
 export interface EstadoRecurso<T> {
@@ -33,19 +34,29 @@ export function useRecurso<T>(
 
   const [tentativa, setTentativa] = useState(0);
 
-  // `carregar` muda de identidade a cada render; as dependencias declaradas por quem
-  // chama sao a fonte de verdade sobre quando repetir o pedido.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const executar = useCallback(carregar, dependencias);
+  /*
+   * O estado passa a "a carregar" DURANTE O RENDER em que as dependencias mudam, e
+   * nao dentro do efeito. E o padrao que o React documenta para ajustar estado quando
+   * uma entrada muda: poupa um render e evita o intervalo em que a tela ainda diria
+   * "pronto" com os dados do pedido anterior.
+   *
+   * A lista comparada inclui `tentativa` porque repetir tem de voltar a mostrar o
+   * carregamento, mesmo com as dependencias iguais.
+   */
+  const chaves: readonly unknown[] = [...dependencias, tentativa];
+  const [chavesAnteriores, setChavesAnteriores] = useState(chaves);
+
+  if (!mesmasDependencias(chavesAnteriores, chaves)) {
+    setChavesAnteriores(chaves);
+    setEstado((anterior) => ({ ...anterior, carregando: true }));
+  }
 
   useEffect(() => {
     const controlador = new AbortController();
     let ativo = true;
 
-    setEstado((anterior) => ({ ...anterior, carregando: true }));
-
     // Uma repeticao pedida pelo utilizador vai sempre a rede (DT-017).
-    executar({ signal: controlador.signal, ignorarCache: tentativa > 0 })
+    carregar({ signal: controlador.signal, ignorarCache: tentativa > 0 })
       .then((resultado) => {
         if (!ativo) {
           return;
@@ -79,7 +90,10 @@ export function useRecurso<T>(
       ativo = false;
       controlador.abort();
     };
-  }, [executar, tentativa]);
+    // `carregar` muda de identidade a cada render; as dependencias declaradas por quem
+    // chama sao a fonte de verdade sobre quando repetir o pedido.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, chaves);
 
   const repetir = useCallback(() => setTentativa((valor) => valor + 1), []);
 
