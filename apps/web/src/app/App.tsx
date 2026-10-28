@@ -37,7 +37,7 @@ export function App() {
 /**
  * Casca da aplicacao: faixa permanente, cabecalho, conteudo da rota e navegacao.
  *
- * O destino deixou de ser estado local e passou a vir do endereco (DT-015): o botao
+ * O destino deixou de ser estado local e passou a vir do endereco (DT-016): o botao
  * "voltar" do navegador volta a listagem em vez de sair da aplicacao, e recarregar
  * mantem o sitio onde se estava.
  */

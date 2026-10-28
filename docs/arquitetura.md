@@ -202,7 +202,7 @@ Regras:
 | ~~**DP-002**~~ | ~~Ferramentas e cobertura mínima de teste~~ | **Resolvida** — ferramentas na DT-001; cobertura mínima de 80% na DT-015 | Seção 8; RNF-007; PD-010 |
 | ~~**DP-003**~~ | ~~Integração contínua~~ | **Resolvida** — DT-015: GitHub Actions em cada push e PR | Seção 9 |
 | ~~**DP-004**~~ | ~~Como marcar dados demonstrativos~~ | **Resolvida** — DT-014: marca-se só o dado fictício (opção A); o dado real de terceiros não leva selo | RNF-008; RN-002; PC-010 |
-| ~~**DP-005**~~ | ~~Estratégia de estado da interface~~ | **Resolvida** — [DT-016](decisoes-tecnicas.md#dt-016--estratégia-de-estado-da-interface), 2026-10-27 | Seção 3; RNF-005 |
+| ~~**DP-005**~~ | ~~Estratégia de estado da interface~~ | **Resolvida** — [DT-017](decisoes-tecnicas.md#dt-017--estratégia-de-estado-da-interface), 2026-10-27 | Seção 3; RNF-005 |
 | **DP-006** | Biblioteca de estilos e componentes | Aberta — área do `frontend`; depende de `docs/design-system.md` | Fase 2 |
 | **DP-007** | Formato dos dados demonstrativos locais | Aberta — módulos TypeScript validados pelos esquemas de `packages/contracts/` ou ficheiros JSON validados em tempo de execução | Seção 5.2 |
 | **DP-008** | Plataforma de publicação | Aberta | Seção 9 |

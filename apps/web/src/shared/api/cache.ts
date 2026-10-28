@@ -4,7 +4,7 @@
  * **O que isto NAO e:** nao e uma camada de estado de servidor nem substitui uma
  * biblioteca como o TanStack Query. Nao invalida por mutacao, nao revalida ao voltar
  * a janela e nao sincroniza telas. Se alguma dessas coisas passar a ser precisa, a
- * decisao (DT-016) manda reavaliar em vez de fazer crescer este ficheiro.
+ * decisao (DT-017) manda reavaliar em vez de fazer crescer este ficheiro.
  *
  * **O que resolve:** voltar do detalhe para a listagem refazia o pedido e mostrava o
  * esqueleto outra vez. Nao era questao de quota -- o teto de pedidos ao provedor e do

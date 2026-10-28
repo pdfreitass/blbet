@@ -275,7 +275,7 @@ describe('App — favoritos (RF-006)', () => {
     );
 
     // O jogo começou: a api deixa de o trazer na listagem (DT-010).
-    // O cache de 30 s (DT-016) serviria a resposta anterior, por isso limpa-se —
+    // O cache de 30 s (DT-017) serviria a resposta anterior, por isso limpa-se —
     // é o equivalente a ter passado meio minuto entre marcar e abrir os favoritos.
     limparCache();
     responderSempre(200, paginaDeEventos([]));
@@ -442,7 +442,7 @@ describe('App — paginação por cursor (PC-008)', () => {
   });
 });
 
-describe('App — rotas (DT-015)', () => {
+describe('App — rotas (DT-016)', () => {
   /** Abre a aplicação já num endereço, como quem chega por link ou recarrega. */
   function abrirEm(caminho: string) {
     window.history.replaceState(null, '', caminho);

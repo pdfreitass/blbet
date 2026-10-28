@@ -16,7 +16,7 @@
 | Tokens de cor, tipografia, espaçamento, raio, elevação, movimento e breakpoints (§3) | **PD-002** — público-alvo: o risco assumido está em §10 |
 | Tema (§2) | **PD-003 a PD-008** — escopo da busca, mercados, categorias, campos do perfil, formato das odds, idioma e formatos |
 | Tratamento visual do dado demonstrativo, resolvendo **PD-009** (§6) | Conteúdo de marca: nome visual, logotipo e símbolo — a visão explicitamente não os define |
-| Recomendação para **DP-006** (abordagem de estilos) (§8) | ~~**DP-005**~~ — resolvida pela [DT-016](decisoes-tecnicas.md) |
+| Recomendação para **DP-006** (abordagem de estilos) (§8) | ~~**DP-005**~~ — resolvida pela [DT-017](decisoes-tecnicas.md) |
 | Inventário dos componentes-base e seus estados (§9) | Cobertura mínima de testes (DP-002) |
 
 Nenhuma pendência desta tabela foi resolvida por omissão.

@@ -18,7 +18,7 @@ function sigla(nome: string): string {
 /**
  * Cartao de jogo do catalogo (RF-004).
  *
- * O nome do jogo navega para o detalhe (DT-015), e a area clicavel estende-se a faixa
+ * O nome do jogo navega para o detalhe (DT-016), e a area clicavel estende-se a faixa
  * de identificacao. O que continua proibido e qualquer afordancia de **jogar**
  * (RN-004, CA-004.4): o cartao leva ao detalhe e a mais nada. O espaco da imagem fica
  * fora da area da ligacao, para que nada no cartao se pareca com um botao de jogo.

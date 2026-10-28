@@ -57,7 +57,7 @@ export async function pedir<T>(
   opcoes: OpcoesPedido = {},
 ): Promise<Resultado<T>> {
   /*
-   * Resposta recente para este mesmo caminho serve (DT-016): evita que voltar do
+   * Resposta recente para este mesmo caminho serve (DT-017): evita que voltar do
    * detalhe para a listagem mostre o esqueleto outra vez. A chave e o caminho
    * completo, com a query, por isso cada pagina e cada termo de busca sao entradas
    * distintas.

@@ -44,7 +44,7 @@ export function useRecurso<T>(
 
     setEstado((anterior) => ({ ...anterior, carregando: true }));
 
-    // Uma repeticao pedida pelo utilizador vai sempre a rede (DT-016).
+    // Uma repeticao pedida pelo utilizador vai sempre a rede (DT-017).
     executar({ signal: controlador.signal, ignorarCache: tentativa > 0 })
       .then((resultado) => {
         if (!ativo) {

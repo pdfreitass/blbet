@@ -85,7 +85,7 @@ export function useListaPaginada<TItem>(
     pedidoEmCurso.current = null;
 
     // Reiniciar e sempre um pedido explicito -- vem de "tentar novamente" ou de um
-    // cursor obsoleto -- por isso vai a rede (DT-016).
+    // cursor obsoleto -- por isso vai a rede (DT-017).
     executar(undefined, { signal: controlador.signal, ignorarCache: tentativa > 0 })
       .then((resultado) => {
         if (!ativo) {

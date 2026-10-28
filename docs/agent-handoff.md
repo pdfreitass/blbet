@@ -297,23 +297,62 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (DP-005 decidida, DT-017)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (renumeração e concordância com a DT-015)
 
 ### Situação
 
-**DP-005 decidida e registada como DT-017.** Com ela saíram as duas correções que a análise tinha prometido: o cache curto e a dependência cruzada. **Não há decisões em aberto do lado do `frontend`.**
+**Renumeração feita e pendência da T-007 respondida.** O roteamento é **DT-016** e a estratégia de estado passou a **DT-017**, em todos os documentos e nos comentários de `apps/web/`. Concordo com a **DT-015** (qualidade) e já pus a meta de cobertura no meu pacote.
 
-- **Arquivos modificados:** `shared/api/cache.ts` e `cache.test.ts` (novos), o cliente e os dois hooks, `ListaFavoritos` movido para `app/`, `NaoEncontrado` movido para `shared/componentes/`, `docs/decisoes-tecnicas.md`, `docs/arquitetura.md` e `docs/design-system.md`
+- **Arquivos modificados:** os quatro documentos, `apps/web/vite.config.ts` e `package.json`, e os comentários de dez ficheiros de `apps/web/src/`
 - **Contratos ou interfaces alterados:** nenhum
-- **Um defeito que os testes apanharam:** ao ligar o cache, dois testes falharam com razão — um pedido explícito do utilizador ("Tentar novamente", ou a lista a recomeçar depois de um cursor obsoleto) estava a ser servido pelo cache, o que faria o botão parecer não ter feito nada. O cliente passou a aceitar `ignorarCache`
-- **Duas dependências cruzadas corrigidas**, não uma: `ListaFavoritos` importava de dois domínios (passou para `app/`), e `DetalheJogo` importava da casca (o `NaoEncontrado` passou para `shared/`). A verificação dá agora vazio nos dois sentidos
-- **Pendências para o agente `backend`:** nenhuma nova; continua a CA-002.3
+- **Cobertura de `apps/web`, medida antes de concordar:** statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5% — acima do mínimo em tudo. **Branches é a métrica apertada**, e é a que vai disparar primeiro
+- **Exclusões da cobertura, com razão no próprio ficheiro:** `src/test/**` (ferramentas dos testes — medi-las seria medir a régua) e `src/app/main.tsx` (só monta no DOM real)
+- **E2E (PA-008):** aceito ser o dono. Espero o modo de teste da api com respostas gravadas, sem o qual os E2E gastam quota ou correm contra `503`
+- **Reserva de numeração — frontend:** nenhum número reservado. Próximo livre: **DT-018**
+- **Pendências para o agente `backend`:** o modo de teste da api para os E2E; e a **CA-002.3**
 - **Pendências para o Pedro:** nenhuma
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **141 testes em 13 ficheiros**, todos passam; build passa (341.89 kB de JS, 104.22 kB gzip). No navegador, medido com contador: voltar aos esportes dá **zero pedidos novos** e a lista aparece sem esqueleto
-- **Próxima ação recomendada:** confirmar a paginação com cursores reais — a única verificação em dívida
+- **A paginação com cursores reais está confirmada** pelo `backend` (`limit=5`, duas páginas sem repetição, cursor de outro filtro a dar `400`). **Não tenho verificações em dívida**
+- **Testes executados e resultados:** typecheck passa; **141 testes**, todos passam; `coverage` passa o limiar; build passa
+- **Próxima ação recomendada:** os E2E em `e2e/` quando houver o modo de teste; ou a etapa 3 da Fase 5 (ESLint e CI na raiz), que é partilhada e exige aviso prévio
 
 ### Histórico
+
+### 2026-10-27 — Renumeração para DT-016/DT-017, concordância com a DT-015 e meta de cobertura
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** integração da `main` (`f4bbf89`), renumeração pedida, resposta à pendência da T-007
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md`, `docs/arquitetura.md`, `docs/design-system.md`, `docs/agent-tasks.md`, `docs/agent-handoff.md`; `apps/web/vite.config.ts` e `package.json` (cobertura); comentários de `App.tsx`, `App.test.tsx`, `CartaoJogo.tsx`, `NavegacaoPrincipal.tsx`, `NavegacaoPrincipal.module.css`, `test/setup.ts`, `shared/api/` (`cache.ts`, `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`)
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**Renumeração feita.** A `main` venceu, como deve ser: o roteamento é **DT-016** e a estratégia de estado passou de DT-016 para **DT-017**. Fiz as duas trocas **por esta ordem** — primeiro o estado, depois o roteamento —, porque ao contrário a segunda desfazia a primeira. Atualizados: o índice e o corpo de `decisoes-tecnicas.md`, as referências em `arquitetura.md` e `design-system.md`, as linhas do quadro e de `agent-tasks.md`, e **os doze comentários em `apps/web/`** que o `backend` listou e mais alguns que não estavam na lista (`shared/api/cache.ts`, `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`). A verificação final por `grep` confirma que nenhuma DT-015 em `apps/web/` sobrou, e que as DT-015 restantes nos documentos são todas sobre qualidade — isto é, do `backend`.
+
+A DT-017 leva uma nota a dizer que foi renumerada e porquê. **Foi a terceira colisão**; a partir daqui reservo o número aqui no quadro antes de o escrever em `decisoes-tecnicas.md`.
+
+**Reserva de numeração — frontend:** nenhum número reservado neste momento. O próximo livre é o **DT-018**.
+
+**Conflitos do merge:** três ficheiros. Nos dois com a mesma linha alterada dos dois lados, mantive a minha versão com a numeração corrigida, porque era a mais recente e continha a entrega que faltava. No histórico deste quadro, os dois lados tinham acrescentado registos no topo: **ficaram os dois**, sem apagar nada.
+
+**Concordância com a DT-015 (qualidade) — era critério de conclusão da T-007.** Concordo com os quatro pontos, e não é só opinião: fui medir antes de responder. A cobertura de `apps/web` **já está acima do mínimo** — statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5%. Pus a meta no meu pacote, como a decisão manda: `coverage` em `vite.config.ts` com limiar de 80% nas quatro métricas e um `coverage` no `package.json`.
+
+**Duas notas sobre a cobertura, para não serem surpresa:**
+
+- **branches está a 81,6%**, que é a métrica apertada. Qualquer entrega com ramos não testados pode descer abaixo de 80% e fazer o comando falhar. É o que se quer de um limiar, mas vale saber qual é o que vai disparar primeiro.
+- **Excluí dois caminhos, com razão escrita no próprio ficheiro:** `src/test/**`, que são as ferramentas dos testes (helper de render, servidor falso, exemplos de resposta) — medi-las seria medir a régua; e `src/app/main.tsx`, que só monta a aplicação no DOM real, coisa que o jsdom não exercita.
+
+**O E2E é meu (PA-008).** Aceito. Fico à espera do modo de teste da api com respostas gravadas, que o `backend` se comprometeu a dar — sem ele, os E2E ou gastam quota do provedor ou correm contra `503`.
+
+- **Pendências para o agente `backend`:** o **modo de teste da api** para os E2E; e continua a confirmação da **CA-002.3** (se `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo para o mesmo evento)
+- **Pendências para o Pedro:** nenhuma. Os commits do `frontend` que faltam integrar são o `416941e` e os desta entrega
+- **Bloqueios:** nenhum. Os E2E esperam pelo modo de teste, mas não bloqueiam nada do que está em curso
+- **Paginação com cursores reais: confirmada pelo `backend`** — `limit=5`, duas páginas sem repetição, e um cursor de outro filtro a dar `400`. **Era a última verificação em dívida do meu lado, e deixa de estar**
+- **Testes executados e resultados — reais:**
+  - `pnpm install` depois do merge → trouxe as dependências novas da DT-015
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **141 testes em 13 ficheiros, todos passam**
+  - `pnpm --filter @blbet/web coverage` → **passa o limiar**: statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5%
+  - `pnpm --filter @blbet/web build` → **passa**
+- **Próxima ação recomendada:** os E2E em `e2e/`, quando houver o modo de teste da api; ou a etapa 3 da Fase 5 (ESLint na raiz e GitHub Actions), que é configuração partilhada e exige aviso prévio no quadro
 
 ### 2026-10-27 — DP-005 decidida (DT-017): cache curto e correção da dependência cruzada
 

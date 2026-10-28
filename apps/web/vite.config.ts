@@ -53,5 +53,28 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     // Os componentes importam os seus .module.css; sem isto o Vitest ignora-os.
     css: true,
+
+    /*
+     * Cobertura minima de 80% em tudo, por pacote (DT-015). Abaixo disto o comando
+     * falha, e e isso que torna a meta real em vez de indicativa.
+     */
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      /*
+       * Fora da conta, com razao:
+       *   - `src/test/`: sao as ferramentas dos proprios testes (helper de render,
+       *     servidor falso, exemplos de resposta). Medi-las seria medir a regua;
+       *   - `main.tsx`: so monta a aplicacao no DOM real, que o jsdom nao exercita.
+       */
+      exclude: ['src/test/**', 'src/app/main.tsx'],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
+    },
   },
 });

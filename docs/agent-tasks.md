@@ -2,7 +2,7 @@
 
 > Tarefas coordenadas entre os agentes `backend` (terminal) e `frontend` (Desktop). Regras em [`docs/agent-protocol.md`](agent-protocol.md); comunicação em [`docs/agent-handoff.md`](agent-handoff.md); decisões em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md).
 
-**Última atualização:** 2026-10-27 · **Por:** `frontend` (DP-005 decidida como DT-017; cache curto e dependências cruzadas corrigidas). Registo anterior: `frontend` (T-016: roteamento e telas de detalhe, DT-016). Registo anterior: `frontend` (T-016: paginação por cursor). Registo anterior: `frontend` (T-016: perfil demonstrativo, RF-007). Registo anterior: `frontend` (T-014 fechada do seu lado). Registo anterior: `frontend` (T-016: favoritos locais, RF-006). Registo anterior: `frontend` (revisão cruzada da T-014: 3 pontos concordados, 4 ajustes, todos aceites). Registo anterior: `frontend` (T-016: catálogo de cassino e alinhamento com os contratos). Registo anterior: `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
+**Última atualização:** 2026-10-27 · **Por:** `frontend` (renumeração para DT-016/DT-017; concordância com a DT-015 e meta de cobertura no `apps/web`). Registo anterior: `frontend` (DP-005 decidida como DT-017; cache curto e dependências cruzadas corrigidas). Registo anterior: `frontend` (T-016: roteamento e telas de detalhe, DT-016). Registo anterior: `frontend` (T-016: paginação por cursor). Registo anterior: `frontend` (T-016: perfil demonstrativo, RF-007). Registo anterior: `frontend` (T-014 fechada do seu lado). Registo anterior: `frontend` (T-016: favoritos locais, RF-006). Registo anterior: `frontend` (revisão cruzada da T-014: 3 pontos concordados, 4 ajustes, todos aceites). Registo anterior: `frontend` (T-016: catálogo de cassino e alinhamento com os contratos). Registo anterior: `frontend` (T-005 concluída e aprovada; revisão cruzada da T-004 registada; comunicação local da T-013 acordada). Registo anterior: `backend` (decisões DT-001 a DT-007 e tarefas T-010 a T-016)
 
 ---
 
@@ -21,12 +21,12 @@
 
 | Status | Quantidade | Tarefas |
 |---|---|---|
-| Concluída | 10 | T-001, T-002, T-003, T-004, T-005, T-008, T-011, T-012, T-014, T-015 |
-| Em andamento | 6 | T-006, T-007, T-009, T-010, T-013, T-016 |
+| Concluída | 11 | T-001 a T-005, T-007, T-008, T-011, T-012, T-014, T-015 |
+| Em andamento | 5 | T-006, T-009, T-010, T-013, T-016 |
 | Não iniciada | 0 | — |
 | Bloqueada | 0 | — |
 
-**Ordem crítica:** Fase 5 (qualidade) iniciada, segundo a DT-015. Etapas: (1) revisão de segurança da api, feita; (2) cobertura de 80%, ativa no `backend` e por fazer no `frontend`; (3) ESLint na raiz e GitHub Actions, configuração partilhada, com aviso prévio; (4) E2E do `frontend` em `e2e/`, com a api em modo de teste.
+**Ordem crítica:** Fase 5 (qualidade) iniciada, segundo a DT-015. Etapas: (1) revisão de segurança da api, feita; (2) cobertura de 80%, **ativa nos três pacotes** (T-007 concluída); (3) ESLint na raiz e GitHub Actions, configuração partilhada, com aviso prévio; (4) E2E do `frontend` em `e2e/`, à espera do modo de teste da api.
 
 ---
 
@@ -86,7 +86,7 @@
 - **Descrição:** resolver a DP-002.
 - **Responsável:** `compartilhado`
 - **Dependências:** T-001 (concluída)
-- **Status:** **em andamento** — 2026-10-27: o Pedro decidiu a DT-015 (cobertura mínima de 80%; E2E em `e2e/`, dono `frontend`); a secção 8 do `arquitetura.md` foi atualizada. Do `backend`, a meta já está ativa em `apps/api` e `packages/contracts`. **Falta:** a concordância do `frontend` no quadro e a meta em `apps/web`
+- **Status:** **concluída** — 2026-10-27: o Pedro decidiu a DT-015 (cobertura mínima de 80%; E2E em `e2e/`, dono `frontend`); a secção 8 do `arquitetura.md` foi atualizada. A meta está ativa nos três pacotes — `apps/api` e `packages/contracts` pelo `backend`, `apps/web` pelo `frontend`, que mediu **92,2% / 81,6% / 92,5% / 92,5%** antes de concordar e registou a concordância no quadro. Todos os critérios cumpridos
 - **Critérios de conclusão:** cobertura mínima registada em `docs/decisoes-tecnicas.md`; seção 8 de `docs/arquitetura.md` atualizada; os dois agentes concordaram no quadro.
 
 ### T-008 — Definir a estratégia de branches dos agentes
