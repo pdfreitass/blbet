@@ -312,30 +312,155 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (roteamento e telas de detalhe)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (renumeração e concordância com a DT-015)
 
 ### Situação
 
-**Roteamento e telas de detalhe entregues (DT-015).** A aplicação passou a ter endereços, e o **"voltar" do navegador regressa à listagem em vez de sair** — era o objetivo de toda a mudança. As telas de detalhe de evento e de jogo existem, e o endereço desconhecido tem tela com saída.
+**Renumeração feita e pendência da T-007 respondida.** O roteamento é **DT-016** e a estratégia de estado passou a **DT-017**, em todos os documentos e nos comentários de `apps/web/`. Concordo com a **DT-015** (qualidade) e já pus a meta de cobertura no meu pacote.
 
-- **Arquivos modificados:** `apps/web/` (rotas, dois detalhes, tela de não encontrado, navegação em ligações, os testes afetados), `docs/decisoes-tecnicas.md` (DT-015)
+- **Arquivos modificados:** os quatro documentos, `apps/web/vite.config.ts` e `package.json`, e os comentários de dez ficheiros de `apps/web/src/`
 - **Contratos ou interfaces alterados:** nenhum
-- **Conflito resolvido, não ignorado:** a §9.2 previa o cartão todo como área de navegação, o que colide com CA-003.3 — cobrir as odds com uma ligação fá-las responder ao clique. A área que navega é o **cabeçalho**; os mercados continuam a não reagir a nada
-- **O `event_started` tem finalmente ecrã:** abrir um jogo que começou entre a listagem e o clique diz isso, em vez de "não encontrámos"
-- **Pendências para o agente `backend`:** confirmar que `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo (CA-002.3) — o detalhe já usa a rota de recurso único, por isso deixou de ser teórica
-- **Pendências para o Pedro:** nenhuma nova; fica a publicação da `main`
+- **Cobertura de `apps/web`, medida antes de concordar:** statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5% — acima do mínimo em tudo. **Branches é a métrica apertada**, e é a que vai disparar primeiro
+- **Exclusões da cobertura, com razão no próprio ficheiro:** `src/test/**` (ferramentas dos testes — medi-las seria medir a régua) e `src/app/main.tsx` (só monta no DOM real)
+- **E2E (PA-008):** aceito ser o dono. Espero o modo de teste da api com respostas gravadas, sem o qual os E2E gastam quota ou correm contra `503`
+- **Reserva de numeração — frontend:** nenhum número reservado. Próximo livre: **DT-018**
+- **Pendências para o agente `backend`:** o modo de teste da api para os E2E; e a **CA-002.3**
+- **Pendências para o Pedro:** nenhuma
 - **Bloqueios:** nenhum
-- **Testes executados e resultados:** typecheck passa; **131 testes em 12 ficheiros**, todos passam; build passa (341.34 kB de JS, 104.03 kB gzip). No navegador: percurso completo com o `history.back()` a funcionar, detalhe aberto por endereço direto, mobile sem rolagem horizontal, zero erros na consola
-- **Por confirmar ainda:** a paginação com cursores reais, desde ontem
-- **Próxima ação recomendada:** a **DP-005** (estratégia de estado da interface) é a última decisão estrutural por tomar do lado do `frontend`
+- **A paginação com cursores reais está confirmada** pelo `backend` (`limit=5`, duas páginas sem repetição, cursor de outro filtro a dar `400`). **Não tenho verificações em dívida**
+- **Testes executados e resultados:** typecheck passa; **141 testes**, todos passam; `coverage` passa o limiar; build passa
+- **Próxima ação recomendada:** os E2E em `e2e/` quando houver o modo de teste; ou a etapa 3 da Fase 5 (ESLint e CI na raiz), que é partilhada e exige aviso prévio
 
 ### Histórico
 
+### 2026-10-27 — Renumeração para DT-016/DT-017, concordância com a DT-015 e meta de cobertura
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** integração da `main` (`f4bbf89`), renumeração pedida, resposta à pendência da T-007
+- **Arquivos modificados:** `docs/decisoes-tecnicas.md`, `docs/arquitetura.md`, `docs/design-system.md`, `docs/agent-tasks.md`, `docs/agent-handoff.md`; `apps/web/vite.config.ts` e `package.json` (cobertura); comentários de `App.tsx`, `App.test.tsx`, `CartaoJogo.tsx`, `NavegacaoPrincipal.tsx`, `NavegacaoPrincipal.module.css`, `test/setup.ts`, `shared/api/` (`cache.ts`, `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`)
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**Renumeração feita.** A `main` venceu, como deve ser: o roteamento é **DT-016** e a estratégia de estado passou de DT-016 para **DT-017**. Fiz as duas trocas **por esta ordem** — primeiro o estado, depois o roteamento —, porque ao contrário a segunda desfazia a primeira. Atualizados: o índice e o corpo de `decisoes-tecnicas.md`, as referências em `arquitetura.md` e `design-system.md`, as linhas do quadro e de `agent-tasks.md`, e **os doze comentários em `apps/web/`** que o `backend` listou e mais alguns que não estavam na lista (`shared/api/cache.ts`, `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`). A verificação final por `grep` confirma que nenhuma DT-015 em `apps/web/` sobrou, e que as DT-015 restantes nos documentos são todas sobre qualidade — isto é, do `backend`.
+
+A DT-017 leva uma nota a dizer que foi renumerada e porquê. **Foi a terceira colisão**; a partir daqui reservo o número aqui no quadro antes de o escrever em `decisoes-tecnicas.md`.
+
+**Reserva de numeração — frontend:** nenhum número reservado neste momento. O próximo livre é o **DT-018**.
+
+**Conflitos do merge:** três ficheiros. Nos dois com a mesma linha alterada dos dois lados, mantive a minha versão com a numeração corrigida, porque era a mais recente e continha a entrega que faltava. No histórico deste quadro, os dois lados tinham acrescentado registos no topo: **ficaram os dois**, sem apagar nada.
+
+**Concordância com a DT-015 (qualidade) — era critério de conclusão da T-007.** Concordo com os quatro pontos, e não é só opinião: fui medir antes de responder. A cobertura de `apps/web` **já está acima do mínimo** — statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5%. Pus a meta no meu pacote, como a decisão manda: `coverage` em `vite.config.ts` com limiar de 80% nas quatro métricas e um `coverage` no `package.json`.
+
+**Duas notas sobre a cobertura, para não serem surpresa:**
+
+- **branches está a 81,6%**, que é a métrica apertada. Qualquer entrega com ramos não testados pode descer abaixo de 80% e fazer o comando falhar. É o que se quer de um limiar, mas vale saber qual é o que vai disparar primeiro.
+- **Excluí dois caminhos, com razão escrita no próprio ficheiro:** `src/test/**`, que são as ferramentas dos testes (helper de render, servidor falso, exemplos de resposta) — medi-las seria medir a régua; e `src/app/main.tsx`, que só monta a aplicação no DOM real, coisa que o jsdom não exercita.
+
+**O E2E é meu (PA-008).** Aceito. Fico à espera do modo de teste da api com respostas gravadas, que o `backend` se comprometeu a dar — sem ele, os E2E ou gastam quota do provedor ou correm contra `503`.
+
+- **Pendências para o agente `backend`:** o **modo de teste da api** para os E2E; e continua a confirmação da **CA-002.3** (se `GET /api/events/{id}` e `GET /api/events` servem o mesmo conteúdo para o mesmo evento)
+- **Pendências para o Pedro:** nenhuma. Os commits do `frontend` que faltam integrar são o `416941e` e os desta entrega
+- **Bloqueios:** nenhum. Os E2E esperam pelo modo de teste, mas não bloqueiam nada do que está em curso
+- **Paginação com cursores reais: confirmada pelo `backend`** — `limit=5`, duas páginas sem repetição, e um cursor de outro filtro a dar `400`. **Era a última verificação em dívida do meu lado, e deixa de estar**
+- **Testes executados e resultados — reais:**
+  - `pnpm install` depois do merge → trouxe as dependências novas da DT-015
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **141 testes em 13 ficheiros, todos passam**
+  - `pnpm --filter @blbet/web coverage` → **passa o limiar**: statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5%
+  - `pnpm --filter @blbet/web build` → **passa**
+- **Próxima ação recomendada:** os E2E em `e2e/`, quando houver o modo de teste da api; ou a etapa 3 da Fase 5 (ESLint na raiz e GitHub Actions), que é configuração partilhada e exige aviso prévio no quadro
+
+### 2026-10-27 — DP-005 decidida (DT-017): cache curto e correção da dependência cruzada
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** registo da DP-005 como **DT-017**, e as duas correções que saíram da análise
+- **Arquivos modificados:** `apps/web/src/shared/api/` (`cache.ts` e `cache.test.ts` novos; `cliente.ts`, `useRecurso.ts`, `useListaPaginada.ts`), `apps/web/src/app/` (`ListaFavoritos.tsx` e `.module.css` **movidos para cá**, `App.tsx`, `App.test.tsx`), `apps/web/src/shared/componentes/NaoEncontrado.tsx` e `.module.css` (**movidos de `app/`**), `apps/web/src/modules/cassino/DetalheJogo.tsx`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-017), `docs/arquitetura.md` e `docs/design-system.md` (DP-005 fechada)
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**A decisão foi registar o que já existia, e não trocá-lo.** A estratégia formou-se entrega a entrega e está coerente: navegação no endereço, dados do servidor nos hooks próprios, Context só para o que é lido em muitos sítios e muda pouco, o resto em `useState`. A DT-017 acrescenta as regras e, sobretudo, **os sinais que a invalidam** — mutações, revalidação ao focar a janela, o mesmo dado em telas distantes, ou mais de uma dúzia de hooks. Nenhum se verifica hoje.
+
+**O cache de 30 s, e o defeito que os testes apanharam.** Foi acrescentado `shared/api/cache.ts` (~70 linhas, sem dependência) para que voltar do detalhe não refaça o pedido. Ao ligá-lo, **dois testes passaram a falhar, e tinham razão**: um pedido que o utilizador faz explicitamente — "Tentar novamente", ou a lista a recomeçar depois de um cursor obsoleto — estava a ser servido pelo cache, o que devolveria a mesma resposta e faria o botão parecer não ter feito nada. O cliente passou a aceitar `ignorarCache`, e os hooks passam-no em qualquer repetição. **Não teria encontrado isto por inspeção**; os testes que já existiam é que o apanharam.
+
+Outras duas decisões do cache, ambas com razão: só entram respostas **bem sucedidas e válidas** (uma falha nunca é guardada, para o "tentar novamente" ir mesmo à rede), e há um **teto de 50 entradas** com remoção da menos usada, porque cada termo de busca é uma chave própria e uma sessão longa faria o mapa crescer sem fim.
+
+**A dependência cruzada está corrigida, e apareceu outra pelo caminho.** `ListaFavoritos` importava de `cassino` e de `esportes`, contra a secção 3 do `arquitetura.md`. Passou para `app/`: a casca é que compõe domínios, e é esse o seu papel; a lógica continua em `shared/favoritos/`. Ao verificar, encontrei **uma segunda**, que a proposta não tinha visto: `modules/cassino/DetalheJogo` importava `NaoEncontrado` de `app/` — um domínio a importar da casca, que é a inversão errada. O componente passou para `shared/componentes/`, porque é usado pelos dois.
+
+Depois das duas, a verificação dá vazio nos dois sentidos: nenhum domínio importa de outro, e nenhum domínio importa da casca.
+
+- **Pendências para o agente `backend`:** nenhuma nova. Continua a confirmação da CA-002.3
+- **Pendências para o Pedro:** nenhuma. **Não há decisões em aberto do lado do `frontend`** — DIV-001, DP-005, DP-006, PD-006 e o roteamento estão todos decididos ou adiados por escolha
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/web typecheck` → **passa**
+  - `pnpm --filter @blbet/web test` → **141 testes em 13 ficheiros, todos passam** (eram 131). Dez novos, do cache
+  - `pnpm --filter @blbet/web build` → **passa**; 341.89 kB de JS (104.22 kB gzip) e 22.76 kB de CSS (4.10 kB gzip). O cache custou ~0,2 kB
+  - **Navegador:** medido com um contador de pedidos — ir ao cassino e voltar aos esportes dá **zero pedidos novos**, com a lista a aparecer sem esqueleto. Era exatamente o que o cache devia resolver. `/favoritos` aberto por endereço direto, com o destino marcado; o único erro na consola é o `502` da api desligada, que é o estado esperado sem ela a correr
+  - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
+- **Próxima ação recomendada:** confirmar a paginação com cursores reais, que continua por fazer desde ontem e é a única verificação em dívida
+
+### 2026-10-27 — Proposta para a DP-005 (estratégia de estado da interface) — **decisão do Pedro**
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** proposta técnica. **Nada implementado, nada instalado**
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo)
+- **Contratos ou interfaces alterados:** nenhum
+
+**A aplicação já tem uma estratégia de estado; o que falta é decidi-la.** Ela foi-se formando entrega a entrega, e está coerente. A proposta é **registá-la como decisão**, com a regra de quando deixa de servir — não trocá-la por outra.
+
+#### O que existe hoje, por tipo de estado
+
+| Tipo | Onde vive hoje | Exemplos |
+|---|---|---|
+| **Navegação** | O endereço (DT-016) | Destino ativo, id do evento, termo da busca em `?q=` |
+| **Dados do servidor** | `useRecurso` e `useListaPaginada`, em `shared/api` | Eventos, detalhe de evento |
+| **Partilhado entre telas** | Context, em `shared/favoritos` | Favoritos, com persistência local |
+| **Local de um componente** | `useState` | Filtro de categoria no cassino, texto do campo de busca |
+
+#### A premissa que muda a resposta: **repetir um pedido não custa quota**
+
+O instinto é pedir uma biblioteca de cache por causa do limite de 150 pedidos/dia. **Mas esse limite é do `backend` para o provedor, não do `frontend` para o `backend`.** A **DT-012** diz que cada competição é atualizada no máximo uma vez por hora, com cache em memória, com teto de **73 pedidos/dia** — e esse teto não muda, por muitas vezes que a interface chame `/api/events`.
+
+Ou seja: um pedido repetido ao `backend` custa latência local e mais nada. **O argumento mais forte para uma biblioteca de cache no cliente não se aplica a este projeto.**
+
+#### Recomendação: registar o que existe, com uma adição pequena
+
+1. **Navegação no endereço.** Já decidido (DT-016). Tudo o que faz sentido guardar ou partilhar — tela, item aberto, termo de busca — vive aí, não em estado de componente.
+2. **Dados do servidor nos hooks próprios**, em `shared/api`. Sem biblioteca. São ~200 linhas que já fazem o que este produto precisa: três estados de RF-008, cancelamento do pedido anterior, repetição decidida pelo servidor (A1), paginação por cursor.
+3. **Uma adição que resolve um incómodo real:** hoje, voltar do detalhe para a listagem **refaz o pedido e mostra o esqueleto outra vez**. Não gasta quota, mas pisca. Proponho um **cache em memória com validade curta** (30 s) em `shared/api`, partilhado entre montagens, com a chave igual ao caminho pedido. São ~40 linhas, sem dependência, e resolvem exatamente esse caso.
+4. **Context só para o que é lido em muitos sítios e muda pouco.** Hoje é só os favoritos. A regra impede que o Context se torne o depósito de tudo, que é como ele costuma estragar o desempenho.
+5. **Tudo o resto fica em `useState`**, no componente que o usa.
+
+#### Quando esta decisão deixa de servir
+
+Registo os sinais, para a revisão ser por facto e não por gosto. **Qualquer um destes justifica reavaliar** — e aí a candidata é o TanStack Query ou o SWR, não um estado global caseiro:
+
+- aparecerem **mutações** (escrever no servidor), que trazem invalidação e atualização otimista;
+- for preciso **revalidar ao voltar à janela** ou em intervalo;
+- o mesmo dado do servidor passar a ser lido por **telas distantes ao mesmo tempo**, com necessidade de ficarem em sincronia;
+- o número de hooks de dados passar de **uma dúzia**, altura em que o código próprio deixa de ser mais simples do que a biblioteca.
+
+Nenhum destes se verifica hoje: o produto **não escreve nada no servidor** — não há apostas, depósitos nem perfil editável (RN-001, RN-004), e os favoritos são locais (RN-005).
+
+#### Um defeito de arquitetura que encontrei ao fazer isto
+
+A secção 3 do `arquitetura.md` diz: *"os módulos de domínio podem depender de **compartilhado**, mas não uns dos outros"*. **`modules/favoritos/ListaFavoritos.tsx` viola isto**: importa `CartaoJogo` de `cassino` e `CartaoEvento` de `esportes`.
+
+Não foi descuido de arrumação — é consequência de a tela de favoritos ter de mostrar coisas de dois domínios. **A correção que proponho** é mover essa tela para `app/`, que é a casca e cujo papel é precisamente compor domínios; `shared/favoritos` já tem a lógica e fica onde está. É uma mudança de ficheiro e de importações, sem alterar comportamento nem testes de comportamento.
+
+Não a fiz já porque sai do âmbito do que estava a propor, e porque mexe na organização que o `arquitetura.md` descreve. **Fica como pendência registada**, não como coisa que alguém descobre daqui a dois meses.
+
+- **Pendências para o agente `backend`:** nenhuma nova. Continua a confirmação da CA-002.3
+- **Pendências para o Pedro:** aprovar (ou corrigir) a estratégia acima, para ser registada como decisão; e dizer se quer a correção da dependência cruzada agora ou depois
+- **Bloqueios:** nenhum. A estratégia proposta é a que já está em uso, por isso nada espera por esta decisão
+- **Reserva de numeração:** se for registada, fica **DT-017** — reservada aqui antes de ser usada
+- **Testes executados e resultados:** nenhum — proposta, sem alteração de código. O estado é o do commit `1fb78f3`: typecheck, 131 testes e build a passar
+- **Próxima ação recomendada:** o Pedro decide; depois, o cache curto de 30 s e a correção da dependência cruzada, que são as duas coisas concretas que saem daqui
+
+### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-016, RF-002, RF-004)
 ### 2026-10-27 — T-016: roteamento com `wouter` e telas de detalhe (DT-016, RF-002, RF-004)
 
 - **Agente responsável:** frontend
 - **Tarefa executada:** T-016 (oitava entrega)
-- **Arquivos modificados:** `apps/web/package.json` (dependência `wouter`), `apps/web/src/app/` (`App.tsx` reescrito, `NaoEncontrado.tsx` + `.module.css` novos, `App.test.tsx`), `apps/web/src/modules/esportes/` (`DetalheEvento.tsx` + `.module.css` novos, `CartaoEvento.tsx` e `.module.css`), `apps/web/src/modules/cassino/` (`DetalheJogo.tsx` + `.module.css` novos, `CartaoJogo.tsx` e `.module.css`, dois testes), `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx` e `.module.css`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-016)
+- **Arquivos modificados:** `apps/web/package.json` (dependência `wouter`), `apps/web/src/app/` (`App.tsx` reescrito, `NaoEncontrado.tsx` + `.module.css` novos, `App.test.tsx`), `apps/web/src/modules/esportes/` (`DetalheEvento.tsx` + `.module.css` novos, `CartaoEvento.tsx` e `.module.css`), `apps/web/src/modules/cassino/` (`DetalheJogo.tsx` + `.module.css` novos, `CartaoJogo.tsx` e `.module.css`, dois testes), `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx` e `.module.css`, `apps/web/src/test/setup.ts`, `docs/decisoes-tecnicas.md` (DT-017)
 - **Contratos ou interfaces alterados:** **nenhum**
 
 **A aplicação passou a ter endereços.** O destino deixou de ser estado local: `/`, `/eventos/:id`, `/cassino`, `/cassino/:id`, `/busca?q=…`, `/favoritos`, `/perfil`. Verificado no navegador, e é a razão de tudo isto: **o "voltar" do navegador regressa à listagem em vez de sair da aplicação**. Recarregar mantém a tela, e `/busca?q=arsenal` reabre a busca já feita.
@@ -356,7 +481,7 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
   - `pnpm --filter @blbet/web test` → **131 testes em 12 ficheiros, todos passam** (eram 118). Treze novos, entre rotas e detalhes
   - `pnpm --filter @blbet/web build` → **passa**; 341.34 kB de JS (104.03 kB gzip) e 22.67 kB de CSS (4.09 kB gzip). O `wouter` e as duas telas novas custaram ~3,4 kB comprimidos no total
   - **Navegador:** percurso completo — listagem, clique no cartão, detalhe em `/eventos/e1`, **`history.back()` a voltar à listagem** com a aplicação ainda montada; `/cassino/jog-fict-001` aberto **diretamente por endereço**, com "Cassino" marcado como ativo; a 375×812 sem rolagem horizontal; **zero erros na consola** num separador limpo
-  - **Confirmado de passagem:** o Vite **devolve `index.html` em qualquer caminho** — abri `/eventos/e1` por endereço e a aplicação carregou. Em produção isto é configuração de quem publicar, e está registado na DT-015
+  - **Confirmado de passagem:** o Vite **devolve `index.html` em qualquer caminho** — abri `/eventos/e1` por endereço e a aplicação carregou. Em produção isto é configuração de quem publicar, e está registado na DT-016
   - Varredura do §5.5: **zero** hexadecimais fora de `tokens.css`
 - **Nota sobre os testes:** o `location` do jsdom é partilhado por todo o ficheiro de teste, por isso um teste que navegasse deixaria o seguinte a começar noutro endereço — e a falha apareceria num teste sem defeito. O `setup.ts` repõe o endereço antes de cada teste
 - **Próxima ação recomendada:** confirmar a paginação com cursores reais (continua por fazer desde ontem); ou a estratégia de estado da interface, **DP-005**, que continua aberta e é a última decisão estrutural por tomar do lado do `frontend`
@@ -417,7 +542,7 @@ O termo de busca em `?q=` espelha o parâmetro que o contrato já define (regra 
 - **Pendências para o Pedro:** **escolher entre C (recomendada) e B.** A opção A recomendo recusar
 - **Bloqueios:** as telas de detalhe esperam esta decisão. Não instalo nada nem escrevo roteamento antes dela
 - **Testes executados e resultados:** nenhum — proposta, sem alteração de código. O estado do código é o do commit `31f56a4`: typecheck, 118 testes e build a passar
-- **Próxima ação recomendada:** o Pedro escolhe; se for C, a decisão é registada em `decisoes-tecnicas.md` (próximo número livre, **reservado aqui antes de ser usado**: **DT-015**) e a T-016 segue com o detalhe de evento
+- **Próxima ação recomendada:** o Pedro escolhe; se for C, a decisão é registada em `decisoes-tecnicas.md` (próximo número livre, **reservado aqui antes de ser usado**: **DT-015** — que acabou por ser o DT-016, ver a nota de numeração) e a T-016 segue com o detalhe de evento
 
 ### 2026-10-27 — DIV-001 fechada no `design-system.md` e DT-011 registada
 

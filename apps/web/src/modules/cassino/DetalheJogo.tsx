@@ -2,7 +2,7 @@ import { Link, useParams } from 'wouter';
 
 import { Etiqueta } from '../../shared/componentes/Etiqueta';
 import { IndicadorFavorito } from '../../shared/componentes/IndicadorFavorito';
-import { NaoEncontrado } from '../../app/NaoEncontrado';
+import { NaoEncontrado } from '../../shared/componentes/NaoEncontrado';
 import { rotularCategoria } from './categorias';
 import { JOGOS_DEMONSTRATIVOS } from './dadosDemonstrativos';
 import estilos from './DetalheJogo.module.css';

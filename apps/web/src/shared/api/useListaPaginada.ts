@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { PedidoCancelado, type Resultado } from './cliente';
+import type { OpcoesCarregamento } from './useRecurso';
 import type { FalhaApi } from './erros';
 
 /** O que a api devolve numa pagina: os itens e o cursor para a seguinte (PC-008). */
@@ -27,7 +28,7 @@ export interface EstadoLista<TItem> {
 
 type Carregador<TItem> = (
   cursor: string | undefined,
-  opcoes: { signal: AbortSignal },
+  opcoes: OpcoesCarregamento,
 ) => Promise<Resultado<Pagina<TItem>>>;
 
 /**
@@ -83,7 +84,9 @@ export function useListaPaginada<TItem>(
     pedidoEmCurso.current?.abort();
     pedidoEmCurso.current = null;
 
-    executar(undefined, { signal: controlador.signal })
+    // Reiniciar e sempre um pedido explicito -- vem de "tentar novamente" ou de um
+    // cursor obsoleto -- por isso vai a rede (DT-017).
+    executar(undefined, { signal: controlador.signal, ignorarCache: tentativa > 0 })
       .then((resultado) => {
         if (!ativo) {
           return;

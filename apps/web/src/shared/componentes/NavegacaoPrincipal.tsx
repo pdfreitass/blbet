@@ -15,7 +15,7 @@ export const DESTINOS = [
  * Dois arranjos do MESMO componente (design-system 9.7): barra no fundo abaixo de
  * 600px, navegacao no topo a partir dai. A troca e so de CSS.
  *
- * Os destinos sao LIGACOES, nao botoes (DT-015). Alem de darem endereco a cada area,
+ * Os destinos sao LIGACOES, nao botoes (DT-016). Alem de darem endereco a cada area,
  * uma ligacao pode ser aberta noutro separador e e anunciada como ligacao pelo leitor
  * de tela -- um botao que navega mente sobre o que faz.
  */

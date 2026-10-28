@@ -3,6 +3,8 @@
 import { afterEach, beforeEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+import { limparCache } from '../shared/api/cache';
+
 afterEach(() => {
   cleanup();
 });
@@ -10,10 +12,17 @@ afterEach(() => {
 /*
  * Repõe o endereço antes de cada teste.
  *
- * Com roteamento (DT-015), o `location` do jsdom é partilhado por todo o ficheiro: um
+ * Com roteamento (DT-016), o `location` do jsdom é partilhado por todo o ficheiro: um
  * teste que navegue para /cassino deixaria o seguinte a começar lá, e a falha
  * apareceria num teste que não tem defeito nenhum.
  */
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
+
+  /*
+   * O cache das leituras (DT-017) vive num módulo, e portanto sobrevive entre testes:
+   * sem isto, um teste receberia a resposta preparada pelo anterior e nunca chegaria
+   * ao servidor falso que ele próprio instalou.
+   */
+  limparCache();
 });
