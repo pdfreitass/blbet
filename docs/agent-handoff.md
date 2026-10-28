@@ -462,7 +462,7 @@
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (lint, ecrãs de conta da DT-020, E2E e revisão cruzada)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (auditoria de alinhamento, filtro por competição e teto da busca). Registo anterior: lint, ecrãs de conta da DT-020, E2E e revisão cruzada
 
 ### Situação
 
@@ -474,13 +474,75 @@
 - **E2E (PA-008, DT-015): a correr.** 12 testes em `e2e/`, **12 a passar**, contra a api em modo gravado e com base de dados nova por execução. Comando: `pnpm e2e`
 - **Ficheiros partilhados da raiz que toquei**, com o aviso prévio registado abaixo: `package.json` (`@playwright/test`, scripts `e2e` e `dev:web`), `pnpm-lock.yaml` (**+28 linhas, só acrescentos**) e `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre outra vez**
 - **Reserva de numeração — frontend:** **DT-022 reservada e usada** (caminhos dos ecrãs de conta). Próximo livre: **DT-023**
-- **Pendências para o agente `backend`:** os sete ajustes A-R1 a A-R7 da revisão cruzada. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
+- **Pendências para o agente `backend`:** os oito ajustes A-R1 a **A-R8** da revisão cruzada — e nota que eles só lhe chegam depois de o Pedro integrar, porque o quadro é por branch. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
 - **Pendências para o Pedro:** (1) **aprovar o commit** — nada foi commitado; (2) **dizer em que branch devo trabalhar.** Esta sessão está num clone único em `C:/Users/Usuario/blbet`, na `feat/backend-foundation`, que é a do `backend`, e **não mudei de branch nem criei nenhuma**; (3) o `CLAUDE.md` continua desatualizado na secção "Natureza do projeto", e agora também na lista de código existente
 - **Bloqueios:** nenhum
-- **Testes executados e resultados — reais:** `pnpm lint` → **limpo, 0 erros** · `pnpm typecheck` → ok nos três pacotes · `pnpm test` → contracts 25/25, api 102/102, web **180/180** (eram 141) · `pnpm --filter @blbet/web coverage` → 94,70% instruções, 85,29% ramos, 94,25% funções, 94,98% linhas, acima da meta da DT-015 · `pnpm build` → ok nos três · `pnpm e2e` → **12/12**
-- **Próxima ação recomendada:** o Pedro aprova o commit e diz a branch; o `backend` responde aos ajustes A-R1 a A-R7, com prioridade para a A-R6
+- **Testes executados e resultados — reais:** `pnpm lint` → **limpo, 0 erros** · `pnpm typecheck` → ok nos três pacotes · `pnpm test` → contracts 25/25, api 102/102, web **187/187** (eram 141) · `pnpm --filter @blbet/web coverage` → 95,13% instruções, 86,33% ramos, 94,90% funções, 95,41% linhas, acima da meta da DT-015 · `pnpm build` → ok nos três · `pnpm e2e` → **12/12** · ecrãs de conta abertos no navegador contra a api a sério
+- **Próxima ação recomendada:** o Pedro integra a branch `feat/frontend-contas`, para que os pedidos cheguem ao `backend`; o `backend` responde aos ajustes A-R1 a A-R8, com prioridade para a **A-R6** (sem saída para quem não confirmou o e-mail) e a **A-R8** (um enumerado novo parte a listagem inteira)
 
 ### Histórico
+
+### 2026-10-28 — Auditoria de alinhamento entre back e front; filtro por competição e teto da busca
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** conferir, campo a campo, se o que o contrato promete, o que a api implementa e o que a interface consome são a mesma coisa — e corrigir do meu lado o que estava desalinhado
+- **Arquivos novos:** `apps/web/src/modules/esportes/FiltroCompeticao.tsx` e `.module.css`, `apps/web/src/modules/esportes/filtroCompeticao.test.tsx`
+- **Arquivos modificados:** `apps/web/src/app/App.tsx`, `apps/web/src/shared/componentes/CampoBusca.tsx`, `apps/web/src/modules/conta/ResumoConta.tsx` e `conta.test.tsx`, `apps/web/src/test/fixtures.ts`; `docs/agent-handoff.md`, `docs/agent-tasks.md`
+- **Contratos ou interfaces alterados:** **nenhum.** O que encontrei do lado do contrato virou pedido (**A-R8**), não alteração minha
+
+#### O que a auditoria comparou
+
+As 3 rotas de esportes da secção 7.1 e as 11 de contas da 7.2, contra `apps/api/src/routes/`, contra `packages/contracts/src/` e contra o que `apps/web` realmente chama. Mais os limites (`MAX_PAGE_LIMIT`, `MAX_QUERY_LENGTH`, `MAX_CURSOR_LENGTH`), os códigos de erro, os códigos de motivo e os enumerados.
+
+**Resultado: as 14 rotas documentadas existem e correspondem ao implementado.** Nenhuma divergência de forma. Três desalinhamentos, dois meus e já corrigidos, um teu:
+
+| # | O que estava desalinhado | De quem | Estado |
+|---|---|---|---|
+| 1 | `GET /api/competitions` **implementada, documentada e nunca chamada** pela interface. `obterCompeticoes` existia sem nenhum consumidor, e o filtro `competitionId` da rota de eventos nunca era usado | meu | **corrigido** |
+| 2 | O campo de busca **não travava** nos 100 caracteres que o contrato aceita | meu | **corrigido** |
+| 3 | A **PC-014** não está honrada na validação: um enumerado novo rejeita a resposta inteira | contrato, área do `backend` | **pedido A-R8** |
+
+#### 1. Filtro por competição — uma rota que ninguém usava
+
+A api serve `GET /api/competitions` desde a T-015 e a rota de eventos aceita `competitionId` desde a T-014. A interface não chamava nem uma coisa nem outra: `obterCompeticoes` estava em `shared/api/esportes.ts` sem consumidor, ou seja, **código morto a cobrir uma rota viva**.
+
+Passa a haver um filtro na listagem de esportes, com o `competitionId` no endereço, pelo nome do parâmetro do contrato (regra A7), como já acontecia com o `q` da busca.
+
+Três decisões, com razão:
+
+- **`select` nativo, não botões.** O número de competições vem da api e não é conhecido aqui — com três cabem em botões, com trinta não. O controle nativo já traz navegação por teclado, busca por letra e o arranjo próprio de cada plataforma em ecrã pequeno.
+- **Aparece só com duas competições ou mais.** Com uma, um `select` de uma opção não filtra nada e sugere uma escolha que não existe. A exceção é haver filtro no endereço: aí o controle tem de estar lá, ou não há como o desfazer. **Nota:** a gravação da DT-018 só tem a EPL, por isso em modo gravado o filtro fica escondido — é o comportamento certo, mas significa que os E2E não o exercitam. Está coberto por testes de componente.
+- **Falhar a carregar as competições não estraga a listagem.** O filtro desaparece, a listagem continua, e o que ela mostra sem filtro é a lista completa. As competições são um extra da página, não o seu conteúdo.
+- Com filtro aplicado e zero resultados, o estado vazio é **"nada encontrado"**, com o nome da competição e saída — e não "nada cadastrado", que CA-008.3 exige que seja texto distinto.
+
+#### 2. O teto da busca — um erro que o utilizador não percebia
+
+`q` tem máximo de 100 (`MAX_QUERY_LENGTH`). O campo não o travava: ao 101.º caractere a api respondia `VALIDATION_FAILED` com `too_big` e o utilizador lia **"O pedido não é válido. Tente de novo a partir da listagem."** por ter escrito um nome comprido. O campo passa a ter `maxLength` com a constante do contrato, importada e não copiada; o atributo também trunca o que for colado.
+
+#### 3. A-R8 — o que encontrei do teu lado
+
+Registado na secção de integração, com a medição. Em resumo: comprometi-me, na revisão da T-004, a que um valor enumerado desconhecido nunca fizesse falhar a validação da resposta inteira, e foi com esse compromisso que a PC-014 foi fechada. **Não é o que o código faz.** `sportSchema` e `eventStatusSchema` são `z.enum` estritos sobre conjuntos de um só valor; um `status: 'live'` ou um `sport: 'basketball'` rejeitam o evento inteiro e a página mostra "Recebemos uma resposta que não conseguimos ler". O meu `?? evento.status`, escrito para tolerar o valor novo, é código inalcançável.
+
+A correção vive no esquema partilhado, que é da tua área. Até lá, **acrescentar um valor a qualquer destes conjuntos é mudança incompatível**, ao contrário do que a PC-014 diz.
+
+#### Uma coisa que vi nos ecrãs e corrigi
+
+Abri os ecrãs de conta no navegador, com a api a sério, e li uma contradição: o resumo da conta dizia **"E-mail confirmado: Por confirmar"**. O rótulo afirmava o que o valor desmentia. Passou a "Confirmação", com etiqueta "E-mail confirmado" ou "E-mail por confirmar". Verificado a 375px e em ecrã largo: a conta real em cima e o perfil demonstrativo com campo tracejado em baixo lêem-se como duas coisas distintas, que é o que §6.3 pede.
+
+#### Coordenação — uma coisa que o Pedro tem de saber
+
+**A revisão cruzada da DT-020 está na minha branch, não na `main`.** Pelo bloqueio "Quadro por branch", o `backend` não a vê enquanto a integração não acontecer — e os oito pedidos A-R1 a A-R8 só lhe chegam nessa altura. Conferido: `origin/feat/backend-foundation` continua em `cf78cb2`, sem nada novo desde a DT-020.
+
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm lint` → limpo;
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts 25/25 · api 102/102 · web **187/187** (eram 180);
+  - `pnpm --filter @blbet/web coverage` → 95,13% instruções, 86,33% ramos, 94,90% funções, 95,41% linhas;
+  - `pnpm build` → ok nos três;
+  - `pnpm e2e` → **12/12**;
+  - **ecrãs de conta abertos no navegador**, contra a api a correr com base de dados: cadastro, entrada, resumo da conta e lista de dispositivos verificados a 375px e em ecrã largo.
+- **Próxima ação recomendada:** o Pedro integra, para que os pedidos A-R1 a A-R8 cheguem ao `backend`. Do meu lado, o que falta depende dele ou do `backend`: PD-006 (campos do perfil), PD-007 (formato das odds) e mais gravações para os E2E.
 
 ### 2026-10-28 — Lint limpo, ecrãs de conta da DT-020, E2E a correr e revisão cruzada
 
@@ -1050,7 +1112,7 @@ O termo de busca em `?q=` espelha o parâmetro que o contrato já define (regra 
 
 Pedido formal do `backend` na entrada de 2026-10-28 da secção Backend. Revi: os dois códigos de erro novos em `packages/contracts/src/envelope.ts`, o módulo `packages/contracts/src/accounts.ts`, a secção **5.2** e a secção **7.2** do contrato, e **conferi as 11 rotas contra `apps/api/src/routes/accounts.ts` no disco** — a tabela do contrato corresponde ao que está implementado, rota a rota.
 
-**Veredicto: concordo, sem divergência e sem bloqueio.** Nenhuma forma existente mudou; é tudo acrescento, e nada do que o `apps/web` já consumia quebrou. Os sete ajustes abaixo são **pedidos**, não objeções: enquanto não forem respondidos, **o acordo vigente continua válido** e a interface já está construída sobre ele.
+**Veredicto: concordo, sem divergência e sem bloqueio.** Nenhuma forma existente mudou; é tudo acrescento, e nada do que o `apps/web` já consumia quebrou. Os oito ajustes abaixo são **pedidos**, não objeções: enquanto não forem respondidos, **o acordo vigente continua válido** e a interface já está construída sobre ele.
 
 #### O que aceito sem ressalva
 
@@ -1062,7 +1124,7 @@ Pedido formal do `backend` na entrada de 2026-10-28 da secção Backend. Revi: o
 6. **`DELETE /api/sessions/:id` de outra conta dar `404` e não `403`.** Concordo: o `403` confirmaria que o identificador existe.
 7. **O `202` sem corpo útil e o `204` nas operações sem resultado.** O cliente do frontend passou a aceitar respostas sem corpo.
 
-#### Ajustes pedidos — `A-R1` a `A-R7`
+#### Ajustes pedidos — `A-R1` a `A-R8`
 
 - **A-R1 — o corpo de `POST /api/accounts/password` não está em `packages/contracts`.** É a única forma da secção 7.2 que vive só em `apps/api/src/routes/accounts.ts` (`changePasswordSchema`, linha 22), que o frontend não importa. Tive de validar os dois campos com o `passwordSchema` do pacote em vez de ter a forma inteira. **Pedido:** mover `changePasswordSchema` para `packages/contracts/src/accounts.ts`, como os outros seis.
 - **A-R2 — não há forma de distinguir o `429` do travão por tentativas do `429` do limite geral sem ler `error.message`.** A A-A4 identifica-o por `message: "too many attempts"`, mas a A1 e a DIV-F01 dizem que `message` é técnica e não chega à interface — e usá-la para decidir seria o mesmo defeito por outra porta. **Pedido:** um `details: [{ field: …, issue: … }]` próprio, ou um código estável novo. **Entretanto**, nos ecrãs de conta qualquer `429` leva o texto do travão, que serve para os dois casos (em ambos a saída é esperar). Não bloqueia.
@@ -1071,6 +1133,17 @@ Pedido formal do `backend` na entrada de 2026-10-28 da secção Backend. Revi: o
 - **A-R5 — os caminhos dos links de e-mail não estão no contrato, e são superfície de integração.** `accounts-service.ts` constrói `${PUBLIC_URL}/conta/verificar?token=…` e `${PUBLIC_URL}/conta/nova-senha?token=…` (linhas 128 e 273). São rotas da **interface**, escolhidas pelo `backend` e implementadas por mim, e não estão em lado nenhum da secção 7.2 — se eu tivesse escolhido outros nomes, todos os e-mails enviados dariam "página não encontrada". **Adotei os teus**, e as rotas existem com esses caminhos exatos. **Pedido:** documentá-los na 7.2, ao lado das rotas, para deixarem de depender de alguém ler o serviço. Registado como [DT-022](decisoes-tecnicas.md#dt-022--caminhos-dos-ecrãs-de-conta-na-interface).
 - **A-R6 — não existe rota de reenvio da verificação, mas o contrato fala dela.** O comentário do `acceptedSchema`, em `packages/contracts/src/accounts.ts`, diz "Cadastro, pedido de recuperação **e reenvio de verificação** respondem sempre isto" — e a tabela da 7.2 tem 11 rotas, nenhuma de reenvio; conferi em `apps/api/src/routes/accounts.ts` e também lá não está. **Consequência real:** quem apanha `403` na entrada por não ter confirmado o e-mail, e perdeu ou nunca recebeu a mensagem, **não tem saída nenhuma na interface** — resta-lhe pedir recuperação de senha, que é outra coisa. **Pedido:** ou a rota, ou a correção do comentário. Prefiro a rota; é o buraco mais visível desta entrega.
 - **A-R7 — `AUTH_REQUIRE_VERIFIED_EMAIL` obriga os E2E a um desvio, e vale a pena saber porquê.** Por omissão é `true`, e o token de confirmação só existe na mensagem que o `Mailer` escreve na saída. Ler o log do servidor para extrair o token apertaria a bateria a um formato que ninguém acordou, por isso os E2E correm com `AUTH_REQUIRE_VERIFIED_EMAIL=false` e exercitam o ecrã de confirmação à parte, com o token na URL. **Isto é informação, não pedido** — mas se a A-R6 der uma rota de reenvio, o fluxo inteiro passa a ser testável sem o desvio.
+
+- **A-R8 — a PC-014 não está honrada na validação, e o compromisso era meu.** Na revisão da T-004 (resposta **R1**) comprometi-me a que um valor enumerado desconhecido nunca faça falhar a validação da resposta inteira, e foi com isso que a PC-014 foi fechada como "acrescentar um valor a um enumerado é mudança compatível". **Fui verificar e não é o que acontece.** `sportSchema` e `eventStatusSchema` são `z.enum` estritos, sobre conjuntos de **um só valor** — `SPORTS = ['soccer']` e `EVENT_STATUSES = ['scheduled']`. Medido contra os esquemas reais:
+
+  | Resposta | `eventSchema.safeParse` |
+  |---|---|
+  | `status: 'live'` | **rejeitado** |
+  | `sport: 'basketball'` | **rejeitado** |
+
+  O evento inteiro cai, e com ele a página, que passa a mostrar "Recebemos uma resposta que não conseguimos ler". O `?? evento.status` que escrevi em `CartaoEvento.tsx:37` precisamente para mostrar um valor novo como veio **é código inalcançável**: a resposta nunca chega lá.
+
+  **Isto não é defeito teu, e a correção não é minha:** a tolerância tem de viver no esquema partilhado, que é da tua área. Como está, acrescentar um valor a qualquer destes conjuntos é **mudança incompatível**, ao contrário do que a PC-014 fechou — e é uma quebra em produção no dia em que um jogo ficar `live` ou entrar um segundo esporte. **Pedido:** que os dois esquemas preservem o valor desconhecido em vez de falharem. Enquanto não for assim, **anuncia no quadro antes de acrescentar qualquer valor**, porque hoje isso parte a listagem inteira.
 
 #### Duas coisas que verifiquei e que não dão pedido nenhum
 
