@@ -39,8 +39,43 @@ O `.env` não é versionado. As variáveis são validadas no arranque (`src/conf
 | `SPORTS_NOW` | `recordedAt` da gravação | instante ISO, só com `recorded` |
 | `RATE_LIMIT_MAX` | `300` | pedidos por janela e por cliente; `0` desliga (DT-019) |
 | `RATE_LIMIT_WINDOW_SECONDS` | `60` | 1 ou mais |
+| `CORS_ORIGINS` | vazio | origens autorizadas, separadas por vírgula (S-3) |
+| `BODY_LIMIT_BYTES` | `65536` | teto do corpo de um pedido (S-3) |
+| `DATABASE_FILE` | ausente | ficheiro SQLite. **Sem isto não há rotas de conta** (DT-021) |
+| `AUTH_IP_HASH_SECRET` | ausente | obrigatório com `DATABASE_FILE`; 32 caracteres ou mais |
+| `SESSION_IDLE_MINUTES` | `60` | inatividade até a sessão morrer |
+| `SESSION_ABSOLUTE_HOURS` | `168` | teto absoluto da sessão |
+| `COOKIE_SECURE` | ligado em produção | em produção não pode ser falso |
+| `AUTH_REQUIRE_VERIFIED_EMAIL` | `true` | em produção não pode ser falso |
+| `AUTH_RATE_LIMIT_MAX` | `10` | limite próprio das rotas de autenticação |
 
-As variáveis do provedor esportivo estão em [`.env.example`](.env.example).
+As restantes estão em [`.env.example`](.env.example), com os valores por omissão.
+
+## Contas e sessões (DT-020)
+
+Com `DATABASE_FILE` definido, a api regista as rotas da secção 7.2 do
+[contrato](../../docs/api-contract.md): cadastro, verificação de e-mail, entrada e saída, lista e
+revogação de sessões, recuperação e alteração de senha. **Sem `DATABASE_FILE` essas rotas não
+existem** e a api serve só esportes — que é o estado anterior a esta decisão.
+
+- A senha é guardada em **Argon2id** (19 MiB, 2 passagens), nunca em claro.
+- A sessão vai num cookie `HttpOnly`, `Secure` e `SameSite=Strict`; **o token nunca aparece no
+  corpo de uma resposta.**
+- Cadastro e pedido de recuperação respondem sempre `202 { accepted: true }`, exista ou não a
+  conta. É o que impede descobrir quem está registado — a interface não deve dizer o contrário.
+- Falhas seguidas travam a conta e a origem: `429` com `too many attempts`, **mesmo com a senha
+  certa**. Passa sozinho ao fim de `AUTH_FAILURE_WINDOW_MINUTES`.
+- Trocar ou redefinir a senha derruba sessões: a alteração mantém a atual, a redefinição derruba
+  todas.
+
+**Não há provedor de e-mail escolhido.** Fora de produção a mensagem é escrita na saída, com o
+link e o token, para o fluxo poder ser percorrido inteiro; **em produção o envio falha** em vez de
+fingir que foi enviado. Escolher o provedor é decisão em aberto.
+
+A base de dados é **SQLite** pela `node:sqlite` do Node 24, sem dependência nem servidor. O
+destino continua a ser **PostgreSQL** (DT-021); é por isso que o serviço fala com
+`AccountsRepository` e nunca com SQL. As migrações são versionadas e imutáveis, e correm no
+arranque.
 
 ## Limite de pedidos (S-1, DT-019)
 
@@ -109,6 +144,7 @@ Verificação rápida: `curl http://127.0.0.1:3333/health` → `{"status":"ok"}`
 | `GET /api/competitions` | Domínio | Secção 7.1 de [`docs/api-contract.md`](../../docs/api-contract.md) |
 | `GET /api/events` | Domínio | Só jogos por começar (DT-010), com paginação por cursor |
 | `GET /api/events/:id` | Domínio | `404 event_started` quando o jogo já começou |
+| `/api/accounts/*`, `/api/sessions/*` | Domínio | Secção 7.2 do contrato. Só com `DATABASE_FILE` |
 
 As rotas de domínio seguem a secção 7.1 do contrato, com os esquemas de `@blbet/contracts`. Em
 `SPORTS_MODE=live` sem `SPORTS_PROVIDER_API_KEY` respondem `503 UPSTREAM_UNAVAILABLE` — estado

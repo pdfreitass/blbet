@@ -151,9 +151,22 @@ Quando uma rota for definida, ela é documentada neste arquivo com, no mínimo:
 
 ### 5.2 Autenticação
 
-**Não há autenticação nesta fase.** O perfil é demonstrativo e não há conta de usuário real (RN-006). Nenhuma rota exige credencial, token ou sessão.
+**Revista pela [DT-020](decisoes-tecnicas.md#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo), 2026-10-28.** Redação anterior: ~~"Não há autenticação nesta fase. O perfil é demonstrativo e não há conta de usuário real (RN-006)."~~
 
-Quando houver autenticação — fora do escopo inicial, conforme a seção 8 de [`docs/visao.md`](visao.md) — o mecanismo é decisão de arquitetura própria, registada em `docs/decisoes-tecnicas.md`, e este documento passará a especificar: forma de transporte da credencial, tratamento de expiração, e os status `401` e `403` por rota.
+A credencial viaja **num cookie de sessão**, nunca em cabeçalho nem no corpo:
+
+| Atributo | Valor | Porquê |
+|---|---|---|
+| nome | `SESSION_COOKIE_NAME` (omissão `blbet_session`) | — |
+| `HttpOnly` | sempre | fora do alcance do JavaScript: um XSS não leva a sessão |
+| `Secure` | sempre, exceto em desenvolvimento sem HTTPS | o cookie não viaja em claro |
+| `SameSite` | `Strict` | não acompanha pedido vindo de outro sítio: é o que trava CSRF |
+| `Path` | `/` | — |
+
+- **O token nunca aparece no corpo de uma resposta.** A entrada devolve a conta, não o token.
+- A sessão morre por **inatividade** (`SESSION_IDLE_MINUTES`) e tem um **teto absoluto** (`SESSION_ABSOLUTE_HOURS`) que o uso contínuo não estica.
+- O `frontend` tem de enviar as credenciais do pedido (`credentials: 'include'` em `fetch`) quando a api estiver noutra origem. Em desenvolvimento, o Vite encaminha `/api` e é a mesma origem.
+- **`401` quando não há sessão válida ou as credenciais não conferem; `403` quando há sessão mas falta uma condição da conta** — e-mail por verificar, conta bloqueada. A diferença importa: o primeiro leva ao ecrã de entrada, o segundo não.
 
 **Credencial de provedor externo nunca chega ao cliente** (RNF-004). Segredo vive no servidor, em variável de ambiente fora do repositório.
 
@@ -164,9 +177,12 @@ Convenção de uso:
 | Status | Quando |
 |---|---|
 | `200` | Leitura bem-sucedida, inclusive coleção vazia |
-| `201` | Recurso criado — não esperado nesta fase |
-| `204` | Sucesso sem corpo — não esperado nesta fase |
+| `201` | Recurso criado — a entrada, que cria a sessão (DT-020) |
+| `202` | Aceite sem revelar o efeito — cadastro e pedido de recuperação (A-A2) |
+| `204` | Sucesso sem corpo — sair, revogar sessão, trocar senha |
 | `400` | Requisição malformada ou parâmetro inválido |
+| `401` | Sem sessão válida, ou credenciais que não conferem (DT-020) |
+| `403` | Há sessão, mas falta uma condição da conta (DT-020) |
 | `404` | Recurso identificado não existe. **Não** usar para coleção vazia |
 | `422` | Entrada bem formada mas semanticamente inválida — uso a confirmar (**PC-015**), já que parte das equipes prefere `400` para tudo |
 | `429` | Limite de requisições excedido — relevante só com provedor real |
@@ -245,6 +261,32 @@ Primeira rota só pode ser definida após:
 - **T-009** — pendências PD-003 a PD-008 resolvidas, que descrevem os dados a transportar.
 - **T-004** — convenções `PC-001` a `PC-015` deste documento resolvidas.
 - **Revisão cruzada** do `frontend` registada no quadro antes da integração (DT-005).
+
+### 7.2 Contas e sessões (DT-020, 2026-10-28) — **à espera da revisão cruzada do `frontend`**
+
+Esquemas em `packages/contracts/src/accounts.ts`. Todas as rotas seguem o envelope da PC-001.
+
+| Método | Rota | Entrada | Sucesso | Observação |
+|---|---|---|---|---|
+| `POST` | `/api/accounts` | `{ email, password }` | `202` `{ data: { accepted: true } }` | Cadastro. **Responde o mesmo exista ou não a conta** (A-A2) |
+| `POST` | `/api/accounts/verify` | `{ token }` | `204` | Token do e-mail, de uso único |
+| `POST` | `/api/sessions` | `{ email, password }` | `201` `{ data: Account }` | Entrada. Põe o cookie; **o token não vem no corpo** |
+| `DELETE` | `/api/sessions/current` | — | `204` | Sair. Responde igual com ou sem sessão |
+| `GET` | `/api/accounts/me` | — | `200` `{ data: Account }` | `401` sem sessão |
+| `GET` | `/api/sessions` | — | `200` `{ data: SessionSummary[] }` | Dispositivos autenticados; `current` marca o atual |
+| `DELETE` | `/api/sessions/:id` | — | `204` | Só as próprias. A de outra conta dá `404`, não `403` |
+| `DELETE` | `/api/sessions` | — | `204` | Derruba as outras, mantém a atual |
+| `POST` | `/api/accounts/password-reset` | `{ email }` | `202` `{ data: { accepted: true } }` | Mesma resposta exista ou não a conta |
+| `POST` | `/api/accounts/password-reset/confirm` | `{ token, password }` | `204` | **Derruba todas as sessões** |
+| `POST` | `/api/accounts/password` | `{ currentPassword, newPassword }` | `204` | Exige reautenticação; derruba as outras sessões |
+
+**A-A1 — senha:** mínimo de 8 caracteres, máximo de 200, **sem regras de composição** (NIST SP 800-63B). O mínimo é o que a interface já anuncia.
+
+**A-A2 — resposta genérica:** cadastro e pedido de recuperação respondem sempre `202 { accepted: true }`. É o que impede descobrir quem tem conta. O `frontend` **não deve** dizer "este e-mail já existe": não o sabe, e não o pode saber.
+
+**A-A3 — e-mail normalizado:** espaços fora e tudo em minúsculas, antes de validar e de guardar. `  A@B.pt ` e `a@b.pt` são a mesma conta.
+
+**A-A4 — travão por tentativas:** demasiadas falhas seguidas dão `429 RATE_LIMITED` com `message: "too many attempts"`, **mesmo com a senha certa**. É um estado previsto, não um defeito: passa sozinho ao fim da janela.
 
 ---
 

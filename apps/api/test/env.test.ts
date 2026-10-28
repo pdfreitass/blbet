@@ -17,6 +17,19 @@ describe('loadConfig', () => {
       SPORTS_MODE: 'live',
       RATE_LIMIT_MAX: 300,
       RATE_LIMIT_WINDOW_SECONDS: 60,
+      CORS_ORIGINS: [],
+      BODY_LIMIT_BYTES: 65_536,
+      SESSION_COOKIE_NAME: 'blbet_session',
+      SESSION_IDLE_MINUTES: 60,
+      SESSION_ABSOLUTE_HOURS: 168,
+      AUTH_REQUIRE_VERIFIED_EMAIL: true,
+      AUTH_MAX_FAILURES_PER_ACCOUNT: 5,
+      AUTH_MAX_FAILURES_PER_IP: 20,
+      AUTH_FAILURE_WINDOW_MINUTES: 15,
+      AUTH_RATE_LIMIT_MAX: 10,
+      EMAIL_VERIFICATION_TTL_HOURS: 24,
+      PASSWORD_RESET_TTL_MINUTES: 30,
+      PUBLIC_URL: 'http://127.0.0.1:5173',
     });
     expect(Object.isFrozen(config)).toBe(true);
   });
@@ -44,6 +57,26 @@ describe('loadConfig', () => {
     expect(config.SPORTS_NOW).toBe('2026-11-01T17:00:00.000Z');
     expect(() => loadConfig({ SPORTS_MODE: 'gravado' })).toThrow(InvalidEnvError);
     expect(() => loadConfig({ SPORTS_NOW: '1 de novembro' })).toThrow(InvalidEnvError);
+  });
+
+  it('exige o segredo dos resumos de IP quando há base de dados (DT-020)', () => {
+    expect(() => loadConfig({ DATABASE_FILE: 'blbet.db' })).toThrow(InvalidEnvError);
+
+    const config = loadConfig({ DATABASE_FILE: 'blbet.db', AUTH_IP_HASH_SECRET: 'x'.repeat(32) });
+    expect(config.DATABASE_FILE).toBe('blbet.db');
+    // Curto de mais é tão mau como ausente.
+    expect(() => loadConfig({ DATABASE_FILE: 'blbet.db', AUTH_IP_HASH_SECRET: 'curto' })).toThrow(InvalidEnvError);
+  });
+
+  it('não deixa produção arrancar com as proteções desligadas (DT-020)', () => {
+    const base = { NODE_ENV: 'production', DATABASE_FILE: 'blbet.db', AUTH_IP_HASH_SECRET: 'x'.repeat(32) };
+
+    expect(() => loadConfig({ ...base, COOKIE_SECURE: 'false' })).toThrow(InvalidEnvError);
+    expect(() => loadConfig({ ...base, RATE_LIMIT_MAX: '0' })).toThrow(InvalidEnvError);
+    expect(() => loadConfig({ ...base, AUTH_RATE_LIMIT_MAX: '0' })).toThrow(InvalidEnvError);
+    expect(() => loadConfig({ ...base, AUTH_REQUIRE_VERIFIED_EMAIL: 'false' })).toThrow(InvalidEnvError);
+    // As mesmas variáveis fora de produção são legítimas: é assim que os E2E correm.
+    expect(() => loadConfig({ ...base, NODE_ENV: 'test', RATE_LIMIT_MAX: '0', AUTH_RATE_LIMIT_MAX: '0' })).not.toThrow();
   });
 
   it('rejeita valores inválidos indicando só o nome da variável', () => {

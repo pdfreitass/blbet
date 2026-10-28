@@ -31,6 +31,53 @@ const envSchema = z.object({
   // fazem muitos pedidos seguidos e não devem apanhar 429 por isso.
   RATE_LIMIT_MAX: optionalText(z.coerce.number().int().min(0).default(300)),
   RATE_LIMIT_WINDOW_SECONDS: optionalText(z.coerce.number().int().min(1).default(60)),
+  // S-3 — origens autorizadas a chamar a api de outro sítio. Vazio significa **nenhuma**: em
+  // desenvolvimento o Vite encaminha `/api`, logo é a mesma origem e não é preciso CORS.
+  CORS_ORIGINS: optionalText(
+    z
+      .string()
+      .transform((list) => list.split(',').map((item) => item.trim()).filter(Boolean))
+      .pipe(z.array(z.url()))
+      .default([]),
+  ),
+  // S-3 — teto do corpo de um pedido. As rotas desta api recebem objetos pequenos.
+  BODY_LIMIT_BYTES: optionalText(z.coerce.number().int().min(1024).default(65_536)),
+
+  // Contas e sessões (DT-020, DT-021). Sem DATABASE_FILE as rotas de conta não existem, e a api
+  // fica a servir só esportes — que é o estado anterior a esta decisão.
+  DATABASE_FILE: optionalText(z.string().min(1).optional()),
+  SESSION_COOKIE_NAME: optionalText(z.string().min(1).default('blbet_session')),
+  SESSION_IDLE_MINUTES: optionalText(z.coerce.number().int().min(1).default(60)),
+  SESSION_ABSOLUTE_HOURS: optionalText(z.coerce.number().int().min(1).default(168)),
+  // O cookie só viaja em HTTPS. Fica `false` só para desenvolvimento em http://127.0.0.1.
+  COOKIE_SECURE: optionalText(z.stringbool().optional()),
+  AUTH_REQUIRE_VERIFIED_EMAIL: optionalText(z.stringbool().default(true)),
+  AUTH_MAX_FAILURES_PER_ACCOUNT: optionalText(z.coerce.number().int().min(1).default(5)),
+  AUTH_MAX_FAILURES_PER_IP: optionalText(z.coerce.number().int().min(1).default(20)),
+  AUTH_FAILURE_WINDOW_MINUTES: optionalText(z.coerce.number().int().min(1).default(15)),
+  AUTH_RATE_LIMIT_MAX: optionalText(z.coerce.number().int().min(0).default(10)),
+  // Segredo com que os endereços IP são resumidos antes de guardados, para a auditoria não
+  // guardar o endereço em claro. Obrigatório quando há base de dados.
+  AUTH_IP_HASH_SECRET: optionalText(z.string().min(32).optional()),
+  EMAIL_VERIFICATION_TTL_HOURS: optionalText(z.coerce.number().int().min(1).default(24)),
+  PASSWORD_RESET_TTL_MINUTES: optionalText(z.coerce.number().int().min(1).default(30)),
+  // Base dos links enviados por e-mail.
+  PUBLIC_URL: optionalText(z.url().default('http://127.0.0.1:5173')),
+}).superRefine((config, ctx) => {
+  const require = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message });
+
+  if (config.DATABASE_FILE && !config.AUTH_IP_HASH_SECRET) {
+    require('AUTH_IP_HASH_SECRET', 'obrigatório quando há base de dados');
+  }
+  if (config.NODE_ENV === 'production') {
+    // Em produção estas não podem ficar ao critério de quem arranca o processo.
+    if (config.COOKIE_SECURE === false) require('COOKIE_SECURE', 'não pode ser falso em produção');
+    if (config.RATE_LIMIT_MAX === 0) require('RATE_LIMIT_MAX', 'não pode desligar o limite em produção');
+    if (config.AUTH_RATE_LIMIT_MAX === 0) require('AUTH_RATE_LIMIT_MAX', 'não pode desligar o limite em produção');
+    if (config.DATABASE_FILE && !config.AUTH_REQUIRE_VERIFIED_EMAIL) {
+      require('AUTH_REQUIRE_VERIFIED_EMAIL', 'não pode ser falso em produção');
+    }
+  }
 });
 
 export type AppConfig = Readonly<z.infer<typeof envSchema>>;

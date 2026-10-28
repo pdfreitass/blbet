@@ -10,6 +10,12 @@ export const ERROR_CODES = [
   'RATE_LIMITED',
   'INTERNAL_ERROR',
   'UPSTREAM_UNAVAILABLE',
+  // DT-020 — contas e sessões. `UNAUTHENTICATED`: não há sessão válida, ou as credenciais não
+  // conferem (401). `FORBIDDEN`: há sessão, mas falta uma condição da conta — e-mail por
+  // verificar, conta bloqueada (403). A distinção importa à interface: o primeiro leva ao
+  // acesso, o segundo não.
+  'UNAUTHENTICATED',
+  'FORBIDDEN',
 ] as const;
 export const errorCodeSchema = z.enum(ERROR_CODES);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;

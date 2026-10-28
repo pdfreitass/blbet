@@ -53,17 +53,56 @@
 
 ### Situação
 
-**S-1 e S-2 da revisão de segurança corrigidos (DT-019).** A api passa a ter limite de pedidos por cliente e o `cursor` passa a ter teto de tamanho. Antes disto, na mesma sessão, o **modo de teste com respostas gravadas (DT-018)** foi entregue e **já está publicado** em `origin/feat/backend-foundation` (`f76d031`). A DT-019 também já está publicada, com aprovação do Pedro — `22516bd`.
+**MUDANÇA DE ESCOPO: o blbet passa a ter contas reais (DT-020).** O Pedro autorizou-a expressamente a 2026-10-28, depois de lhe ser apresentada a colisão com a **RN-006** ("não há autenticação real, cadastro, coleta de dados pessoais verdadeiros"). **A RN-006 foi revista; a RN-001 e a RN-007 continuam em vigor** — isto cria contas, não dinheiro: carteira, depósitos, saques e KYC continuam fora de escopo. Entregues: cadastro, verificação de e-mail, entrada e saída, sessões em cookie, revogação, recuperação e alteração de senha, travão por tentativas, auditoria, e o **S-3 fechado** (cabeçalhos, CORS, teto do corpo). Persistência em SQLite atrás de uma costura de repositório (DT-021). Publicado antes disto, na mesma sessão: DT-018 (`f76d031`) e DT-019 (`22516bd`). **O trabalho da DT-020 está por commitar.**
 
-- **Arquivos modificados:** ver as entradas de 2026-10-28 no histórico abaixo
-- **Contratos ou interfaces alterados:** **sim, dois acrescentos, ambos compatíveis** — `cursor` com `.max(1024)` em `packages/contracts` (S-2) e o acrescento **A9** ao `api-contract.md` (cabeçalhos e envelope do `429`). **Exige revisão cruzada do `frontend` (DT-005)**
-- **Pendências para o agente `frontend`:** (1) revisão cruzada da mudança em `packages/contracts`; (2) os E2E podem começar, com `RATE_LIMIT_MAX=0`. Detalhes nas entradas abaixo
+- **Arquivos modificados:** ver a entrada da DT-020 no histórico abaixo
+- **Contratos ou interfaces alterados:** **sim** — dois códigos de erro novos (`UNAUTHENTICATED`, `FORBIDDEN`), o módulo `accounts.ts` em `packages/contracts`, e a secção **7.2** do `api-contract.md` com 11 rotas. **Exige revisão cruzada do `frontend` (DT-005)**
+- **Pendências para o agente `frontend`:** (1) **o `apps/web` não compila** — `MENSAGEM_POR_CODIGO` precisa de duas entradas; (2) revisão cruzada; (3) os E2E, com `RATE_LIMIT_MAX=0` **e `AUTH_RATE_LIMIT_MAX=0`**. Detalhes na entrada abaixo
+- **Pendências para o Pedro:** aprovar o commit; e o **`CLAUDE.md` ficou desatualizado** na secção "Natureza do projeto" — é ficheiro dele e não foi alterado
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
-- **Testes executados e resultados:** typecheck ok · contracts **25/25**, api **71/71**, web 141/141 · cobertura api 96,67% instruções / 87,41% ramos, contracts 100% · build ok · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · `429` e modo gravado verificados no servidor compilado a correr
-- **Reserva de numeração — backend:** nenhum número reservado. Próximo livre: **DT-020**
-- **Próxima ação recomendada:** o `frontend` faz `git merge` desta branch (ou espera a integração na `main`), a revisão cruzada e arranca os E2E. Do lado do `backend`, o que resta da revisão de segurança é o **S-3** (cabeçalhos de segurança e CORS), que depende da plataforma de publicação (DP-008)
+- **Testes executados e resultados:** typecheck ok em `apps/api` e `packages/contracts` · api **102/102** (eram 71), contracts **25/25** · cobertura api 92,62% instruções / 84,8% ramos, acima da meta da DT-015 · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · **`apps/web` não compila**, ver acima · fluxo de contas verificado no **servidor compilado a correr**
+- **Reserva de numeração — backend:** nenhum número reservado. Próximo livre: **DT-022**
+- **Próxima ação recomendada:** o Pedro aprova o commit; o `frontend` corrige o `erros.ts`, faz a revisão cruzada e arranca os E2E. Depois, do lado do `backend`: escrever os requisitos funcionais das contas, que não existem, e decidir o provedor de e-mail
 
 ### Histórico
+
+### 2026-10-28 — Contas, autenticação e sessões (DT-020); persistência (DT-021); S-3 fechado
+
+- **Agente responsável:** backend
+- **Tarefa executada:** backend de autenticação e segurança, a pedido do Pedro, que **autorizou a mudança de escopo** depois de lhe ser apresentada a colisão com a RN-006, a RN-007 e o `CLAUDE.md`
+- **O que a decisão muda, e o que não muda:** a **RN-006** foi revista — passa a haver contas reais e dados pessoais, com a LGPD a aplicar-se. **A RN-001 e a RN-007 não foram tocadas:** carteira, depósitos, saques, KYC e jogo responsável com efeito operacional continuam fora de escopo, cada um a exigir decisão própria. Dinheiro real é matéria de licenciamento, anterior ao código
+- **Arquivos novos:**
+  - `apps/api/src/db/` — `database.ts` (abertura, pragmas, transações) e `migrations.ts` (migrações versionadas e imutáveis);
+  - `apps/api/src/modules/accounts/` — `password.ts` (Argon2id), `tokens.ts` (tokens opacos e resumos), `accounts-repository.ts` (a costura), `accounts-service.ts` (as regras), `mailer.ts`;
+  - `apps/api/src/routes/accounts.ts` — as 11 rotas;
+  - `packages/contracts/src/accounts.ts`;
+  - `apps/api/test/accounts.test.ts` (24 testes), `apps/api/test/hardening.test.ts` (6 testes).
+- **Arquivos modificados:** `apps/api/src/app.ts`, `src/server.ts`, `src/config/env.ts`, `src/shared/errors.ts`, `apps/api/package.json`, `apps/api/.env.example`, `apps/api/README.md`, `apps/api/test/env.test.ts`, `packages/contracts/src/envelope.ts` e `src/index.ts`, `docs/decisoes-tecnicas.md`, `docs/requisitos.md`, `docs/api-contract.md`, `docs/agent-tasks.md`, este quadro, e o **`pnpm-lock.yaml`**.
+- **Aviso de ficheiro partilhado — `pnpm-lock.yaml`:** quatro dependências novas na api — `@node-rs/argon2` (binários pré-compilados, sem passo de compilação), `@fastify/cookie`, `@fastify/cors` e `@fastify/helmet`. Só acrescentos; nenhuma entrada existente alterada. Nada a aprovar em `allowBuilds`.
+- **`apps/web` DEIXOU DE COMPILAR — e a correção é tua, não minha:** `MENSAGEM_POR_CODIGO`, em `apps/web/src/shared/api/erros.ts:23`, é um `Record<FalhaApi['codigo'], string>` exaustivo, e o `ErrorCode` passou a ter mais dois valores. Faltam-lhe duas entradas, com o texto que entenderes:
+  ```
+  UNAUTHENTICATED: 'Precisa de entrar na sua conta para continuar.',
+  FORBIDDEN: 'A sua conta ainda não tem acesso a isto.',
+  ```
+  **Não toquei no ficheiro** — é da tua área, e o protocolo não mo permite. Mas significa que o `build` do CI falha enquanto isto não for feito, além do `lint` que já falhava.
+- **Contratos alterados — e é aqui que preciso de ti:**
+  1. **Dois códigos de erro novos.** `UNAUTHENTICATED` (401): não há sessão válida, ou as credenciais não conferem. `FORBIDDEN` (403): há sessão, mas falta uma condição da conta. A distinção importa à interface — o primeiro leva ao ecrã de entrada, o segundo não. Ambos com `retryable: false`.
+  2. **Secção 7.2 do contrato**, com 11 rotas e quatro convenções novas (A-A1 a A-A4).
+  3. **Pedido formal: revisão cruzada (DT-005).** Nenhuma forma existente mudou; é tudo acrescento.
+- **Três coisas que a interface tem de saber, e que são contraintuitivas:**
+  1. **O cadastro responde `202 { accepted: true }` exista ou não a conta**, e o pedido de recuperação também. **Não escrevas "este e-mail já existe":** a api não to diz, de propósito, porque é assim que se descobre quem está registado. Quem é dono do endereço recebe aviso por e-mail.
+  2. **O token de sessão nunca vem no corpo.** Vai num cookie `HttpOnly`, que o JavaScript não lê — é isso que faz um XSS não valer a conta. Em `fetch`, `credentials: 'include'` quando a api estiver noutra origem; em desenvolvimento o Vite encaminha `/api` e não é preciso.
+  3. **Um `429 too many attempts` pode acontecer com a senha certa.** É o travão por tentativas, e é anterior à verificação da senha. Passa sozinho ao fim da janela.
+- **Para os E2E:** `RATE_LIMIT_MAX=0` **e `AUTH_RATE_LIMIT_MAX=0`** — este segundo é novo, e por omissão é 10 por minuto, que uma bateria de testes de autenticação ultrapassa à vontade. Para as contas é preciso também `DATABASE_FILE` e `AUTH_IP_HASH_SECRET`; **sem `DATABASE_FILE` as rotas de conta não existem**, o que mantém o modo só-esportes a funcionar como antes.
+- **Bloqueios:** nenhum para continuar
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/api test` → **102/102** (eram 71); `packages/contracts` → 25/25;
+  - cobertura da api → **92,62% instruções, 84,8% ramos**, acima da meta de 80% da DT-015;
+  - `pnpm lint` → **4 erros, os mesmos, todos em `apps/web`**, nenhum meu;
+  - `pnpm build` → **falha em `apps/web`**, pela razão acima; `apps/api` e `packages/contracts` compilam;
+  - **servidor compilado a correr**, com base de dados em ficheiro: cadastro com `Pedro@Exemplo.PT` e repetição com `pedro@exemplo.pt` deram **o mesmo `202`** e **uma só conta**; entrada antes de verificar deu `403`; depois de verificar, `201`, e `/api/accounts/me` a `200`; cinco falhas deram `401` e a sexta `429`, **e a senha certa a seguir também deu `429`**; na base de dados a senha está em `$argon2id$v=19$m=19456,t`, e nem a senha, nem o e-mail, nem `127.0.0.1` aparecem fora da tabela `accounts`.
+- **Um erro meu, corrigido, que vale registar:** usei o `Set-Content` do PowerShell para alterar o ficheiro de testes, e isso reescreveu-lhe a codificação e estragou todos os acentos. O `lint` apanhou-o (`no-irregular-whitespace`) e o ficheiro foi reescrito. Fica o aviso: nesta máquina, não editar ficheiros de código com `Set-Content`
+- **Próxima ação recomendada:** o Pedro aprova o commit e atualiza o `CLAUDE.md`; o `frontend` corrige o `erros.ts` e regista a revisão cruzada. Do lado do `backend` ficam por fazer os **requisitos funcionais das contas** (RF-001 a RF-008 não os cobrem), o **provedor de e-mail** e o **MFA**
 
 ### 2026-10-28 — S-1 e S-2 corrigidos: limite de pedidos e teto do cursor (DT-019)
 

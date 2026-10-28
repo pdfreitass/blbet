@@ -143,11 +143,15 @@ O cassino é um catálogo. Nenhum jogo é executado, nem em modo demonstrativo c
 
 Favoritos vivem no armazenamento local do navegador do usuário. Não trafegam para servidor, não são compartilhados entre dispositivos e podem ser perdidos ao limpar os dados do navegador — comportamento aceito nesta fase.
 
-### RN-006 — Perfil sem dados pessoais reais
+### RN-006 — Contas reais, sem verificação de identidade
 
-O perfil é demonstrativo. Não há autenticação real, cadastro, coleta de dados pessoais verdadeiros, KYC ou verificação de identidade.
+**Revista pela [DT-020](decisoes-tecnicas.md#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo), 2026-10-28.** Redação anterior: ~~"O perfil é demonstrativo. Não há autenticação real, cadastro, coleta de dados pessoais verdadeiros, KYC ou verificação de identidade."~~
+
+Existem contas reais, com cadastro, autenticação e sessões. O e-mail é dado pessoal e a LGPD aplica-se: recolhe-se o mínimo, guarda-se a senha em resumo Argon2id e o endereço IP só em resumo. **Continua a não haver KYC nem verificação de identidade** — isso depende da RN-007, que não foi revogada. Os requisitos funcionais das contas ainda não estão escritos: RF-001 a RF-008 não os cobrem.
 
 ### RN-007 — Sem funcionalidade dependente de autorização regulatória
+
+**Em vigor.** A [DT-020](decisoes-tecnicas.md#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo) criou contas e **não** tocou nesta regra: carteira, depósitos, saques, KYC e jogo responsável com efeito operacional continuam fora de escopo, e cada um exige decisão própria registada.
 
 Nenhuma funcionalidade que exija licenciamento, parecer jurídico ou conformidade regulatória entra em escopo nesta fase — incluindo verificação de idade com efeito operacional, restrição por jurisdição e ferramentas de jogo responsável com efeito operacional.
 

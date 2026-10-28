@@ -4,6 +4,10 @@ import { type AppConfig, InvalidEnvError, loadConfig } from './config/env.js';
 import { loadRecording, type Recording, RecordingError } from './modules/sports/recorded/recording.js';
 import { createSportsCatalog, type SportsCatalog } from './modules/sports/sports-catalog.js';
 import { createSportsbookClient } from './modules/sports/sportsbook/client.js';
+import { openDatabase } from './db/database.js';
+import { createSqliteAccountsRepository } from './modules/accounts/accounts-repository.js';
+import { createAccountsService, type AccountsService } from './modules/accounts/accounts-service.js';
+import { createLoggingMailer, createRefusingMailer } from './modules/accounts/mailer.js';
 
 const PROVIDER_TIMEOUT_MS = 10_000;
 const MINUTE_MS = 60_000;
@@ -45,12 +49,42 @@ function sportsCatalogFor(
   });
 }
 
+// Contas (DT-020). Sem DATABASE_FILE não há rotas de conta: é o estado anterior à decisão, e
+// serve para correr a api só com esportes.
+function accountsFor(config: AppConfig): AccountsService | undefined {
+  if (!config.DATABASE_FILE || !config.AUTH_IP_HASH_SECRET) return undefined;
+
+  const db = openDatabase({ file: config.DATABASE_FILE });
+  return createAccountsService({
+    repository: createSqliteAccountsRepository(db),
+    // Não há provedor de e-mail escolhido: fora de produção a mensagem vai para a saída, e em
+    // produção o envio falha em vez de fingir que foi enviado.
+    mailer: config.NODE_ENV === 'production' ? createRefusingMailer() : createLoggingMailer(),
+    policy: {
+      sessionIdleMinutes: config.SESSION_IDLE_MINUTES,
+      sessionAbsoluteHours: config.SESSION_ABSOLUTE_HOURS,
+      verificationTtlHours: config.EMAIL_VERIFICATION_TTL_HOURS,
+      passwordResetTtlMinutes: config.PASSWORD_RESET_TTL_MINUTES,
+      maxFailuresPerAccount: config.AUTH_MAX_FAILURES_PER_ACCOUNT,
+      maxFailuresPerIp: config.AUTH_MAX_FAILURES_PER_IP,
+      failureWindowMinutes: config.AUTH_FAILURE_WINDOW_MINUTES,
+      requireVerifiedEmail: config.AUTH_REQUIRE_VERIFIED_EMAIL,
+      ipHashSecret: config.AUTH_IP_HASH_SECRET,
+      publicUrl: config.PUBLIC_URL,
+    },
+  });
+}
+
 async function main(): Promise<void> {
   const config = loadConfig();
   const recording = config.SPORTS_MODE === 'recorded' ? loadRecording() : undefined;
   const now = clockFor(config, recording);
   const sports = sportsCatalogFor(config, recording, now, () => app.log);
-  const app = buildApp(config, { sports, now });
+  const accounts = accountsFor(config);
+  const app = buildApp(config, { sports, accounts, now });
+  if (!accounts) {
+    app.log.warn('DATABASE_FILE ausente: as rotas de conta não estão registadas');
+  }
   if (recording) {
     app.log.warn(
       { competitions: recording.competitions, clock: now().toISOString() },

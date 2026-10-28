@@ -51,6 +51,8 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-017](#dt-017--estratégia-de-estado-da-interface) | Navegação no endereço, dados do servidor em hooks próprios, Context só para o partilhado, mais cache curto de 30 s | DP-005 | aprovada |
 | [DT-018](#dt-018--modo-de-teste-da-api-com-respostas-gravadas) | Modo de teste da api com respostas gravadas e relógio parado, para os E2E | DT-015 (etapa 4), PA-008 | aprovada |
 | [DT-019](#dt-019--limite-de-pedidos-na-api-e-teto-do-cursor) | Limite de pedidos por cliente (`@fastify/rate-limit`) e teto de 1024 caracteres no cursor | S-1 e S-2 da revisão de segurança (RNF-004) | aprovada |
+| [DT-020](#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo) | O blbet passa a ter contas reais: cadastro, autenticação, sessões e auditoria. **Revê a RN-006**; RN-001 e RN-007 ficam | Pedido do Pedro, 2026-10-28 | aprovada |
+| [DT-021](#dt-021--persistência-sqlite-agora-postgresql-em-produção) | Persistência relacional com migrações versionadas, atrás de uma costura de repositório | DT-020 | aprovada |
 
 ---
 
@@ -619,3 +621,84 @@ Acompanham a decisão:
 - O S-3 da revisão (cabeçalhos de segurança e CORS) **continua aberto**, ligado à plataforma de publicação (DP-008).
 
 **Pendências** — revisão cruzada do `frontend` à mudança em `packages/contracts`; e, antes de publicar, decidir se o limite por omissão serve para o tráfego real, que hoje ninguém conhece.
+
+~~O S-3 continua aberto.~~ **Fechado pela DT-020**, que trouxe os cabeçalhos de segurança e o CORS restrito sem esperar pela DP-008: a lista de origens é configuração, não decisão de arquitetura.
+
+---
+
+### DT-020 — Contas de utilizador e autenticação (mudança de escopo)
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** **Pedro**, 2026-10-28, autorizando expressamente a mudança de escopo depois de lhe ser apresentada a colisão com as regras em vigor
+- **Registado por:** `backend`
+- **Revê:** **RN-006** do `requisitos.md` e a secção "Natureza do projeto" do `CLAUDE.md`. **RN-001 (sem transações financeiras) e RN-007 (nada que dependa de autorização regulatória) continuam em vigor** — esta decisão cria contas, não dinheiro
+
+**Contexto** — Até aqui o blbet era, por decisão registada, um protótipo demonstrativo: a **RN-006** dizia textualmente "não há autenticação real, cadastro, coleta de dados pessoais verdadeiros, KYC ou verificação de identidade", a **RN-001** proibia qualquer operação financeira e a **RN-007** excluía tudo o que dependesse de autorização regulatória. Nenhum requisito funcional de RF-001 a RF-008 menciona contas. O Pedro pediu um backend de autenticação e segurança; essa colisão foi-lhe apresentada por escrito, com as regras citadas, e ele autorizou a mudança.
+
+**Decisão** — O blbet passa a ter **contas reais**, com o que isso implica em proteção de dados. O que entra **agora**:
+
+| Entrega | Estado |
+|---|---|
+| Cadastro com validação no servidor e senha em Argon2id | feito |
+| Verificação de e-mail, com token de uso único | feito |
+| Entrada e saída, com sessão em cookie `HttpOnly`, `Secure`, `SameSite=Strict` | feito |
+| Expiração por inatividade **e** teto absoluto da sessão | feito |
+| Lista e revogação de sessões, uma a uma ou todas as outras | feito |
+| Recuperação e redefinição de senha, que derruba todas as sessões | feito |
+| Alteração de senha com reautenticação | feito |
+| Travão progressivo por conta e por origem, e limite próprio nas rotas de autenticação | feito |
+| Proteção contra enumeração de contas, com respostas genéricas | feito |
+| Registo de eventos de segurança, sem segredos nem dados pessoais em claro | feito |
+| Cabeçalhos de segurança, CORS restrito e teto do corpo do pedido (fecha o **S-3**) | feito |
+
+O que **fica de fora, e porquê**:
+
+- **MFA, carteira, depósitos, saques, KYC e jogo responsável com efeito operacional.** Nada disto é a mesma fase. A **RN-007** não é revogada por esta decisão: continua a valer para tudo o que dependa de licenciamento. Dinheiro real exige decisão própria, aqui registada, e é anterior ao código.
+- **Provedor de e-mail.** Não há nenhum escolhido. A api define a costura (`Mailer`) e, fora de produção, escreve a mensagem na saída; **em produção recusa enviar**, para não fingir que enviou. Escolher o provedor é decisão em aberto.
+
+**Alternativas consideradas**
+
+- **Token assinado (JWT) em vez de sessão na base de dados**: rejeitado. Revogar um token assinado obriga a manter na mesma uma lista do lado do servidor, o que anula a vantagem; e o requisito de "revogação de sessões" e de "invalidar sessões após eventos críticos" é central aqui. Um token opaco, cuja verdade está na base de dados, revoga-se apagando uma linha.
+- **Token no corpo da resposta, guardado pela interface**: rejeitado. Qualquer XSS passaria a valer a conta. O cookie `HttpOnly` não é legível por JavaScript.
+- **Responder `409` a um cadastro com e-mail repetido**: rejeitado. É a forma mais comum de descobrir quem tem conta numa plataforma. A resposta é a mesma; quem é dono do endereço recebe aviso por e-mail.
+- **`scrypt` do `node:crypto`, sem dependência nova**: rejeitado. O pedido do Pedro nomeia Argon2id, e o `@node-rs/argon2` traz binários pré-compilados — não há passo de compilação no Windows.
+
+**Consequências**
+
+- **`packages/contracts` mudou:** dois códigos de erro novos (`UNAUTHENTICATED` 401, `FORBIDDEN` 403) e o módulo `accounts.ts`. **Exige revisão cruzada do `frontend`** (DT-005).
+- **O `apps/web` deixou de compilar** por causa disso: `MENSAGEM_POR_CODIGO`, em `apps/web/src/shared/api/erros.ts`, é exaustivo sobre `ErrorCode` e passa a faltar-lhe duas entradas. É ficheiro do `frontend` e **não foi alterado pelo `backend`**; o pedido está no quadro.
+- **`pnpm-lock.yaml` mudou** (ficheiro partilhado): `@node-rs/argon2`, `@fastify/cookie`, `@fastify/cors`, `@fastify/helmet`.
+- **O `CLAUDE.md` ficou desatualizado** na secção "Natureza do projeto". É ficheiro do Pedro e não foi alterado.
+- **Passa a haver dados pessoais.** A LGPD aplica-se a partir de agora: só `accounts` guarda dado pessoal, para a eliminação ser localizada; endereços IP são guardados em resumo com segredo; senhas e tokens nunca aparecem em log.
+
+**Pendências** — escrever os requisitos funcionais das contas, que não existem (RF-001 a RF-008 não os cobrem); escolher o provedor de e-mail; MFA; e a decisão separada, com parecer próprio, antes de qualquer funcionalidade financeira.
+
+---
+
+### DT-021 — Persistência: SQLite agora, PostgreSQL em produção
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** `backend`, dentro da autorização da DT-020
+- **Registado por:** `backend`
+- **Resolve:** a parte da **DP-009** que faltava — até aqui não havia base de dados nenhuma
+
+**Contexto** — O `arquitetura.md` dizia "nenhum banco de dados definido". Contas sem persistência durável não existem. Foi recomendado PostgreSQL ao Pedro e ele aprovou; mas o PostgreSQL exige um servidor que esta máquina não tem, e esperar por isso deixaria a DT-020 sem nada entregue.
+
+**Decisão** — **Uma costura de repositório** (`AccountsRepository`), que o serviço consome e que é a única coisa que sabe SQL. Por trás dela, **SQLite pela biblioteca `node:sqlite` que vem com o Node 24**: sem dependência nova, sem servidor, e a correr em Windows. Migrações **versionadas e imutáveis**, cada uma numa transação; uma migração aplicada nunca é editada.
+
+**Isto não é a escolha de produção.** O destino continua a ser **PostgreSQL**, e a costura existe exatamente para que a troca não toque no serviço nem nas rotas. O que muda é só a implementação do repositório.
+
+**Alternativas consideradas**
+
+- **PostgreSQL já**: adiado, não rejeitado. Exige um servidor a instalar e configurar antes de existir uma linha de código de contas.
+- **Um ORM (Prisma, Drizzle)**: rejeitado por agora. Traria gerador, esquema próprio e um passo de build, para sete tabelas que cabem em SQL simples. A costura deixa a porta aberta.
+- **Guardar as sessões em memória**: rejeitado. Morreriam a cada reinício e não sobreviveriam a mais de um processo.
+
+**Consequências**
+
+- `node:sqlite` ainda é marcado como experimental pelo Node: pode emitir aviso no arranque e a sua API pode mudar numa versão maior.
+- O SQLite escreve um ficheiro só: não serve para mais de uma instância da api a escrever ao mesmo tempo. Enquanto for uma, chega.
+
+**Pendências** — portar o repositório para PostgreSQL antes de publicar, e decidir onde a base de dados vive (ligado à DP-008).
