@@ -462,7 +462,7 @@
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (auditoria de alinhamento, filtro por competição e teto da busca). Registo anterior: lint, ecrãs de conta da DT-020, E2E e revisão cruzada
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (o CI falha agora no passo de cobertura, em `packages/contracts`). Registo anterior: auditoria de alinhamento, filtro por competição e teto da busca. Registo anterior: lint, ecrãs de conta da DT-020, E2E e revisão cruzada
 
 ### Situação
 
@@ -474,13 +474,43 @@
 - **E2E (PA-008, DT-015): a correr.** 12 testes em `e2e/`, **12 a passar**, contra a api em modo gravado e com base de dados nova por execução. Comando: `pnpm e2e`
 - **Ficheiros partilhados da raiz que toquei**, com o aviso prévio registado abaixo: `package.json` (`@playwright/test`, scripts `e2e` e `dev:web`), `pnpm-lock.yaml` (**+28 linhas, só acrescentos**) e `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre outra vez**
 - **Reserva de numeração — frontend:** **DT-022 reservada e usada** (caminhos dos ecrãs de conta). Próximo livre: **DT-023**
-- **Pendências para o agente `backend`:** os oito ajustes A-R1 a **A-R8** da revisão cruzada — e nota que eles só lhe chegam depois de o Pedro integrar, porque o quadro é por branch. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
+- **CI:** o passo `lint` deixou de falhar, mas o `pnpm -r coverage` **falha em `packages/contracts`** (70,21%, abaixo dos 80% da DT-015), porque o `accounts.ts` da DT-020 entrou sem testes. Não é desta branch — o `frontend` não tocou nesse pacote, e a falha existe igual em `origin/feat/backend-foundation` desde `2deb608`; o `lint` é que a tapava. Pedido **A-R9** ao `backend`
+- **Pendências para o agente `backend`:** os nove ajustes A-R1 a **A-R9** da revisão cruzada — e nota que eles só lhe chegam depois de o Pedro integrar, porque o quadro é por branch. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
 - **Pendências para o Pedro:** (1) **aprovar o commit** — nada foi commitado; (2) **dizer em que branch devo trabalhar.** Esta sessão está num clone único em `C:/Users/Usuario/blbet`, na `feat/backend-foundation`, que é a do `backend`, e **não mudei de branch nem criei nenhuma**; (3) o `CLAUDE.md` continua desatualizado na secção "Natureza do projeto", e agora também na lista de código existente
 - **Bloqueios:** nenhum
 - **Testes executados e resultados — reais:** `pnpm lint` → **limpo, 0 erros** · `pnpm typecheck` → ok nos três pacotes · `pnpm test` → contracts 25/25, api 102/102, web **187/187** (eram 141) · `pnpm --filter @blbet/web coverage` → 95,13% instruções, 86,33% ramos, 94,90% funções, 95,41% linhas, acima da meta da DT-015 · `pnpm build` → ok nos três · `pnpm e2e` → **12/12** · ecrãs de conta abertos no navegador contra a api a sério
 - **Próxima ação recomendada:** o Pedro integra a branch `feat/frontend-contas`, para que os pedidos cheguem ao `backend`; o `backend` responde aos ajustes A-R1 a A-R8, com prioridade para a **A-R6** (sem saída para quem não confirmou o e-mail) e a **A-R8** (um enumerado novo parte a listagem inteira)
 
 ### Histórico
+
+### 2026-10-28 — O CI continua a falhar, agora no passo de cobertura — e é em `packages/contracts`
+
+- **Agente responsável:** frontend (achado; **a correção não é minha**)
+- **Tarefa executada:** correr localmente a sequência exata do `ci.yml`, passo a passo, antes de o Pedro integrar
+
+**O que acontece.** Corrigir os 4 erros de lint não partiu nada — **destapou** uma segunda falha que o `lint` escondia, por correr antes dela:
+
+| Passo do `ci.yml` | Resultado local |
+|---|---|
+| `pnpm install --frozen-lockfile` | ok |
+| `pnpm typecheck` | ok, 0 erros |
+| `pnpm lint` | **ok** — era aqui que falhava antes |
+| `pnpm -r coverage` | **FALHA**, em `packages/contracts` |
+| `pnpm build` | nunca chega a correr |
+
+**Onde e porquê.** `packages/contracts`: 70,21% instruções, 75% funções, 70,21% linhas — abaixo dos 80% da DT-015. O `pnpm -r` para no primeiro pacote que falha, por isso a api e o `apps/web` nem chegam a ser medidos (medidos à parte, passam os dois: api 92,62% / 84,8%; web 95,13% / 86,33%).
+
+A causa é direta: **`packages/contracts/src/accounts.ts` entrou com a DT-020 (`2deb608`) e não trouxe ficheiro de teste.** O diretório `packages/contracts/test/` tem dois ficheiros, `envelope.test.ts` e `sports.test.ts`, tanto hoje como em `cf78cb2`. Um módulo novo sem testes num pacote com limiar faz a média cair.
+
+**Não é da minha branch.** `git diff cf78cb2..HEAD -- packages/contracts` está **vazio**: o `frontend` não tocou uma linha nesse pacote. A falha existe tal e qual em `origin/feat/backend-foundation`, desde `2deb608` — simplesmente estava tapada pelo `lint`, que falhava primeiro e abortava o trabalho.
+
+**Pedido ao `backend` — `A-R9`:** testes para `packages/contracts/src/accounts.ts` que reponham o pacote acima do limiar da DT-015. `packages/contracts/**` é área exclusiva do `backend` (secção 2 do protocolo) e **não escrevo lá**. Enquanto não for feito, o CI falha em qualquer push, e isso vale também para a branch do `backend`.
+
+**Nota sobre o relato da DT-020:** a entrada da DT-020 reporta "contracts 25/25" e a cobertura da **api**, mas não a cobertura dos **contracts**. É por isso que isto passou despercebido — `pnpm --filter @blbet/api coverage` passa, e `pnpm -r coverage` não.
+
+- **Bloqueios:** nenhum para o `frontend`. Para o CI ficar verde, depende do `backend`
+- **Testes executados e resultados — reais:** a tabela acima, corrida nesta máquina, nesta branch, a 2026-10-28
+- **Próxima ação recomendada:** o `backend` escreve os testes do `accounts.ts` dos contratos
 
 ### 2026-10-28 — Auditoria de alinhamento entre back e front; filtro por competição e teto da busca
 
