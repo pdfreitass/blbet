@@ -49,7 +49,7 @@
 
 ## Seção Backend
 
-**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-28
+**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-29 (A-R10 e A-R11 fechadas; as duas branches integradas na `main`, com o CI verde)
 
 ### Situação
 
@@ -61,11 +61,53 @@
 - **AVISO — o `backend` tocou num ficheiro teu:** `apps/web/src/shared/api/erros.ts`, só para lhe acrescentar as duas entradas de `MENSAGEM_POR_CODIGO` que faltavam (`UNAUTHENTICATED`, `FORBIDDEN`). **O Pedro autorizou-o diretamente**, a 2026-10-28, porque o `build` do CI estava a falhar. Nada mais do `apps/web` foi alterado, e as mensagens são tuas para mudar se não gostares delas
 - **Pendências para o Pedro:** ~~aprovar o commit.~~ **Feito:** publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `2deb608`. Fica o **`CLAUDE.md` desatualizado** na secção "Natureza do projeto" — é ficheiro dele e não foi alterado. **Atenção: este push deixa o CI a falhar também no `build`**, por causa do `apps/web`
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
-- **Testes executados e resultados:** 2026-10-28, com o teste da A-R9: `pnpm -r typecheck` ok nos três pacotes · `pnpm -r coverage` → contracts **46/46, 100%**, api **102/102, 92,62% inst.**, web **141/141, 92,2% inst.**, os três acima da meta da DT-015 · `pnpm lint` com os **4 erros conhecidos de `apps/web`**, nenhum meu · `pnpm -r build` ok, **`apps/web` já compila** · fluxo de contas verificado no servidor compilado a correr
+- **Testes executados e resultados:** 2026-10-29, na `main` unificada (`c17af2f`) com as correções A-R10 e A-R11: `pnpm -r typecheck` ok nos três · `pnpm lint` **limpo, 0 erros** · `pnpm -r coverage` → contracts **100%**, api **92,62%**, web **95,13%**, os três acima da meta da DT-015 · `pnpm -r build` ok · **CI do GitHub na `main`: success**
 - **Reserva de numeração — backend:** **DT-023 reservada** (resposta a A-R1 a A-R6 e A-R8). Próximo livre depois dela: **DT-024**
-- **Próxima ação recomendada:** os nove pedidos da revisão cruzada estão respondidos no histórico abaixo, e a **A-R9 está corrigida** — o passo de cobertura do CI fica verde. O Pedro aprova este commit e a **DT-023** (A-R6 rota de reenvio, A-R8 PC-014, A-R1 `changePasswordSchema`, A-R2/A-R3/A-R4 `details`, A-R5 na 7.2); depois, as gravações extra para os E2E
+- **Próxima ação recomendada:** o Pedro aprova a **DT-023** (A-R6 rota de reenvio, A-R8 PC-014, A-R1 `changePasswordSchema`, A-R2/A-R3/A-R4 `details`, A-R5 na 7.2); depois dela, as gravações extra para os E2E. O `frontend` faz `git merge main` na sua worktree
 
 ### Histórico
+
+### 2026-10-29 — A-R10 e A-R11 fechadas; a `main` ficou unificada e com o CI verde
+
+- **Agente responsável:** backend
+- **Tarefa executada:** os dois achados da verificação independente do `frontend` (`af4d103`), e a integração das duas branches na `main`, pedida pelo Pedro
+- **Arquivos modificados:** `apps/api/.gitignore` (novo), `apps/api/src/db/database.ts`, `apps/api/test/database.test.ts` (novo), `apps/api/README.md` e este quadro
+- **Contratos ou interfaces alterados:** **nenhum**
+
+#### A-R10 — a base de dados de contas fora do `.gitignore` — **corrigida**
+
+Confirmei o achado antes de agir: `git check-ignore -v apps/api/data/blbet.db` não devolvia regra nenhuma, e o `.gitignore` da raiz só cobre `node_modules/`, `dist/`, `coverage/`, `*.log` e os `.env`.
+
+**Nada vazou.** Procurei em **todas** as branches por ficheiros `.db`/`.sqlite` e por `apps/api/data/` adicionados em qualquer commit — zero ocorrências. O risco era futuro.
+
+Criado `apps/api/.gitignore` — no pacote, não na raiz partilhada, como pedias — a cobrir `data/`, `*.db`, `*.db-shm` e `*.db-wal`. Verificado: `git check-ignore -v` aponta agora para a regra, para o `.db` e para o `-wal`.
+
+#### A-R11 — a api não criava a pasta da base de dados — **corrigida**
+
+Confirmado: `database.ts` fazia `new DatabaseSync(file)` sem `mkdir` nem `dirname`. `openDatabase` passa a criar a pasta em falta, com níveis intermédios, e um erro de criação sai com a mensagem que diz qual é a pasta — em vez do `unable to open database file` do SQLite. `:memory:` não cria nada.
+
+Teste novo, `apps/api/test/database.test.ts`: cria pasta aninhada que não existe e abre a base utilizável, reabre uma base existente sem perder as migrações, e a base em memória. **3/3 passam.** O `README.md` da api deixou de precisar do `mkdir` e diz agora que a base nunca entra no git.
+
+#### A `main` está unificada, e o CI dela está verde
+
+Por instrução do Pedro, integrei as duas branches por merge, sem squash: **#2** `feat/frontend-contas` → `8d2bd97`, **#1** `feat/backend-foundation` → `c17af2f`. A `main` contém as duas pontas.
+
+Cada PR estava vermelho exatamente onde o outro trazia a correção — o meu no `lint` (os 4 erros de `apps/web`), o teu na cobertura (`packages/contracts`, sem o teste da A-R9). **Juntos ficam verdes:** o run da `main` em `c17af2f` deu **success**.
+
+O site foi aberto e exercitado no navegador sobre a `main`: esportes com os jogos da EPL, cassino, busca, perfil, sair, criar conta — com a resposta genérica da A-A2 — e entrar com o e-mail em maiúsculas e com espaços, que normalizou.
+
+- **Pendências para o agente `frontend`:** (1) **`git merge main` na tua worktree** — ela está em `af4d103` e a `main` já tem tudo; (2) a tua worktree tem `apps/api/data/` por rastrear, que o `.gitignore` novo passa a cobrir depois do merge; (3) **colisão de numeração:** a tua secção diz "próximo livre DT-023", mas a **DT-023 é minha**, reservada em `27c8e45` para A-R1 a A-R6 e A-R8 — o teu próximo livre é o **DT-024**; (4) a revisão cruzada da DT-023, quando ela existir
+- **Pendências para o Pedro:** aprovar a DT-023 antes de eu a escrever. O **`CLAUDE.md` continua desatualizado** na secção "Natureza do projeto", que não menciona as contas, e na lista de código existente, que ainda diz que o perfil é só um estado vazio — é ficheiro dele
+- **Bloqueios:** nenhum
+- **Reserva de numeração — backend:** **DT-023** continua reservada. Próximo livre depois dela: **DT-024**
+- **Testes executados e resultados (reais, na `main` com estas correções):**
+  - `pnpm -r typecheck` → ok nos três pacotes;
+  - `pnpm lint` → **limpo, 0 erros**;
+  - `pnpm -r coverage` → contracts **100%**, api **92,62% instruções**, web **95,13% instruções**, os três acima da meta da DT-015;
+  - `pnpm -r build` → ok nos três;
+  - `apps/api`: o teste novo da A-R11, **3/3**;
+  - CI do GitHub na `main`, `c17af2f` → **success**.
+- **Próxima ação recomendada:** o Pedro aprova a DT-023 (A-R1 a A-R6 e A-R8); depois dela, as gravações extra para os E2E
 
 ### 2026-10-28 — Resposta aos nove pedidos da revisão cruzada da DT-020 (A-R1 a A-R9); A-R9 corrigida
 
