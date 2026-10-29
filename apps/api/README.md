@@ -41,7 +41,7 @@ O `.env` não é versionado. As variáveis são validadas no arranque (`src/conf
 | `RATE_LIMIT_WINDOW_SECONDS` | `60` | 1 ou mais |
 | `CORS_ORIGINS` | vazio | origens autorizadas, separadas por vírgula (S-3) |
 | `BODY_LIMIT_BYTES` | `65536` | teto do corpo de um pedido (S-3) |
-| `DATABASE_FILE` | ausente | ficheiro SQLite. **Sem isto não há rotas de conta** (DT-021) |
+| `DATABASE_FILE` | ausente | ficheiro SQLite, ex.: `data/blbet.db`. A pasta é criada se faltar. **Sem isto não há rotas de conta** (DT-021) |
 | `AUTH_IP_HASH_SECRET` | ausente | obrigatório com `DATABASE_FILE`; 32 caracteres ou mais |
 | `SESSION_IDLE_MINUTES` | `60` | inatividade até a sessão morrer |
 | `SESSION_ABSOLUTE_HOURS` | `168` | teto absoluto da sessão |
@@ -57,6 +57,10 @@ Com `DATABASE_FILE` definido, a api regista as rotas da secção 7.2 do
 [contrato](../../docs/api-contract.md): cadastro, verificação de e-mail, entrada e saída, lista e
 revogação de sessões, recuperação e alteração de senha. **Sem `DATABASE_FILE` essas rotas não
 existem** e a api serve só esportes — que é o estado anterior a esta decisão.
+
+O ficheiro e a pasta que o contém são criados na primeira abertura, e a base guarda endereços de
+e-mail, resumos de senha e sessões: **nunca entra no git**. O [`.gitignore`](.gitignore) deste
+pacote cobre `data/` e os ficheiros `*.db*`.
 
 - A senha é guardada em **Argon2id** (19 MiB, 2 passagens), nunca em claro.
 - A sessão vai num cookie `HttpOnly`, `Secure` e `SameSite=Strict`; **o token nunca aparece no

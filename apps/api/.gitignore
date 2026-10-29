@@ -1,0 +1,6 @@
+# Base de dados local de contas (DT-021). Contém endereços de e-mail, resumos de senha e
+# sessões: nunca entra no git. Pedido A-R10 do `frontend`.
+data/
+*.db
+*.db-shm
+*.db-wal

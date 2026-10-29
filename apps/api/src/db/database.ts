@@ -1,3 +1,5 @@
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { MIGRATIONS } from './migrations.js';
 
@@ -15,6 +17,7 @@ export interface OpenOptions {
 }
 
 export function openDatabase({ file }: OpenOptions): Database {
+  ensureDirectory(file);
   const db = new DatabaseSync(file);
   // Sem isto o SQLite ignora as chaves estrangeiras declaradas nas migrações.
   db.exec('pragma foreign_keys = on');
@@ -24,6 +27,21 @@ export function openDatabase({ file }: OpenOptions): Database {
   db.exec('pragma busy_timeout = 5000');
   migrate(db);
   return db;
+}
+
+/**
+ * Cria a pasta do ficheiro, se faltar. Sem isto o SQLite morre com `unable to open database file`,
+ * que não diz a quem lê que falta uma pasta. Pedido A-R11 do `frontend`.
+ */
+function ensureDirectory(file: string): void {
+  if (file === ':memory:' || file === '') return;
+  const pasta = dirname(file);
+  if (pasta === '' || pasta === '.') return;
+  try {
+    mkdirSync(pasta, { recursive: true });
+  } catch (error) {
+    throw new Error(`Não foi possível criar a pasta da base de dados (${pasta}): ${(error as Error).message}`, { cause: error });
+  }
 }
 
 /** Aplica as migrações em falta, cada uma numa transação. Já aplicada, nunca volta a correr. */
