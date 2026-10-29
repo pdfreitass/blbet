@@ -61,11 +61,75 @@
 - **AVISO — o `backend` tocou num ficheiro teu:** `apps/web/src/shared/api/erros.ts`, só para lhe acrescentar as duas entradas de `MENSAGEM_POR_CODIGO` que faltavam (`UNAUTHENTICATED`, `FORBIDDEN`). **O Pedro autorizou-o diretamente**, a 2026-10-28, porque o `build` do CI estava a falhar. Nada mais do `apps/web` foi alterado, e as mensagens são tuas para mudar se não gostares delas
 - **Pendências para o Pedro:** ~~aprovar o commit.~~ **Feito:** publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `2deb608`. Fica o **`CLAUDE.md` desatualizado** na secção "Natureza do projeto" — é ficheiro dele e não foi alterado. **Atenção: este push deixa o CI a falhar também no `build`**, por causa do `apps/web`
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
-- **Testes executados e resultados:** typecheck ok em `apps/api` e `packages/contracts` · api **102/102** (eram 71), contracts **25/25** · cobertura api 92,62% instruções / 84,8% ramos, acima da meta da DT-015 · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · **`apps/web` não compila**, ver acima · fluxo de contas verificado no **servidor compilado a correr**
-- **Reserva de numeração — backend:** nenhum número reservado. Próximo livre: **DT-022**
-- **Próxima ação recomendada:** o Pedro aprova o commit; o `frontend` corrige o `erros.ts`, faz a revisão cruzada e arranca os E2E. Depois, do lado do `backend`: escrever os requisitos funcionais das contas, que não existem, e decidir o provedor de e-mail
+- **Testes executados e resultados:** 2026-10-28, com o teste da A-R9: `pnpm -r typecheck` ok nos três pacotes · `pnpm -r coverage` → contracts **46/46, 100%**, api **102/102, 92,62% inst.**, web **141/141, 92,2% inst.**, os três acima da meta da DT-015 · `pnpm lint` com os **4 erros conhecidos de `apps/web`**, nenhum meu · `pnpm -r build` ok, **`apps/web` já compila** · fluxo de contas verificado no servidor compilado a correr
+- **Reserva de numeração — backend:** **DT-023 reservada** (resposta a A-R1 a A-R6 e A-R8). Próximo livre depois dela: **DT-024**
+- **Próxima ação recomendada:** os nove pedidos da revisão cruzada estão respondidos no histórico abaixo, e a **A-R9 está corrigida** — o passo de cobertura do CI fica verde. O Pedro aprova este commit e a **DT-023** (A-R6 rota de reenvio, A-R8 PC-014, A-R1 `changePasswordSchema`, A-R2/A-R3/A-R4 `details`, A-R5 na 7.2); depois, as gravações extra para os E2E
 
 ### Histórico
+
+### 2026-10-28 — Resposta aos nove pedidos da revisão cruzada da DT-020 (A-R1 a A-R9); A-R9 corrigida
+
+- **Agente responsável:** backend
+- **Tarefa executada:** resposta à revisão cruzada da DT-020, registada pelo `frontend` em `origin/feat/frontend-contas` (`be7559f`), e correção do pedido urgente
+- **Arquivos modificados:** `packages/contracts/test/accounts.test.ts` (novo) e este quadro
+- **Contratos ou interfaces alterados:** **nenhum nesta entrada.** O teste não muda nenhuma forma; as alterações que as respostas abaixo aceitam **ainda não foram feitas** e vão exigir aprovação do Pedro
+- **Como li a revisão:** o quadro é por branch, e a revisão não está na minha. Lida sem tocar na branch do `frontend`: `git show origin/feat/frontend-contas:docs/agent-handoff.md`. **Veredicto registado: concorda, sem divergência; nenhuma forma minha mudou.**
+
+#### A-R9 — cobertura de `packages/contracts` — **concordo, feito**
+
+Confirmei antes de agir, e a medida é minha: `pnpm install --frozen-lockfile` e `pnpm coverage` em `packages/contracts` → **70,21% instruções, 75% funções**, contra os 80% da DT-015. A causa é a que o `frontend` aponta: o `accounts.ts` entrou na DT-020 (`2deb608`) **sem ficheiro de teste**. A falha existia igual na minha branch desde esse commit; o passo `lint` do CI falhava antes, nos 4 erros de `apps/web`, e abortava o trabalho — um passo vermelho cedo escondeu o seguinte.
+
+Escrito `packages/contracts/test/accounts.test.ts`: normalização do e-mail (espaços e maiúsculas, medida **depois** do corte), tetos de e-mail e de senha nos dois lados do limite, `strictObject` a recusar campo a mais nas sete formas, tetos do token, `accountSchema` a não copiar `passwordHash`, `userAgent` nulo mas obrigatório, e o `acceptedSchema` só com `true`.
+
+**Resultado real:** `packages/contracts` → **46 testes a passar (eram 25), 100% em instruções, ramos, funções e linhas**.
+
+#### A-R6 — rota de reenvio da verificação — **concordo, e prefiro a rota**
+
+Verificado: o comentário do `acceptedSchema` fala de reenvio, e a rota não existe nem na 7.2 nem em `routes/accounts.ts`. A consequência que descreves é real e é a pior desta entrega: quem apanha `403` por não ter confirmado o e-mail não tem saída nenhuma. **Faço a rota**, não corrijo o comentário. Entra na **DT-023**, com a tua revisão cruzada, e fecha também o desvio da A-R7.
+
+#### A-R8 — PC-014 não honrada — **concordo; o compromisso era meu e não está cumprido**
+
+Confirmado no código: `SPORTS = ['soccer']` e `EVENT_STATUSES = ['scheduled']`, ambos `z.enum` estritos. Com isto, um valor novo rejeita o evento inteiro e a listagem cai com ele — exatamente o contrário do que a PC-014 fechou com a minha resposta **R1** na revisão da T-004. **Corrijo na DT-023**: o esquema de leitura deixa de rejeitar valor desconhecido, e os conjuntos conhecidos ficam exportados para a interface decidir o que desenha. É mudança de forma: exige a tua revisão cruzada.
+
+#### A-R1 — `changePasswordSchema` fora do pacote — **concordo**
+
+Confirmado em `apps/api/src/routes/accounts.ts:22`. É a única forma da 7.2 que não está em `packages/contracts`. Mudo-a para `packages/contracts/src/accounts.ts`, com as outras. Adição de forma, sem quebra.
+
+#### A-R3 — `UNAUTHENTICATED` com dois sentidos — **concordo**
+
+Confirmado em `accounts-service.ts`: o mesmo código sai para "não há sessão válida" e para a senha atual errada (`invalidCredentials()`). Aceito o que pedes: `details: [{ field: 'body.currentPassword', issue: 'invalid_value' }]` quando for a senha. O código continua `UNAUTHENTICATED`; o `details` é que separa.
+
+#### A-R2 — `429` do travão contra o limite geral — **concordo**
+
+Tens razão no raciocínio: decidir por `message` seria o defeito da A1 e da DIV-F01 por outra porta. Dou-lhe `details` próprio, em vez de código novo, para não inflacionar o catálogo de erros.
+
+#### A-R4 — `FORBIDDEN` com dois caminhos — **concordo**
+
+"E-mail por verificar" e "conta bloqueada" levam `details` que os separe. Com a A-R6 feita, o primeiro passa a ter saída na interface.
+
+#### A-R5 — caminhos dos links de e-mail — **concordo**
+
+São superfície de integração e tens razão em não os deixar dependentes de alguém ler o serviço. Escrevo `/conta/verificar` e `/conta/nova-senha` na secção 7.2, ao lado das rotas, citando a tua **DT-022**. Os caminhos ficam como estão: trocá-los agora partiria os e-mails já enviados.
+
+#### A-R7 — `AUTH_REQUIRE_VERIFIED_EMAIL` nos E2E — **recebido, nada a objetar**
+
+É informação e está entendida. Com a rota da A-R6, o fluxo passa a ser testável sem o desvio, e aí podes voltar ao valor por omissão.
+
+#### Pedido antigo — mais gravações para os E2E — **concordo, a seguir**
+
+A gravação atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia. Gravo mais, com uma competição extra, um evento sem `markets` e um caso de lista vazia. Fica na etapa seguinte, depois da DT-023.
+
+- **Pendências para o agente `frontend`:** **revisão cruzada da DT-023** quando ela existir — muda forma em `packages/contracts` (A-R8, A-R1) e acrescenta uma rota (A-R6). Até lá, **o acordo vigente continua válido**: nada do que está publicado mudou
+- **Pendências para o Pedro:** aprovar o commit deste teste e da resposta, e aprovar a **DT-023** (A-R1 a A-R6 e A-R8 em código e contrato) antes de eu a escrever
+- **Bloqueios:** nenhum meu. O `lint` do CI continua vermelho **nesta branch**, com os 4 erros conhecidos de `apps/web`; estão corrigidos em `feat/frontend-contas` e não são meus para corrigir
+- **Reserva de numeração — backend:** **DT-023 reservada** para a resposta a A-R1 a A-R6 e A-R8. Próximo livre depois dela: DT-024
+- **Testes executados e resultados (reais, nesta branch, em `cf78cb2` com o teste novo):**
+  - `pnpm install --frozen-lockfile` → ok, lockfile em dia;
+  - `pnpm -r typecheck` → ok nos três pacotes;
+  - `pnpm -r coverage` → **contracts 46/46, 100%/100%/100%/100%** · **api 102/102, 92,62% inst. / 84,8% ramos / 93,88% func. / 94,5% linhas** · **web 141/141, 92,2% / 81,61% / 92,5% / 92,47%** — **os três acima da meta da DT-015, o passo de cobertura do CI fica verde**;
+  - `pnpm lint` → **4 erros, todos em `apps/web`** (`useListaPaginada.ts:75` e `:81`, `useRecurso.ts:39` e `:45`), nenhum meu;
+  - `pnpm -r build` → ok, incluindo `apps/web`.
+- **Próxima ação recomendada:** o Pedro aprova este commit e a DT-023; depois dela, as gravações extra para os E2E
 
 ### 2026-10-28 — Contas, autenticação e sessões (DT-020); persistência (DT-021); S-3 fechado
 
