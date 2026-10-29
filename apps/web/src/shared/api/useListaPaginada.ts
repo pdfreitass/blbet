@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { PedidoCancelado, type Resultado } from './cliente';
+import { mesmasDependencias } from './dependencias';
 import type { OpcoesCarregamento } from './useRecurso';
 import type { FalhaApi } from './erros';
 
@@ -69,24 +70,35 @@ export function useListaPaginada<TItem>(
    */
   const pedidoEmCurso = useRef<AbortController | null>(null);
 
-  // As dependencias declaradas por quem chama sao a fonte de verdade sobre quando a
-  // lista recomeca; `carregar` muda de identidade a cada render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const executar = useCallback(carregar, dependencias);
+  /*
+   * A lista volta ao estado inicial DURANTE O RENDER em que as dependencias mudam, e
+   * nao dentro do efeito. E o padrao que o React documenta para ajustar estado quando
+   * uma entrada muda: sem ele, havia um render em que a tela mostrava ainda os itens
+   * do termo de busca anterior como se fossem do novo.
+   *
+   * A lista comparada inclui `tentativa` porque reiniciar tem de limpar os itens,
+   * mesmo com as dependencias iguais.
+   */
+  const chaves: readonly unknown[] = [...dependencias, tentativa];
+  const [chavesAnteriores, setChavesAnteriores] = useState(chaves);
+
+  if (!mesmasDependencias(chavesAnteriores, chaves)) {
+    setChavesAnteriores(chaves);
+    setEstado({ carregando: true, itens: [], cursor: null, falha: null });
+    setFalhaAoCarregarMais(null);
+    setCarregandoMais(false);
+  }
 
   useEffect(() => {
     const controlador = new AbortController();
     let ativo = true;
 
-    setEstado({ carregando: true, itens: [], cursor: null, falha: null });
-    setFalhaAoCarregarMais(null);
-    setCarregandoMais(false);
     pedidoEmCurso.current?.abort();
     pedidoEmCurso.current = null;
 
     // Reiniciar e sempre um pedido explicito -- vem de "tentar novamente" ou de um
     // cursor obsoleto -- por isso vai a rede (DT-017).
-    executar(undefined, { signal: controlador.signal, ignorarCache: tentativa > 0 })
+    carregar(undefined, { signal: controlador.signal, ignorarCache: tentativa > 0 })
       .then((resultado) => {
         if (!ativo) {
           return;
@@ -116,7 +128,10 @@ export function useListaPaginada<TItem>(
       controlador.abort();
       pedidoEmCurso.current?.abort();
     };
-  }, [executar, tentativa]);
+    // As dependencias declaradas por quem chama sao a fonte de verdade sobre quando a
+    // lista recomeca; `carregar` muda de identidade a cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, chaves);
 
   const reiniciar = useCallback(() => setTentativa((valor) => valor + 1), []);
 
@@ -132,7 +147,7 @@ export function useListaPaginada<TItem>(
     setCarregandoMais(true);
     setFalhaAoCarregarMais(null);
 
-    executar(cursor, { signal: controlador.signal })
+    carregar(cursor, { signal: controlador.signal })
       .then((resultado) => {
         if (controlador.signal.aborted) {
           return;
@@ -166,7 +181,7 @@ export function useListaPaginada<TItem>(
         setCarregandoMais(false);
         setFalhaAoCarregarMais(falhaIlegivel());
       });
-  }, [estado.cursor, carregandoMais, executar, reiniciar]);
+  }, [estado.cursor, carregandoMais, carregar, reiniciar]);
 
   return {
     carregando: estado.carregando,

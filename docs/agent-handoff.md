@@ -49,20 +49,133 @@
 
 ## Seção Backend
 
-**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-27
+**Dono:** `backend` (terminal) · **Última atualização:** 2026-10-28
 
 ### Situação
 
-T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbook API, cache e rotas `GET /api/competitions`, `/api/events`, `/api/events/{id}`) **concluídas e integradas**. O RF-007 do `frontend` (`7400b27`) foi revisto e integrado pelo `backend` na `main` local em `928843f`. O `origin/main` está em `ad3b8c5`: o push do `928843f` espera aprovação do Pedro.
+**MUDANÇA DE ESCOPO: o blbet passa a ter contas reais (DT-020).** O Pedro autorizou-a expressamente a 2026-10-28, depois de lhe ser apresentada a colisão com a **RN-006** ("não há autenticação real, cadastro, coleta de dados pessoais verdadeiros"). **A RN-006 foi revista; a RN-001 e a RN-007 continuam em vigor** — isto cria contas, não dinheiro: carteira, depósitos, saques e KYC continuam fora de escopo. Entregues: cadastro, verificação de e-mail, entrada e saída, sessões em cookie, revogação, recuperação e alteração de senha, travão por tentativas, auditoria, e o **S-3 fechado** (cabeçalhos, CORS, teto do corpo). Persistência em SQLite atrás de uma costura de repositório (DT-021). Publicado antes disto, na mesma sessão: DT-018 (`f76d031`) e DT-019 (`22516bd`). A DT-020 está publicada, com aprovação do Pedro — `2deb608`.
 
-- **Arquivos modificados:** ver o histórico abaixo
-- **Contratos ou interfaces alterados:** rotas de esportes da secção 7.1 do `api-contract.md`, acordadas (T-014). Sem alterações pendentes
-- **Pendências para o agente `frontend`:** nenhuma
+- **Arquivos modificados:** ver a entrada da DT-020 no histórico abaixo
+- **Contratos ou interfaces alterados:** **sim** — dois códigos de erro novos (`UNAUTHENTICATED`, `FORBIDDEN`), o módulo `accounts.ts` em `packages/contracts`, e a secção **7.2** do `api-contract.md` com 11 rotas. **Exige revisão cruzada do `frontend` (DT-005)**
+- **Pendências para o agente `frontend`:** (1) ~~o `apps/web` não compila.~~ **Resolvido pelo `backend` em `881d166`, com autorização direta do Pedro** — ver o aviso abaixo; (2) revisão cruzada; (3) os E2E, com `RATE_LIMIT_MAX=0` **e `AUTH_RATE_LIMIT_MAX=0`**; (4) construir os ecrãs de conta sobre a secção 7.2 do contrato. Detalhes na entrada abaixo
+- **AVISO — o `backend` tocou num ficheiro teu:** `apps/web/src/shared/api/erros.ts`, só para lhe acrescentar as duas entradas de `MENSAGEM_POR_CODIGO` que faltavam (`UNAUTHENTICATED`, `FORBIDDEN`). **O Pedro autorizou-o diretamente**, a 2026-10-28, porque o `build` do CI estava a falhar. Nada mais do `apps/web` foi alterado, e as mensagens são tuas para mudar se não gostares delas
+- **Pendências para o Pedro:** ~~aprovar o commit.~~ **Feito:** publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `2deb608`. Fica o **`CLAUDE.md` desatualizado** na secção "Natureza do projeto" — é ficheiro dele e não foi alterado. **Atenção: este push deixa o CI a falhar também no `build`**, por causa do `apps/web`
 - **Bloqueios:** nenhum. C1 e C2 da DT-009 (licença de exibição) continuam a bloquear a **publicação**, não o desenvolvimento
-- **Testes executados e resultados:** na `main` em `928843f`: typecheck ok · contracts 23/23, api 49/49, web 106/106 · build ok
-- **Próxima ação recomendada:** Pedro decide o push e vê os jogos reais no ecrã (`pnpm dev:api` com a chave + `pnpm dev:web`); depois, próxima tarefa do `backend` segundo o `agent-tasks.md`
+- **Testes executados e resultados:** typecheck ok em `apps/api` e `packages/contracts` · api **102/102** (eram 71), contracts **25/25** · cobertura api 92,62% instruções / 84,8% ramos, acima da meta da DT-015 · lint com os **4 erros conhecidos de `apps/web`**, nenhum meu · **`apps/web` não compila**, ver acima · fluxo de contas verificado no **servidor compilado a correr**
+- **Reserva de numeração — backend:** nenhum número reservado. Próximo livre: **DT-022**
+- **Próxima ação recomendada:** o Pedro aprova o commit; o `frontend` corrige o `erros.ts`, faz a revisão cruzada e arranca os E2E. Depois, do lado do `backend`: escrever os requisitos funcionais das contas, que não existem, e decidir o provedor de e-mail
 
 ### Histórico
+
+### 2026-10-28 — Contas, autenticação e sessões (DT-020); persistência (DT-021); S-3 fechado
+
+- **Agente responsável:** backend
+- **Tarefa executada:** backend de autenticação e segurança, a pedido do Pedro, que **autorizou a mudança de escopo** depois de lhe ser apresentada a colisão com a RN-006, a RN-007 e o `CLAUDE.md`
+- **O que a decisão muda, e o que não muda:** a **RN-006** foi revista — passa a haver contas reais e dados pessoais, com a LGPD a aplicar-se. **A RN-001 e a RN-007 não foram tocadas:** carteira, depósitos, saques, KYC e jogo responsável com efeito operacional continuam fora de escopo, cada um a exigir decisão própria. Dinheiro real é matéria de licenciamento, anterior ao código
+- **Arquivos novos:**
+  - `apps/api/src/db/` — `database.ts` (abertura, pragmas, transações) e `migrations.ts` (migrações versionadas e imutáveis);
+  - `apps/api/src/modules/accounts/` — `password.ts` (Argon2id), `tokens.ts` (tokens opacos e resumos), `accounts-repository.ts` (a costura), `accounts-service.ts` (as regras), `mailer.ts`;
+  - `apps/api/src/routes/accounts.ts` — as 11 rotas;
+  - `packages/contracts/src/accounts.ts`;
+  - `apps/api/test/accounts.test.ts` (24 testes), `apps/api/test/hardening.test.ts` (6 testes).
+- **Arquivos modificados:** `apps/api/src/app.ts`, `src/server.ts`, `src/config/env.ts`, `src/shared/errors.ts`, `apps/api/package.json`, `apps/api/.env.example`, `apps/api/README.md`, `apps/api/test/env.test.ts`, `packages/contracts/src/envelope.ts` e `src/index.ts`, `docs/decisoes-tecnicas.md`, `docs/requisitos.md`, `docs/api-contract.md`, `docs/agent-tasks.md`, este quadro, e o **`pnpm-lock.yaml`**.
+- **Aviso de ficheiro partilhado — `pnpm-lock.yaml`:** quatro dependências novas na api — `@node-rs/argon2` (binários pré-compilados, sem passo de compilação), `@fastify/cookie`, `@fastify/cors` e `@fastify/helmet`. Só acrescentos; nenhuma entrada existente alterada. Nada a aprovar em `allowBuilds`.
+- **`apps/web` DEIXOU DE COMPILAR — e a correção é tua, não minha:** `MENSAGEM_POR_CODIGO`, em `apps/web/src/shared/api/erros.ts:23`, é um `Record<FalhaApi['codigo'], string>` exaustivo, e o `ErrorCode` passou a ter mais dois valores. Faltam-lhe duas entradas, com o texto que entenderes:
+  ```
+  UNAUTHENTICATED: 'Precisa de entrar na sua conta para continuar.',
+  FORBIDDEN: 'A sua conta ainda não tem acesso a isto.',
+  ```
+  **Não toquei no ficheiro** — é da tua área, e o protocolo não mo permite. Mas significa que o `build` do CI falha enquanto isto não for feito, além do `lint` que já falhava.
+- **Contratos alterados — e é aqui que preciso de ti:**
+  1. **Dois códigos de erro novos.** `UNAUTHENTICATED` (401): não há sessão válida, ou as credenciais não conferem. `FORBIDDEN` (403): há sessão, mas falta uma condição da conta. A distinção importa à interface — o primeiro leva ao ecrã de entrada, o segundo não. Ambos com `retryable: false`.
+  2. **Secção 7.2 do contrato**, com 11 rotas e quatro convenções novas (A-A1 a A-A4).
+  3. **Pedido formal: revisão cruzada (DT-005).** Nenhuma forma existente mudou; é tudo acrescento.
+- **Três coisas que a interface tem de saber, e que são contraintuitivas:**
+  1. **O cadastro responde `202 { accepted: true }` exista ou não a conta**, e o pedido de recuperação também. **Não escrevas "este e-mail já existe":** a api não to diz, de propósito, porque é assim que se descobre quem está registado. Quem é dono do endereço recebe aviso por e-mail.
+  2. **O token de sessão nunca vem no corpo.** Vai num cookie `HttpOnly`, que o JavaScript não lê — é isso que faz um XSS não valer a conta. Em `fetch`, `credentials: 'include'` quando a api estiver noutra origem; em desenvolvimento o Vite encaminha `/api` e não é preciso.
+  3. **Um `429 too many attempts` pode acontecer com a senha certa.** É o travão por tentativas, e é anterior à verificação da senha. Passa sozinho ao fim da janela.
+- **Para os E2E:** `RATE_LIMIT_MAX=0` **e `AUTH_RATE_LIMIT_MAX=0`** — este segundo é novo, e por omissão é 10 por minuto, que uma bateria de testes de autenticação ultrapassa à vontade. Para as contas é preciso também `DATABASE_FILE` e `AUTH_IP_HASH_SECRET`; **sem `DATABASE_FILE` as rotas de conta não existem**, o que mantém o modo só-esportes a funcionar como antes.
+- **Bloqueios:** nenhum para continuar
+- **Testes executados e resultados — reais:**
+  - `pnpm --filter @blbet/api test` → **102/102** (eram 71); `packages/contracts` → 25/25;
+  - cobertura da api → **92,62% instruções, 84,8% ramos**, acima da meta de 80% da DT-015;
+  - `pnpm lint` → **4 erros, os mesmos, todos em `apps/web`**, nenhum meu;
+  - `pnpm build` → **falha em `apps/web`**, pela razão acima; `apps/api` e `packages/contracts` compilam;
+  - **servidor compilado a correr**, com base de dados em ficheiro: cadastro com `Pedro@Exemplo.PT` e repetição com `pedro@exemplo.pt` deram **o mesmo `202`** e **uma só conta**; entrada antes de verificar deu `403`; depois de verificar, `201`, e `/api/accounts/me` a `200`; cinco falhas deram `401` e a sexta `429`, **e a senha certa a seguir também deu `429`**; na base de dados a senha está em `$argon2id$v=19$m=19456,t`, e nem a senha, nem o e-mail, nem `127.0.0.1` aparecem fora da tabela `accounts`.
+- **Um erro meu, corrigido, que vale registar:** usei o `Set-Content` do PowerShell para alterar o ficheiro de testes, e isso reescreveu-lhe a codificação e estragou todos os acentos. O `lint` apanhou-o (`no-irregular-whitespace`) e o ficheiro foi reescrito. Fica o aviso: nesta máquina, não editar ficheiros de código com `Set-Content`
+- **Próxima ação recomendada:** o Pedro aprova o commit e atualiza o `CLAUDE.md`; o `frontend` corrige o `erros.ts` e regista a revisão cruzada. Do lado do `backend` ficam por fazer os **requisitos funcionais das contas** (RF-001 a RF-008 não os cobrem), o **provedor de e-mail** e o **MFA**
+
+### 2026-10-28 — S-1 e S-2 corrigidos: limite de pedidos e teto do cursor (DT-019)
+
+- **Agente responsável:** backend
+- **Tarefa executada:** achados S-1 e S-2 da revisão de segurança de 2026-10-27 (RNF-004), a pedido do Pedro
+- **Arquivos modificados:**
+  - `apps/api/src/app.ts` — registo do limite de pedidos;
+  - `apps/api/src/config/env.ts` — `RATE_LIMIT_MAX` e `RATE_LIMIT_WINDOW_SECONDS`;
+  - `apps/api/package.json` — `@fastify/rate-limit ^11.2.1`;
+  - **`pnpm-lock.yaml`** (partilhado, ver o aviso abaixo);
+  - `packages/contracts/src/sports.ts` — `MAX_CURSOR_LENGTH` e `.max()` no `cursor`;
+  - `apps/api/test/rate-limit.test.ts` (novo), `apps/api/test/env.test.ts`, `apps/api/test/sports-routes.test.ts`, `packages/contracts/test/sports.test.ts`;
+  - `apps/api/.env.example`, `apps/api/README.md`;
+  - `docs/api-contract.md` (PC-008, A6, novo A9), `docs/decisoes-tecnicas.md` (DT-019 e índice), `docs/agent-tasks.md`, este quadro.
+- **Aviso de ficheiro partilhado — `pnpm-lock.yaml`:** instalei **uma** dependência de produção na api, `@fastify/rate-limit`. O lockfile levou **+30 linhas, só acrescentos**, com 4 pacotes novos (`@fastify/rate-limit`, `@lukeed/ms`, `toad-cache` e o que deles depende). **Nenhuma entrada existente foi alterada**, por isso o teu `pnpm install` depois do merge não deve mexer em nada do `apps/web`. Nada a aprovar em `allowBuilds`: o pacote não tem scripts de instalação.
+- **Contratos ou interfaces alterados — e é aqui que preciso de ti:**
+  1. **`cursor` passa a ter máximo de 1024 caracteres** (`MAX_CURSOR_LENGTH`, exportado). Acima disso dá `400` com `{ field: "query.cursor", issue: "too_big" }`, antes de ser descodificado. **Nenhum cursor que a api emita é afetado** — confirmei-o com o pior caso que a query permite.
+  2. **Acrescento A9 ao contrato:** o `429 RATE_LIMITED` sai no envelope de sempre, com `retryable: true`, e as respostas trazem `x-ratelimit-limit`, `x-ratelimit-remaining` e `x-ratelimit-reset`. O código `RATE_LIMITED` já estava no catálogo (A1) — o que é novo é haver quem o produza.
+  3. **Pedido formal: revisão cruzada (DT-005)** destes dois pontos. Nenhum muda uma forma existente; ambos apertam ou acrescentam. Se discordares, fica pendência e o acordo vigente continua válido.
+- **Para os E2E, importante:** **põe `RATE_LIMIT_MAX=0`.** Desliga o limite. Sem isso, uma bateria de E2E com vários workers pode apanhar `429` e falhar por isso, não por defeito do produto. Por omissão o limite é 300 pedidos por minuto por cliente, que é largo para uso normal mas não é infinito.
+- **Um erro meu, corrigido, que vale registar:** a revisão de segurança propôs `.max(256)` para o cursor. **Estava errado.** Medi antes de aplicar: o pior caso legítimo são 272 caracteres com texto latino e **539 com CJK**, porque `q` admite 100 unidades UTF-16 e cada caractere CJK pesa 3 bytes antes do base64url. O `.max(256)` teria recusado cursores que a própria api emite. Ficou em **1024**, com o pior caso coberto por testes nos dois pacotes
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts **25/25** (eram 23) · api **71/71** (eram 65) · web 141/141;
+  - `pnpm --filter @blbet/api coverage` → 96,67% instruções, 87,41% ramos, 97,8% funções, 99,56% linhas; `packages/contracts` → 100%. Ambos acima da meta da DT-015;
+  - `pnpm lint` → **4 erros, os mesmos, todos em `apps/web`**;
+  - `pnpm build` → ok;
+  - **servidor compilado a correr**, com `RATE_LIMIT_MAX=3`: os 3 primeiros pedidos a `/api/events` deram `200` com `x-ratelimit-remaining` a descer 2, 1, 0; o 4.º e o 5.º deram `429` com `{"error":{"code":"RATE_LIMITED","message":"too many requests","retryable":true}}`.
+- **Pendências para o Pedro:** ~~aprovar o commit.~~ **Feito:** commitado e publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `22516bd`. O passo `lint` do `ci.yml` continua a falhar nos 4 erros de `apps/web`, que não são deste commit
+- **Próxima ação recomendada:** o `frontend` registra aqui a revisão cruzada. O **S-3** (cabeçalhos de segurança e CORS) fica para quando a plataforma de publicação estiver decidida (DP-008)
+
+### 2026-10-28 — Modo de teste da api com respostas gravadas (DT-018); os E2E ficam desbloqueados
+
+- **Agente responsável:** backend
+- **Tarefa executada:** Fase 5, etapa 4 (a parte do `backend`); pendência registada pelo `frontend` em 2026-10-27
+- **Arquivos modificados:**
+  - `apps/api/src/modules/sports/recorded/recording.ts` (novo) — manifesto, carregamento validado e `SportsProvider` sobre a gravação;
+  - `apps/api/src/config/env.ts` — `SPORTS_MODE` e `SPORTS_NOW`;
+  - `apps/api/src/server.ts` — escolhe o provedor e o relógio conforme o modo;
+  - `apps/api/recordings/` (novo) — `recording.json`, mais `competitions.json` e `events-EPL.json` **movidos** de `apps/api/test/fixtures/`;
+  - `apps/api/test/recorded-recording.test.ts` (novo), `apps/api/test/env.test.ts`, e o caminho das gravações em `sports-catalog.test.ts`, `sports-routes.test.ts`, `sportsbook-adapter.test.ts`, `sportsbook-client.test.ts`;
+  - `apps/api/.env.example`, `apps/api/README.md` (secção nova e tabela de rotas, que estava desatualizada);
+  - `docs/decisoes-tecnicas.md` (DT-018 e índice), `docs/agent-tasks.md`, este quadro.
+- **Contratos ou interfaces alterados:** **nenhum.** Mesmas rotas, mesmos esquemas, mesmo envelope nos dois modos
+- **Como usar, `frontend`:**
+
+  ```
+  set SPORTS_MODE=recorded && pnpm dev:api
+  ```
+
+  Sem chave, sem rede, sempre a mesma resposta. O proxy do Vite para `127.0.0.1:3333` não muda.
+- **O que a gravação dá, exatamente** (para não escreveres asserções contra o que não existe):
+  1. **`GET /api/competitions`** → **uma** competição: `English Premier League` (`Xa0f-wjcs-tANp`).
+  2. **`GET /api/events`** → **dois** jogos, por esta ordem: `YmT4-Albq-rMNm` Liverpool × Arsenal FC (2026-11-01T16:30Z) e `OVc2-Alcu-Ynsy` Newcastle United × Everton (2026-11-02T20:00Z). Ambos com `matchResult` e `totalGoals` preenchidos, e `origin: "provider"`.
+  3. **O relógio está parado** em `2026-10-27T10:00:00Z`, que é o instante da gravação. É por isso que os dois jogos estão sempre por começar.
+  4. **`SPORTS_NOW`** move o relógio. Com `SPORTS_NOW=2026-11-01T17:00:00Z` o Liverpool × Arsenal já começou: sai da lista, e `GET /api/events/YmT4-Albq-rMNm` dá `404` com `details: [{ field: "path.id", issue: "event_started" }]`. **É a única forma de alcançar esse estado nos E2E** — verifiquei os dois casos com o servidor compilado a correr.
+- **O que a gravação não dá, e é limitação real:** só `EPL`, só dois jogos. **Não há paginação para exercitar** (`nextCursor` vem sempre `null` com o `limit` por omissão), nem jogo sem odds, nem lista vazia. Isto não é escolha de desenho: é o que existe gravado no repositório, e **não invento respostas do provedor**. Se precisares de mais, diz aqui o quê, e gravo da próxima vez que houver sessão com a chave do Pedro
+- **Decisões que tomei e porquê, em duas linhas:** parei o relógio em vez de reescrever as datas das gravações, porque um dado alterado deixa de ser uma gravação fiel; e a gravação é validada no arranque pelos mesmos esquemas das respostas reais, para que uma gravação estragada recuse o arranque em vez de servir lixo
+- **Pendências para o Pedro:**
+  1. ~~Aprovar o commit.~~ **Feito:** commitado e publicado em `origin/feat/backend-foundation` com aprovação do Pedro — `f76d031`. **Este push acionou o `ci.yml` pela primeira vez, e o passo `lint` falha nos 4 erros de `apps/web`.**
+  2. **O ambiente desta sessão não é o da DT-008.** Estou num clone em `C:\Users\Usuario\blbet`, na `feat/backend-foundation`, **sem worktrees** — não na estrutura `C:\Users\pedro\blbet` + duas worktrees que o quadro descreve. Decide se a DT-008 passa a descrever também este ambiente ou se é para reconstruir as worktrees.
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm install --frozen-lockfile` → ok (sem alterações ao lockfile; **não instalei nenhuma dependência nova**);
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts 23/23 · api **65/65** (eram 54: 11 novos) · web 141/141;
+  - `pnpm --filter @blbet/api coverage` → passa a meta da DT-015: 96,64% instruções, 87,23% ramos, 97,77% funções, 99,55% linhas;
+  - `pnpm lint` → **4 erros, os mesmos de sempre, todos em `apps/web`**. O `backend` e os `contracts` continuam limpos;
+  - `pnpm build` → ok;
+  - **servidor compilado a correr** (`node apps/api/dist/server.js` com `SPORTS_MODE=recorded`, sem `.env` e sem chave): `GET /health` → `200`; `GET /api/competitions` → a EPL; `GET /api/events` → os dois jogos com as odds acima; com `SPORTS_NOW=2026-11-01T17:00:00Z`, a lista fica com um jogo e o detalhe do outro dá `404 event_started`.
+- **Próxima ação recomendada:** o `frontend` arranca os E2E em `e2e/`; o Pedro aprova o commit. Depois, o `backend` pega nos achados S-1 e S-2 da revisão de segurança
 
 ### 2026-10-27 — ESLint e CI na raiz concluídos (DT-015); a raiz fica livre
 
@@ -349,26 +462,240 @@ T-014 (modelo esportivo em `packages/contracts/`) e T-015 (adaptador da Sportsbo
 
 ## Seção Frontend
 
-**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-27 (renumeração e concordância com a DT-015)
+**Dono:** `frontend` (Desktop) · **Última atualização:** 2026-10-28 (verificação independente numa worktree limpa; dois achados em `apps/api/`). Registo anterior: o CI falha no passo de cobertura, em `packages/contracts`. Registo anterior: auditoria de alinhamento, filtro por competição e teto da busca. Registo anterior: lint, ecrãs de conta da DT-020, E2E e revisão cruzada
 
 ### Situação
 
-**Renumeração feita e pendência da T-007 respondida.** O roteamento é **DT-016** e a estratégia de estado passou a **DT-017**, em todos os documentos e nos comentários de `apps/web/`. Concordo com a **DT-015** (qualidade) e já pus a meta de cobertura no meu pacote.
+**Os quatro erros de lint estão corrigidos, os ecrãs de conta da DT-020 estão construídos, os E2E arrancaram e a revisão cruzada está registada.** `pnpm lint` passa limpo pela primeira vez, e com ele o passo `lint` do CI. A revisão cruzada da DT-020 está na secção de integração: **concordo, sem divergência**, com sete ajustes pedidos (A-R1 a A-R7) que não bloqueiam.
 
-- **Arquivos modificados:** os quatro documentos, `apps/web/vite.config.ts` e `package.json`, e os comentários de dez ficheiros de `apps/web/src/`
-- **Contratos ou interfaces alterados:** nenhum
-- **Cobertura de `apps/web`, medida antes de concordar:** statements 92,2%, branches 81,6%, functions 92,5%, lines 92,5% — acima do mínimo em tudo. **Branches é a métrica apertada**, e é a que vai disparar primeiro
-- **Exclusões da cobertura, com razão no próprio ficheiro:** `src/test/**` (ferramentas dos testes — medi-las seria medir a régua) e `src/app/main.tsx` (só monta no DOM real)
-- **E2E (PA-008):** aceito ser o dono. Espero o modo de teste da api com respostas gravadas, sem o qual os E2E gastam quota ou correm contra `503`
-- **Reserva de numeração — frontend:** nenhum número reservado. Próximo livre: **DT-018**
-- **Pendências para o agente `backend`:** o modo de teste da api para os E2E; e a **CA-002.3**
-- **Pendências para o Pedro:** nenhuma
+- **Arquivos modificados:** ver a entrada de 2026-10-28 no histórico abaixo
+- **Contratos ou interfaces alterados:** **nenhum por mim.** Consumo a secção 7.2 como está, e os ajustes que peço são pedidos ao `backend`, não alterações minhas
+- **Os 4 erros de lint: corrigidos, e não calados.** Nenhum `eslint-disable` novo. A causa era a mesma nos dois hooks — a lista de dependências vinha de quem chama, e o estado passava a "a carregar" dentro do efeito. Agora o efeito recebe a lista diretamente e a reposição acontece **durante o render**, que é o padrão que o React documenta para ajustar estado quando uma entrada muda: poupa um render e fecha a janela em que a tela dizia "pronto" com os dados do pedido anterior
+- **E2E (PA-008, DT-015): a correr.** 12 testes em `e2e/`, **12 a passar**, contra a api em modo gravado e com base de dados nova por execução. Comando: `pnpm e2e`
+- **Ficheiros partilhados da raiz que toquei**, com o aviso prévio registado abaixo: `package.json` (`@playwright/test`, scripts `e2e` e `dev:web`), `pnpm-lock.yaml` (**+28 linhas, só acrescentos**) e `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre outra vez**
+- **Reserva de numeração — frontend:** **DT-022 reservada e usada** (caminhos dos ecrãs de conta). Próximo livre: **DT-023**
+- **CI:** o passo `lint` deixou de falhar, mas o `pnpm -r coverage` **falha em `packages/contracts`** (70,21%, abaixo dos 80% da DT-015), porque o `accounts.ts` da DT-020 entrou sem testes. Não é desta branch — o `frontend` não tocou nesse pacote, e a falha existe igual em `origin/feat/backend-foundation` desde `2deb608`; o `lint` é que a tapava. Pedido **A-R9** ao `backend`
+- **Pendências para o agente `backend`:** **a A-R10 primeiro** — a base de dados de contas (`apps/api/data/`) **não está ignorada pelo git**, e contém e-mails, hashes de senha e sessões; depois a **A-R11** (a api não cria a pasta da base de dados e o erro de arranque não diz o que falta). E os nove ajustes A-R1 a **A-R9** da revisão cruzada — e nota que eles só lhe chegam depois de o Pedro integrar, porque o quadro é por branch. Os dois que valem mais: **A-R6** (não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída na interface) e **A-R1** (o corpo de `POST /api/accounts/password` não está em `packages/contracts`). E, de antes: a **CA-002.3** e **mais gravações** — a atual só tem a EPL e dois jogos, o que não deixa exercitar paginação, jogo sem odds nem lista vazia
+- **Pendências para o Pedro:** (1) **aprovar o commit** — nada foi commitado; (2) **dizer em que branch devo trabalhar.** Esta sessão está num clone único em `C:/Users/Usuario/blbet`, na `feat/backend-foundation`, que é a do `backend`, e **não mudei de branch nem criei nenhuma**; (3) o `CLAUDE.md` continua desatualizado na secção "Natureza do projeto", e agora também na lista de código existente
 - **Bloqueios:** nenhum
-- **A paginação com cursores reais está confirmada** pelo `backend` (`limit=5`, duas páginas sem repetição, cursor de outro filtro a dar `400`). **Não tenho verificações em dívida**
-- **Testes executados e resultados:** typecheck passa; **141 testes**, todos passam; `coverage` passa o limiar; build passa
-- **Próxima ação recomendada:** os E2E em `e2e/` quando houver o modo de teste; ou a etapa 3 da Fase 5 (ESLint e CI na raiz), que é partilhada e exige aviso prévio
+- **Testes executados e resultados — reais:** `pnpm lint` → **limpo, 0 erros** · `pnpm typecheck` → ok nos três pacotes · `pnpm test` → contracts 25/25, api 102/102, web **187/187** (eram 141) · `pnpm --filter @blbet/web coverage` → 95,13% instruções, 86,33% ramos, 94,90% funções, 95,41% linhas, acima da meta da DT-015 · `pnpm build` → ok nos três · `pnpm e2e` → **12/12** · ecrãs de conta abertos no navegador contra a api a sério
+- **Próxima ação recomendada:** o Pedro integra a branch `feat/frontend-contas`, para que os pedidos cheguem ao `backend`; o `backend` responde aos ajustes A-R1 a A-R8, com prioridade para a **A-R6** (sem saída para quem não confirmou o e-mail) e a **A-R8** (um enumerado novo parte a listagem inteira)
 
 ### Histórico
+
+### 2026-10-28 — Verificação independente da `feat/frontend-contas`, e dois achados em `apps/api/`
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** verificar, numa worktree limpa, tudo o que esta secção afirma; e abrir a aplicação com contas
+- **Arquivos modificados:** `docs/agent-handoff.md` (este registo). **Nenhum ficheiro de código**
+- **Contratos ou interfaces alterados:** **nenhum**
+
+**Todos os números deste quadro batem certo.** Corri tudo em `be7559f`, com `pnpm install --frozen-lockfile`:
+
+| Verificação | Quadro dizia | Medido |
+|---|---|---|
+| `pnpm typecheck` | ok nos três | **ok nos três** |
+| `pnpm lint` | limpo | **limpo, 0 erros** |
+| `pnpm test` | 25 / 102 / 187 | **25 / 102 / 187** |
+| `pnpm build` | ok nos três | **ok nos três** |
+| `pnpm e2e` | 12/12 | **12/12** |
+| `pnpm -r coverage` | falha em `packages/contracts`, 70,21% | **falha, 70,21%** |
+| `apps/web` cobertura | 95,13% / 86,33% ramos | **95,13% / 86,33% / 94,90% / 95,41%** |
+
+Nada a corrigir no quadro quanto a números.
+
+**A aplicação com contas funciona de ponta a ponta.** Abri-a contra a api em modo gravado e confirmei no navegador, não por inferência:
+
+- a listagem traz os dois jogos gravados da EPL, com as cotações **sem marca demonstrativa** — são `origin: provider`, e é a opção A da DT-014 a funcionar;
+- o perfil sem sessão mostra o convite a entrar **acima** do perfil demonstrativo, com o divisor e sem fusão (§9.11); o perfil fictício continua com o campo tracejado em todos os campos;
+- o cadastro responde "**se este endereço puder ser usado**" — a resposta condicional da A-A2, sem revelar se a conta existe;
+- entrei com **`  VERIFICACAO@EXEMPLO.TEST `**, em maiúsculas e com espaços, e cheguei à mesma conta (A-A3);
+- o cookie de sessão **não é visível ao JavaScript**: `document.cookie` devolve vazio com a sessão ativa;
+- o resumo da conta mostra o e-mail verdadeiro **sem** campo tracejado, com a etiqueta "E-mail por confirmar", e o perfil demonstrativo continua marcado em baixo — a distinção de §6.3 está de pé;
+- a lista de dispositivos marca a sessão atual com etiqueta de **texto** e o botão diz "Sair deste dispositivo", diferente dos outros (§9.11);
+- a 375px não há rolagem horizontal, com o `user-agent` inteiro na lista.
+
+Os `401` que ficam na consola são de `/api/accounts/me` **antes** de entrar, e são o estado normal que o `useConta` trata como "ainda não entrou" — com a sessão ativa, o mesmo pedido devolve `200`. Não é erro.
+
+#### Dois achados em `apps/api/`, que não corrijo porque não é a minha área
+
+**A-R10 — a base de dados de contas não está ignorada pelo git.** Depois de correr a api com `DATABASE_FILE=data/blbet.db`, o `git status` mostra `apps/api/data/` como não rastreado, e `git check-ignore` confirma que **não há regra nenhuma** a cobri-lo. Os ficheiros são `blbet.db`, `blbet.db-shm` e `blbet.db-wal`, e contêm **endereços de e-mail, hashes de senha e sessões**. Qualquer `git add` com um caminho largo leva-os para o repositório, e um segredo que entra no histórico não sai de lá com um commit a apagá-lo. **Pedido:** uma regra em `apps/api/.gitignore` (que é do `backend`, e evita mexer no `.gitignore` partilhado da raiz) cobrindo `data/` e `*.db*`. **É o mais urgente dos pedidos em aberto** — os outros custam uma correção, este pode custar uma fuga de dados.
+
+**A-R11 — a api não cria a pasta da base de dados, e o arranque falha sem dizer o que fazer.** Com `DATABASE_FILE=data/blbet.db` e a pasta inexistente, o arranque morre com `Error: unable to open database file` e `ERR_SQLITE_ERROR` — que não diz a quem lê que falta criar uma pasta. Resolvi com `mkdir apps/api/data`, mas tive de o descobrir pelo rastreio. **Pedido:** criar a pasta na abertura da base de dados, ou dizer no erro o que falta. **Entretanto**, a instrução de arranque devia mencionar o `mkdir`.
+
+- **Pendências para o agente `backend`:** as de antes (**A-R1 a A-R9**, com prioridade para a A-R6 e a A-R8), mais a **A-R10** (base de dados fora do `.gitignore`, urgente) e a **A-R11** (pasta da base de dados)
+- **Pendências para o Pedro:** (1) **aprovar o commit deste registo** — nada mais foi alterado; (2) integrar a `feat/frontend-contas`, para que os pedidos cheguem ao `backend`; (3) o **`CLAUDE.md` continua desatualizado**: a secção "Natureza do projeto" não menciona contas, revistas pela DT-020, e a lista de código existente ainda diz que o perfil "é só um estado vazio"
+- **Bloqueios:** nenhum. **PD-006**, **PD-007**, mais gravações para os E2E e a **A-R8** continuam onde estavam, e não contornei nenhum
+- **Reserva de numeração — frontend:** nenhum número reservado. Próximo livre: **DT-023**
+- **Testes executados e resultados:** os da tabela acima, todos corridos nesta worktree
+- **Próxima ação recomendada:** o `backend` trata a **A-R10** antes de tudo o resto; o Pedro integra esta branch
+
+### 2026-10-28 — O CI continua a falhar, agora no passo de cobertura — e é em `packages/contracts`
+
+- **Agente responsável:** frontend (achado; **a correção não é minha**)
+- **Tarefa executada:** correr localmente a sequência exata do `ci.yml`, passo a passo, antes de o Pedro integrar
+
+**O que acontece.** Corrigir os 4 erros de lint não partiu nada — **destapou** uma segunda falha que o `lint` escondia, por correr antes dela:
+
+| Passo do `ci.yml` | Resultado local |
+|---|---|
+| `pnpm install --frozen-lockfile` | ok |
+| `pnpm typecheck` | ok, 0 erros |
+| `pnpm lint` | **ok** — era aqui que falhava antes |
+| `pnpm -r coverage` | **FALHA**, em `packages/contracts` |
+| `pnpm build` | nunca chega a correr |
+
+**Onde e porquê.** `packages/contracts`: 70,21% instruções, 75% funções, 70,21% linhas — abaixo dos 80% da DT-015. O `pnpm -r` para no primeiro pacote que falha, por isso a api e o `apps/web` nem chegam a ser medidos (medidos à parte, passam os dois: api 92,62% / 84,8%; web 95,13% / 86,33%).
+
+A causa é direta: **`packages/contracts/src/accounts.ts` entrou com a DT-020 (`2deb608`) e não trouxe ficheiro de teste.** O diretório `packages/contracts/test/` tem dois ficheiros, `envelope.test.ts` e `sports.test.ts`, tanto hoje como em `cf78cb2`. Um módulo novo sem testes num pacote com limiar faz a média cair.
+
+**Não é da minha branch.** `git diff cf78cb2..HEAD -- packages/contracts` está **vazio**: o `frontend` não tocou uma linha nesse pacote. A falha existe tal e qual em `origin/feat/backend-foundation`, desde `2deb608` — simplesmente estava tapada pelo `lint`, que falhava primeiro e abortava o trabalho.
+
+**Pedido ao `backend` — `A-R9`:** testes para `packages/contracts/src/accounts.ts` que reponham o pacote acima do limiar da DT-015. `packages/contracts/**` é área exclusiva do `backend` (secção 2 do protocolo) e **não escrevo lá**. Enquanto não for feito, o CI falha em qualquer push, e isso vale também para a branch do `backend`.
+
+**Nota sobre o relato da DT-020:** a entrada da DT-020 reporta "contracts 25/25" e a cobertura da **api**, mas não a cobertura dos **contracts**. É por isso que isto passou despercebido — `pnpm --filter @blbet/api coverage` passa, e `pnpm -r coverage` não.
+
+- **Bloqueios:** nenhum para o `frontend`. Para o CI ficar verde, depende do `backend`
+- **Testes executados e resultados — reais:** a tabela acima, corrida nesta máquina, nesta branch, a 2026-10-28
+- **Próxima ação recomendada:** o `backend` escreve os testes do `accounts.ts` dos contratos
+
+### 2026-10-28 — Auditoria de alinhamento entre back e front; filtro por competição e teto da busca
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** conferir, campo a campo, se o que o contrato promete, o que a api implementa e o que a interface consome são a mesma coisa — e corrigir do meu lado o que estava desalinhado
+- **Arquivos novos:** `apps/web/src/modules/esportes/FiltroCompeticao.tsx` e `.module.css`, `apps/web/src/modules/esportes/filtroCompeticao.test.tsx`
+- **Arquivos modificados:** `apps/web/src/app/App.tsx`, `apps/web/src/shared/componentes/CampoBusca.tsx`, `apps/web/src/modules/conta/ResumoConta.tsx` e `conta.test.tsx`, `apps/web/src/test/fixtures.ts`; `docs/agent-handoff.md`, `docs/agent-tasks.md`
+- **Contratos ou interfaces alterados:** **nenhum.** O que encontrei do lado do contrato virou pedido (**A-R8**), não alteração minha
+
+#### O que a auditoria comparou
+
+As 3 rotas de esportes da secção 7.1 e as 11 de contas da 7.2, contra `apps/api/src/routes/`, contra `packages/contracts/src/` e contra o que `apps/web` realmente chama. Mais os limites (`MAX_PAGE_LIMIT`, `MAX_QUERY_LENGTH`, `MAX_CURSOR_LENGTH`), os códigos de erro, os códigos de motivo e os enumerados.
+
+**Resultado: as 14 rotas documentadas existem e correspondem ao implementado.** Nenhuma divergência de forma. Três desalinhamentos, dois meus e já corrigidos, um teu:
+
+| # | O que estava desalinhado | De quem | Estado |
+|---|---|---|---|
+| 1 | `GET /api/competitions` **implementada, documentada e nunca chamada** pela interface. `obterCompeticoes` existia sem nenhum consumidor, e o filtro `competitionId` da rota de eventos nunca era usado | meu | **corrigido** |
+| 2 | O campo de busca **não travava** nos 100 caracteres que o contrato aceita | meu | **corrigido** |
+| 3 | A **PC-014** não está honrada na validação: um enumerado novo rejeita a resposta inteira | contrato, área do `backend` | **pedido A-R8** |
+
+#### 1. Filtro por competição — uma rota que ninguém usava
+
+A api serve `GET /api/competitions` desde a T-015 e a rota de eventos aceita `competitionId` desde a T-014. A interface não chamava nem uma coisa nem outra: `obterCompeticoes` estava em `shared/api/esportes.ts` sem consumidor, ou seja, **código morto a cobrir uma rota viva**.
+
+Passa a haver um filtro na listagem de esportes, com o `competitionId` no endereço, pelo nome do parâmetro do contrato (regra A7), como já acontecia com o `q` da busca.
+
+Três decisões, com razão:
+
+- **`select` nativo, não botões.** O número de competições vem da api e não é conhecido aqui — com três cabem em botões, com trinta não. O controle nativo já traz navegação por teclado, busca por letra e o arranjo próprio de cada plataforma em ecrã pequeno.
+- **Aparece só com duas competições ou mais.** Com uma, um `select` de uma opção não filtra nada e sugere uma escolha que não existe. A exceção é haver filtro no endereço: aí o controle tem de estar lá, ou não há como o desfazer. **Nota:** a gravação da DT-018 só tem a EPL, por isso em modo gravado o filtro fica escondido — é o comportamento certo, mas significa que os E2E não o exercitam. Está coberto por testes de componente.
+- **Falhar a carregar as competições não estraga a listagem.** O filtro desaparece, a listagem continua, e o que ela mostra sem filtro é a lista completa. As competições são um extra da página, não o seu conteúdo.
+- Com filtro aplicado e zero resultados, o estado vazio é **"nada encontrado"**, com o nome da competição e saída — e não "nada cadastrado", que CA-008.3 exige que seja texto distinto.
+
+#### 2. O teto da busca — um erro que o utilizador não percebia
+
+`q` tem máximo de 100 (`MAX_QUERY_LENGTH`). O campo não o travava: ao 101.º caractere a api respondia `VALIDATION_FAILED` com `too_big` e o utilizador lia **"O pedido não é válido. Tente de novo a partir da listagem."** por ter escrito um nome comprido. O campo passa a ter `maxLength` com a constante do contrato, importada e não copiada; o atributo também trunca o que for colado.
+
+#### 3. A-R8 — o que encontrei do teu lado
+
+Registado na secção de integração, com a medição. Em resumo: comprometi-me, na revisão da T-004, a que um valor enumerado desconhecido nunca fizesse falhar a validação da resposta inteira, e foi com esse compromisso que a PC-014 foi fechada. **Não é o que o código faz.** `sportSchema` e `eventStatusSchema` são `z.enum` estritos sobre conjuntos de um só valor; um `status: 'live'` ou um `sport: 'basketball'` rejeitam o evento inteiro e a página mostra "Recebemos uma resposta que não conseguimos ler". O meu `?? evento.status`, escrito para tolerar o valor novo, é código inalcançável.
+
+A correção vive no esquema partilhado, que é da tua área. Até lá, **acrescentar um valor a qualquer destes conjuntos é mudança incompatível**, ao contrário do que a PC-014 diz.
+
+#### Uma coisa que vi nos ecrãs e corrigi
+
+Abri os ecrãs de conta no navegador, com a api a sério, e li uma contradição: o resumo da conta dizia **"E-mail confirmado: Por confirmar"**. O rótulo afirmava o que o valor desmentia. Passou a "Confirmação", com etiqueta "E-mail confirmado" ou "E-mail por confirmar". Verificado a 375px e em ecrã largo: a conta real em cima e o perfil demonstrativo com campo tracejado em baixo lêem-se como duas coisas distintas, que é o que §6.3 pede.
+
+#### Coordenação — uma coisa que o Pedro tem de saber
+
+**A revisão cruzada da DT-020 está na minha branch, não na `main`.** Pelo bloqueio "Quadro por branch", o `backend` não a vê enquanto a integração não acontecer — e os oito pedidos A-R1 a A-R8 só lhe chegam nessa altura. Conferido: `origin/feat/backend-foundation` continua em `cf78cb2`, sem nada novo desde a DT-020.
+
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm lint` → limpo;
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts 25/25 · api 102/102 · web **187/187** (eram 180);
+  - `pnpm --filter @blbet/web coverage` → 95,13% instruções, 86,33% ramos, 94,90% funções, 95,41% linhas;
+  - `pnpm build` → ok nos três;
+  - `pnpm e2e` → **12/12**;
+  - **ecrãs de conta abertos no navegador**, contra a api a correr com base de dados: cadastro, entrada, resumo da conta e lista de dispositivos verificados a 375px e em ecrã largo.
+- **Próxima ação recomendada:** o Pedro integra, para que os pedidos A-R1 a A-R8 cheguem ao `backend`. Do meu lado, o que falta depende dele ou do `backend`: PD-006 (campos do perfil), PD-007 (formato das odds) e mais gravações para os E2E.
+
+### 2026-10-28 — Lint limpo, ecrãs de conta da DT-020, E2E a correr e revisão cruzada
+
+- **Agente responsável:** frontend
+- **Tarefa executada:** as quatro coisas que o `backend` deixou pendentes na entrada da DT-020, mais os E2E que a DT-018 desbloqueou
+- **Arquivos novos:**
+  - `apps/web/src/shared/api/contas.ts` — as 11 rotas da secção 7.2, sobre os esquemas de `@blbet/contracts`;
+  - `apps/web/src/shared/api/dependencias.ts` e `dependencias.test.ts` — comparação de listas de dependências (ver o lint, abaixo);
+  - `apps/web/src/shared/conta/contexto.tsx` — estado da sessão, partilhado;
+  - `apps/web/src/modules/conta/` — `Entrar`, `CriarConta`, `VerificarEmail`, `Recuperar`, `Redefinir`, `AlterarSenha`, `Dispositivos`, `ResumoConta`, `ExigeSessao`, o kit de formulário (`Formulario.tsx`), `mensagens.ts`, `validacao.ts`, `useEnvio.ts`, três folhas de estilo e dois ficheiros de teste (`conta.test.tsx`, `mensagens.test.ts`);
+  - `e2e/playwright.config.ts`, `e2e/specs/esportes.spec.ts`, `e2e/specs/conta.spec.ts`.
+- **Arquivos modificados:** `apps/web/src/shared/api/useRecurso.ts`, `useListaPaginada.ts`, `cliente.ts`; `apps/web/src/app/App.tsx`; `apps/web/src/shared/componentes/NavegacaoPrincipal.tsx`; `apps/web/src/test/servidorFalso.ts`; `docs/design-system.md`, `docs/decisoes-tecnicas.md`, `docs/agent-tasks.md`, este quadro; e, na raiz e com aviso prévio, `package.json`, `pnpm-lock.yaml` e `.gitignore`.
+- **Contratos ou interfaces alterados:** **nenhum.** Não toquei em `packages/contracts/` nem em `docs/api-contract.md`.
+
+#### 1. Os 4 erros de lint — corrigidos sem um único `eslint-disable` novo
+
+Eram dois erros repetidos em `useRecurso.ts` e `useListaPaginada.ts`, e tinham a mesma raiz: os dois hooks recebem a lista de dependências de quem os chama e passavam-na a um `useCallback`, cujo resultado era a dependência do efeito. Daí vinham as duas queixas — a lista não é um literal, e o efeito começava por chamar `setState` para pôr a tela a carregar.
+
+O que fiz, e porquê, em vez de os calar:
+
+- **o `useCallback` intermédio desapareceu.** O efeito passou a depender diretamente da lista de quem chama; `carregar` é lido lá dentro, com o `eslint-disable` de `exhaustive-deps` que **já existia** e pela mesma razão de sempre;
+- **a reposição do estado passou do efeito para o render.** Quando a lista de dependências muda, o estado volta a "a carregar" no próprio render, com o padrão que o React documenta para ajustar estado quando uma entrada muda. `dependencias.ts` compara as listas como o React compara as dele: mesmo comprimento e `Object.is` em cada posição.
+
+**Isto não é cosmético, e o segundo erro tinha razão:** com a reposição dentro do efeito havia um render em que a lista já era de outro termo de busca e a tela ainda mostrava os itens do anterior como se fossem dele. Agora não há.
+
+#### 2. Os ecrãs de conta — sete, sobre a secção 7.2
+
+`/conta/entrar`, `/conta/criar`, `/conta/verificar`, `/conta/recuperar`, `/conta/nova-senha`, `/conta/alterar-senha` e `/conta/dispositivos`, mais o resumo da conta no topo de `/perfil`.
+
+**Não são um sexto destino da navegação:** RF-001 e CA-001.2 fixam cinco, e isso é documento do Pedro. O Perfil continua a ser o destino, e passa a marcar-se como ativo também em `/conta` (registado em **DT-022**). O perfil demonstrativo de RF-007 ficou **intacto** por baixo do resumo: o que está em cima é dado verdadeiro, o que está em baixo continua fictício e marcado como tal, e juntá-los apagaria a distinção que o `design-system` §6.3 existe para manter.
+
+Quatro decisões que vale a pena justificar:
+
+1. **Os caminhos `/conta/verificar` e `/conta/nova-senha` não os escolhi eu** — são os que a api já põe nos links dos e-mails, em `accounts-service.ts` sobre `PUBLIC_URL`. Adotei-os; o pedido para os escrever no contrato é a **A-R5**.
+2. **A confirmação do e-mail exige um clique, não acontece ao abrir a página.** O token é de uso único, o `StrictMode` monta cada efeito duas vezes em desenvolvimento — o que gastaria o token e faria o segundo pedido falhar sobre um token que estava bom — e vários clientes de e-mail visitam as ligações das mensagens antes de o destinatário lhes tocar.
+3. **O `404` das rotas de conta é um estado, não um erro.** Sem `DATABASE_FILE` a api não as regista e `/api/accounts/me` dá `404`; como essa rota nunca dá `404` por outra razão, a interface lê-o como "a área de contas está desligada nesta instalação" e di-lo por palavras.
+4. **Nenhum ecrã lê `error.message`.** As diferenças de texto vêm do código de erro mais o ecrã onde se está — está tudo em `mensagens.ts`, com a razão de cada caso escrita lá.
+
+#### 3. Os E2E — 12 testes, 12 a passar
+
+`pnpm e2e`, na raiz. Dois servidores arrancados pelo próprio Playwright, api em modo gravado, **base de dados nova por execução** (num diretório temporário), `RATE_LIMIT_MAX=0` e `AUTH_RATE_LIMIT_MAX=0` como pediste.
+
+**Um desvio, e a razão:** `AUTH_REQUIRE_VERIFIED_EMAIL=false`. Com o valor por omissão seria preciso o token de confirmação, que só existe na mensagem que o `Mailer` escreve na saída — e ler o log do servidor para o extrair apertaria a bateria a um formato que ninguém acordou. O ecrã de confirmação é exercitado à parte, com o token na URL. Está na **A-R7**.
+
+**Um defeito de ambiente, para ficar registado:** o servidor do Vite anuncia-se em `localhost`, que nesta máquina resolve para `::1`. Apontar o Playwright a `127.0.0.1:5173` fez a espera estourar sem haver nada de errado com o servidor. A configuração usa `localhost`.
+
+**O que a gravação não deixa testar**, e não inventei: paginação, jogo sem odds e lista vazia. Pedido de mais gravações mantido.
+
+#### 4. A revisão cruzada
+
+Na secção de integração: **concordo, sem divergência**; sete ajustes pedidos, **A-R1 a A-R7**, nenhum bloqueante. O mais sério é a **A-R6** — não há rota de reenvio da verificação, e quem não confirmou o e-mail fica sem saída nenhuma na interface.
+
+- **Aviso de ficheiro partilhado — cumprido:** o aviso prévio está na entrada abaixo. Mudou o `package.json` da raiz (`@playwright/test`, scripts `e2e` e `dev:web`), o `pnpm-lock.yaml` (**+28 linhas, só acrescentos; nenhuma entrada existente alterada**) e o `.gitignore` (`test-results/`, `playwright-report/`). **A raiz fica livre.** Nota: o `dev:web` **não existia** — o `package.json` da raiz só tinha `dev:api`.
+- **Bloqueios:** nenhum
+- **Testes executados e resultados — reais:**
+  - `pnpm lint` → **limpo, 0 erros** (eram 4). O passo `lint` do CI deixa de falhar;
+  - `pnpm typecheck` → ok nos três pacotes;
+  - `pnpm test` → contracts 25/25 · api 102/102 · web **180/180** (eram 141);
+  - `pnpm --filter @blbet/web coverage` → 94,70% instruções, **85,29% ramos**, 94,25% funções, 94,98% linhas — acima da meta de 80% da DT-015;
+  - `pnpm build` → ok nos três pacotes (o `apps/web` **voltou a compilar**);
+  - `pnpm e2e` → **12 testes, 12 a passar**, contra a api a sério: cadastro, entrada com cookie, leitura da conta, lista de dispositivos e saída; o cadastro repetido a dar resposta indistinguível do primeiro; o e-mail em maiúsculas a chegar à mesma conta; e o cookie de sessão verificado como `HttpOnly` e invisível ao `document.cookie`.
+- **Um erro meu, corrigido, que vale registar:** escrevi os testes de componente com `@testing-library/user-event` antes de confirmar que é dependência — **não é**, e instalá-la mexeria no lockfile partilhado por uma conveniência. Reescritos com `fireEvent`, que é o que o resto da bateria já usa.
+- **Pendências para o Pedro:** aprovar o commit, e **dizer em que branch devo trabalhar** — esta sessão está na `feat/backend-foundation`, que é a do `backend`, e não mudei de branch nem criei nenhuma.
+- **Próxima ação recomendada:** o `backend` responde a A-R1 a A-R7; eu fico à espera da branch para commitar.
+
+### 2026-10-28 — Aviso prévio: o `frontend` vai mexer na raiz (Playwright e os E2E, DT-015/PA-008)
+
+- **Agente responsável:** frontend
+- **Aviso, conforme a secção 2 do protocolo:** vou tocar em ficheiros **partilhados** da raiz para arrancar os testes end-to-end, que são meus por DT-015 (resolve PA-008). Um agente de cada vez: enquanto este aviso estiver aberto, o `backend` não deve instalar dependências nem editar a raiz.
+- **O que vai mudar, e só isto:**
+  - `package.json` da raiz — `@playwright/test` em `devDependencies` e um script `e2e`;
+  - `pnpm-lock.yaml` — acrescentos do `@playwright/test` e do que dele depende; **nenhuma entrada existente alterada**;
+  - `e2e/` (novo, na raiz) — configuração e especificações, área do `frontend`.
+- **O que NÃO vai mudar:** `pnpm-workspace.yaml` (o `e2e/` não é um pacote do workspace; as dependências ficam na raiz), `tsconfig.base.json`, `.gitignore` e a configuração do ESLint.
+- **`allowBuilds`:** o `@playwright/test` não tem scripts de instalação a aprovar. Os navegadores são descarregados à parte, por `playwright install`, fora do `node_modules` do repositório.
+- **Próxima ação:** instalar, escrever as especificações e registar aqui o resultado real.
 
 ### 2026-10-27 — Renumeração para DT-016/DT-017, concordância com a DT-015 e meta de cobertura
 
@@ -857,6 +1184,48 @@ O termo de busca em `?q=` espelha o parâmetro que o contrato já define (regra 
 - **Divergências abertas entre agentes:** nenhuma. As divergências **documentais** DIV-001 a DIV-003 estão em [`docs/decisoes-tecnicas.md`](decisoes-tecnicas.md#divergências-documentais-abertas) e são do Pedro
 - **Bloqueios de integração:** BLQ-001 (provedor esportivo); PD-003 a PD-008; T-013 (monorepo)
 - **Próxima ação recomendada:** não definir rotas antes da T-010 e da T-009; mudanças de contrato seguem a revisão cruzada (DT-005, seção 4.5 do protocolo)
+
+### Revisão cruzada da DT-020 — contas e sessões (DT-005) — registada pelo `frontend` em 2026-10-28
+
+Pedido formal do `backend` na entrada de 2026-10-28 da secção Backend. Revi: os dois códigos de erro novos em `packages/contracts/src/envelope.ts`, o módulo `packages/contracts/src/accounts.ts`, a secção **5.2** e a secção **7.2** do contrato, e **conferi as 11 rotas contra `apps/api/src/routes/accounts.ts` no disco** — a tabela do contrato corresponde ao que está implementado, rota a rota.
+
+**Veredicto: concordo, sem divergência e sem bloqueio.** Nenhuma forma existente mudou; é tudo acrescento, e nada do que o `apps/web` já consumia quebrou. Os oito ajustes abaixo são **pedidos**, não objeções: enquanto não forem respondidos, **o acordo vigente continua válido** e a interface já está construída sobre ele.
+
+#### O que aceito sem ressalva
+
+1. **`UNAUTHENTICATED` (401) e `FORBIDDEN` (403), e a distinção entre eles.** É a distinção certa e é a que a interface precisava: o 401 leva ao ecrã de entrada, o 403 não. Está implementada assim — `useConta` trata o 401 de `/api/accounts/me` como "ainda não entrou", que é um estado normal e não um erro.
+2. **A-A2 — resposta genérica no cadastro e na recuperação.** Concordo com a razão e com o preço. Nenhum ecrã meu diz "este e-mail já existe"; a confirmação é condicional ("se este endereço puder ser usado") e os E2E comparam as duas respostas para garantir que continuam indistinguíveis.
+3. **A-A1 — mínimo de 8, máximo de 200, sem regras de composição.** A validação local importa o `passwordSchema` do pacote em vez de copiar o número, e o campo anuncia expressamente que não há exigência de maiúsculas, números ou símbolos.
+4. **A-A3 — e-mail normalizado no servidor.** O campo di-lo em vez de rejeitar maiúsculas; há E2E a entrar com `  EMAIL EM MAIÚSCULAS ` e a chegar à mesma conta.
+5. **O token só no cookie `HttpOnly`.** Concordo, e não tentei lê-lo. Há um E2E que verifica que o cookie existe, que é `HttpOnly` e que `document.cookie` não o vê — se alguém tirar o `HttpOnly`, esse teste cai.
+6. **`DELETE /api/sessions/:id` de outra conta dar `404` e não `403`.** Concordo: o `403` confirmaria que o identificador existe.
+7. **O `202` sem corpo útil e o `204` nas operações sem resultado.** O cliente do frontend passou a aceitar respostas sem corpo.
+
+#### Ajustes pedidos — `A-R1` a `A-R8`
+
+- **A-R1 — o corpo de `POST /api/accounts/password` não está em `packages/contracts`.** É a única forma da secção 7.2 que vive só em `apps/api/src/routes/accounts.ts` (`changePasswordSchema`, linha 22), que o frontend não importa. Tive de validar os dois campos com o `passwordSchema` do pacote em vez de ter a forma inteira. **Pedido:** mover `changePasswordSchema` para `packages/contracts/src/accounts.ts`, como os outros seis.
+- **A-R2 — não há forma de distinguir o `429` do travão por tentativas do `429` do limite geral sem ler `error.message`.** A A-A4 identifica-o por `message: "too many attempts"`, mas a A1 e a DIV-F01 dizem que `message` é técnica e não chega à interface — e usá-la para decidir seria o mesmo defeito por outra porta. **Pedido:** um `details: [{ field: …, issue: … }]` próprio, ou um código estável novo. **Entretanto**, nos ecrãs de conta qualquer `429` leva o texto do travão, que serve para os dois casos (em ambos a saída é esperar). Não bloqueia.
+- **A-R3 — `UNAUTHENTICATED` em `POST /api/accounts/password` quer dizer duas coisas opostas.** Em `accounts-service.ts` o mesmo código sai para "a senha atual não confere" (linha 304) e para "a sessão já não é válida" (linha 300). A interface tinha de fazer o contrário em cada caso: marcar o campo, ou mandar entrar de novo. **Pedido:** `details: [{ field: 'body.currentPassword', issue: 'invalid_value' }]` quando for a senha. **Entretanto**, o texto cobre os dois sentidos e não expulsa ninguém do ecrã — que é o menos mau, mas é pior do que o certo.
+- **A-R4 — `FORBIDDEN` na entrada junta "e-mail por verificar" e "conta bloqueada".** São dois textos e dois caminhos diferentes: um manda abrir o e-mail, o outro não tem saída nenhuma na interface. **Pedido:** `details` que os separe. **Entretanto**, o texto fala do caso comum (e-mail por confirmar), o que é enganador para uma conta bloqueada.
+- **A-R5 — os caminhos dos links de e-mail não estão no contrato, e são superfície de integração.** `accounts-service.ts` constrói `${PUBLIC_URL}/conta/verificar?token=…` e `${PUBLIC_URL}/conta/nova-senha?token=…` (linhas 128 e 273). São rotas da **interface**, escolhidas pelo `backend` e implementadas por mim, e não estão em lado nenhum da secção 7.2 — se eu tivesse escolhido outros nomes, todos os e-mails enviados dariam "página não encontrada". **Adotei os teus**, e as rotas existem com esses caminhos exatos. **Pedido:** documentá-los na 7.2, ao lado das rotas, para deixarem de depender de alguém ler o serviço. Registado como [DT-022](decisoes-tecnicas.md#dt-022--caminhos-dos-ecrãs-de-conta-na-interface).
+- **A-R6 — não existe rota de reenvio da verificação, mas o contrato fala dela.** O comentário do `acceptedSchema`, em `packages/contracts/src/accounts.ts`, diz "Cadastro, pedido de recuperação **e reenvio de verificação** respondem sempre isto" — e a tabela da 7.2 tem 11 rotas, nenhuma de reenvio; conferi em `apps/api/src/routes/accounts.ts` e também lá não está. **Consequência real:** quem apanha `403` na entrada por não ter confirmado o e-mail, e perdeu ou nunca recebeu a mensagem, **não tem saída nenhuma na interface** — resta-lhe pedir recuperação de senha, que é outra coisa. **Pedido:** ou a rota, ou a correção do comentário. Prefiro a rota; é o buraco mais visível desta entrega.
+- **A-R7 — `AUTH_REQUIRE_VERIFIED_EMAIL` obriga os E2E a um desvio, e vale a pena saber porquê.** Por omissão é `true`, e o token de confirmação só existe na mensagem que o `Mailer` escreve na saída. Ler o log do servidor para extrair o token apertaria a bateria a um formato que ninguém acordou, por isso os E2E correm com `AUTH_REQUIRE_VERIFIED_EMAIL=false` e exercitam o ecrã de confirmação à parte, com o token na URL. **Isto é informação, não pedido** — mas se a A-R6 der uma rota de reenvio, o fluxo inteiro passa a ser testável sem o desvio.
+
+- **A-R8 — a PC-014 não está honrada na validação, e o compromisso era meu.** Na revisão da T-004 (resposta **R1**) comprometi-me a que um valor enumerado desconhecido nunca faça falhar a validação da resposta inteira, e foi com isso que a PC-014 foi fechada como "acrescentar um valor a um enumerado é mudança compatível". **Fui verificar e não é o que acontece.** `sportSchema` e `eventStatusSchema` são `z.enum` estritos, sobre conjuntos de **um só valor** — `SPORTS = ['soccer']` e `EVENT_STATUSES = ['scheduled']`. Medido contra os esquemas reais:
+
+  | Resposta | `eventSchema.safeParse` |
+  |---|---|
+  | `status: 'live'` | **rejeitado** |
+  | `sport: 'basketball'` | **rejeitado** |
+
+  O evento inteiro cai, e com ele a página, que passa a mostrar "Recebemos uma resposta que não conseguimos ler". O `?? evento.status` que escrevi em `CartaoEvento.tsx:37` precisamente para mostrar um valor novo como veio **é código inalcançável**: a resposta nunca chega lá.
+
+  **Isto não é defeito teu, e a correção não é minha:** a tolerância tem de viver no esquema partilhado, que é da tua área. Como está, acrescentar um valor a qualquer destes conjuntos é **mudança incompatível**, ao contrário do que a PC-014 fechou — e é uma quebra em produção no dia em que um jogo ficar `live` ou entrar um segundo esporte. **Pedido:** que os dois esquemas preservem o valor desconhecido em vez de falharem. Enquanto não for assim, **anuncia no quadro antes de acrescentar qualquer valor**, porque hoje isso parte a listagem inteira.
+
+#### Duas coisas que verifiquei e que não dão pedido nenhum
+
+- **Nada do que o `apps/web` já consumia quebrou.** Os acrescentos ao `ERROR_CODES` só obrigaram às duas entradas de `MENSAGEM_POR_CODIGO` — que, como está registado, foram postas pelo `backend` com autorização direta do Pedro. **Fiquei com elas e com o texto que escreveste:** servem, e a distinção entre as duas está certa.
+- **O `404` das rotas de conta quando não há `DATABASE_FILE` é tratado como estado, não como erro.** Sem base de dados a api não regista as rotas, e `/api/accounts/me` cai no `setNotFoundHandler`. Como essa rota nunca dá `404` por outra razão — ou devolve a conta, ou devolve `401` —, a interface lê esse `404` como "a área de contas está desligada nesta instalação" e di-lo por palavras, em vez de mostrar "não encontrámos o que procurava". Se isto deixar de ser verdade, avisa.
 
 ### Pendências para o agente `frontend` — registadas pelo `backend` em 2026-10-26
 

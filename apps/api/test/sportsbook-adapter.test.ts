@@ -2,8 +2,8 @@ import { eventSchema } from '@blbet/contracts';
 import { describe, expect, it } from 'vitest';
 import { toCompetition, toOdd, toSportEvent } from '../src/modules/sports/sportsbook/adapter.js';
 import { competitionsResponseSchema, eventsResponseSchema } from '../src/modules/sports/sportsbook/schema.js';
-import competitionsFixture from './fixtures/sportsbook-competitions.json' with { type: 'json' };
-import eventsFixture from './fixtures/sportsbook-epl-events.json' with { type: 'json' };
+import competitionsFixture from '../recordings/competitions.json' with { type: 'json' };
+import eventsFixture from '../recordings/events-EPL.json' with { type: 'json' };
 
 // Fixtures reduzidos a partir de respostas reais da Sportsbook API (2026-10-27): 2 eventos da
 // EPL, só os mercados e fontes de que os testes precisam.

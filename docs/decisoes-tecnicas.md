@@ -49,6 +49,11 @@ Cada decisão tem identificador `DT-xxx`, sequencial e estável, nunca reutiliza
 | [DT-015](#dt-015--qualidade-cobertura-integração-contínua-lint-e-e2e) | Cobertura mínima de 80%, GitHub Actions, ESLint na raiz, E2E do `frontend` em `e2e/` | DP-002, DP-003, PA-008 | aprovada |
 | [DT-016](#dt-016--wouter-como-biblioteca-de-rotas-do-frontend) | `wouter` como biblioteca de rotas de `apps/web/`; esquema de endereços e fallback para `index.html` | roteamento (RF-002, RF-004) | aprovada |
 | [DT-017](#dt-017--estratégia-de-estado-da-interface) | Navegação no endereço, dados do servidor em hooks próprios, Context só para o partilhado, mais cache curto de 30 s | DP-005 | aprovada |
+| [DT-018](#dt-018--modo-de-teste-da-api-com-respostas-gravadas) | Modo de teste da api com respostas gravadas e relógio parado, para os E2E | DT-015 (etapa 4), PA-008 | aprovada |
+| [DT-019](#dt-019--limite-de-pedidos-na-api-e-teto-do-cursor) | Limite de pedidos por cliente (`@fastify/rate-limit`) e teto de 1024 caracteres no cursor | S-1 e S-2 da revisão de segurança (RNF-004) | aprovada |
+| [DT-020](#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo) | O blbet passa a ter contas reais: cadastro, autenticação, sessões e auditoria. **Revê a RN-006**; RN-001 e RN-007 ficam | Pedido do Pedro, 2026-10-28 | aprovada |
+| [DT-021](#dt-021--persistência-sqlite-agora-postgresql-em-produção) | Persistência relacional com migrações versionadas, atrás de uma costura de repositório | DT-020 | aprovada |
+| [DT-022](#dt-022--caminhos-dos-ecrãs-de-conta-na-interface) | Os ecrãs de conta vivem em `/conta/…`, sem sexto destino na navegação; dois caminhos são os que a api já envia por e-mail | DT-016, DT-020 | aprovada |
 
 ---
 
@@ -529,3 +534,207 @@ Mais um **cache em memória de validade curta** (30 s) em `shared/api/cache.ts`,
 **Pendências** — nenhuma. A correção da dependência cruzada que esta análise descobriu (a tela de favoritos importava de dois domínios, contra a secção 3 do [`arquitetura.md`](arquitetura.md)) foi feita na mesma entrega: a tela passou para `app/`, que é a casca e cujo papel é compor domínios.
 
 **Nota de numeração** — esta decisão foi registada como DT-016 e renumerada para **DT-017** ao integrar a `main`: o `backend` tinha entretanto usado o DT-015 (qualidade) e o DT-016 passou a ser o roteamento. **Foi a terceira colisão de numeração entre os dois agentes.** A partir daqui, o número é **reservado no quadro antes de ser escrito aqui**.
+
+---
+
+### DT-018 — Modo de teste da api com respostas gravadas
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** `backend`, dentro da etapa 4 da DT-015 já aprovada pelo Pedro
+- **Registado por:** `backend` (número reservado no quadro: o `frontend` deixou DT-018 como próximo livre)
+- **Resolve:** a dependência dos E2E (PA-008, DT-015) em relação ao provedor real
+
+**Contexto** — Os testes end-to-end são do `frontend` e correm contra a api a sério. Sem alternativa ao provedor, só havia dois caminhos, ambos maus: correr com a chave real, gastando a quota de 150 pedidos/dia do plano gratuito (DT-009) e dependendo de jogos que mudam todos os dias; ou correr sem chave, contra `503`, que só exercita o estado de erro. A api já tinha a costura certa para uma terceira via: o catálogo recebe um `SportsProvider` por injeção, e os testes do `backend` já o substituíam por uma versão em memória.
+
+**Decisão** — a api ganha `SPORTS_MODE`, com dois valores:
+
+| Valor | Comportamento |
+|---|---|
+| `live` (omissão) | Chama a Sportsbook API. Sem `SPORTS_PROVIDER_API_KEY`, as rotas de esportes dão `503` |
+| `recorded` | Serve as respostas gravadas de `apps/api/recordings/`. Não precisa de chave e não faz nenhuma chamada de rede |
+
+Acompanham a decisão:
+
+- **As gravações são respostas reais do provedor, reduzidas.** Nenhuma é inventada, e os dados que saem continuam marcados com `origin: "provider"`, porque é o que são. Isto cumpre a regra do `CLAUDE.md` de não criar chamadas fictícias que se apresentem como reais.
+- **O relógio fica parado** no `recordedAt` da gravação. Sem isso, os jogos gravados passariam a "já começados" com o avançar do calendário e as listas esvaziavam-se, porque a DT-010 só mostra jogos futuros. Parar o relógio também impede a cache de expirar: a mesma resposta, sempre.
+- **`SPORTS_NOW`** escolhe outro instante. É assim que os E2E alcançam o jogo que já começou — fora da lista e com `404 event_started` no detalhe —, que de outro modo seria inalcançável.
+- **A gravação é validada no arranque** pelos mesmos esquemas Zod das respostas reais. Gravação malformada é arranque recusado, com o nome do ficheiro, e nunca uma resposta silenciosamente errada.
+- As gravações passam a ser **a única cópia** destes exemplos: os testes do `backend` que antes liam `test/fixtures/` leem agora `recordings/`.
+
+**Alternativas consideradas**
+
+- **Um servidor falso à parte** (MSW, WireMock): rejeitado. Traz dependência nova e um segundo sítio onde a forma das respostas tem de ser mantida a par do provedor.
+- **Reescrever as datas das gravações** para as manter sempre no futuro: rejeitado. Alteraria dados gravados, e um dado alterado deixa de ser uma gravação fiel. Parar o relógio obtém o mesmo efeito sem mentir sobre o conteúdo.
+- **Semear a cache diretamente**, saltando o provedor: rejeitado. Deixaria o adaptador e a validação por exercitar, que é justamente a parte que os E2E devem atravessar.
+
+**Consequências**
+
+- Os E2E correm sem chave, sem rede e sem gastar quota, e são determinísticos.
+- A gravação vale também para desenvolvimento do `frontend` sem consumir quota.
+- **A gravação cobre hoje só a `EPL`, com dois jogos** — é o que existe gravado no repositório. Acrescentar competições exige gravar respostas reais com a chave; o formato está preparado (`events-<NOME>.json` mais uma linha no manifesto).
+- `SPORTS_MODE=recorded` nunca deve ser usado em publicação. Não há salvaguarda no código a impedi-lo: o modo é explícito e o arranque regista um aviso.
+
+**Pendências** — gravar mais competições e mais jogos quando houver uma sessão com a chave, se os E2E precisarem de mais do que dois jogos.
+
+---
+
+### DT-019 — Limite de pedidos na api e teto do cursor
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** Pedro (mandou avançar com o S-1 e o S-2); `backend` nos valores concretos
+- **Registado por:** `backend` (número reservado no quadro)
+- **Resolve:** S-1 e S-2 da revisão de segurança de 2026-10-27 (RNF-004)
+
+**Contexto** — A revisão de segurança da api não encontrou nada crítico, mas deixou dois achados. O **S-1 (médio)**: a api não tinha limite de pedidos por cliente. A cache da DT-012 protege a quota do provedor, não a api — um cliente só, em ciclo, sobrecarrega-a sem nunca tocar no provedor. O **S-2 (baixo)**: o `cursor` de `eventsQuerySchema` não tinha tamanho máximo e ia direto a `JSON.parse`.
+
+**Decisão — S-1: limite de pedidos**
+
+`@fastify/rate-limit` 11.2.1, registado na app, com duas variáveis:
+
+| Variável | Omissão | Papel |
+|---|---|---|
+| `RATE_LIMIT_MAX` | `300` | pedidos por janela e por cliente; `0` desliga |
+| `RATE_LIMIT_WINDOW_SECONDS` | `60` | duração da janela |
+
+- O `429` sai no **envelope da PC-001**, com `retryable: true`. Conseguido lançando o `AppError` que já existia, em vez de acrescentar um caminho de erro novo: o plugin lança o que o `errorResponseBuilder` devolver, e um `AppError` cai no tratamento normal.
+- As respostas trazem `x-ratelimit-limit`, `x-ratelimit-remaining` e `x-ratelimit-reset` (acrescento A9 do contrato, anunciado no quadro).
+- **`RATE_LIMIT_MAX=0` desliga o limite**, e é o que os E2E devem usar. Sem esta saída, um limite apertado tornaria os E2E intermitentes — falhariam por `429` e não por defeito do produto.
+- O limite é **global**, incluindo `/health`. Com 300 por minuto, nenhuma sonda razoável se aproxima disso.
+
+**Decisão — S-2: teto do cursor**
+
+`cursor` passa a ter `.max(MAX_CURSOR_LENGTH)`, com `MAX_CURSOR_LENGTH = 1024`.
+
+**O `.max(256)` que a própria revisão propôs estava errado, e medir mostrou-o:** o cursor é a codificação em base64url dos filtros que o emitiram, e como `q` admite 100 unidades UTF-16, o pior caso medido é **272 caracteres com texto latino e 539 com CJK** (3 bytes por caractere). 256 teria recusado cursores legítimos emitidos pela própria api. 1024 cobre o pior caso com folga e continua a travar uma entrada arbitrariamente grande. Um cursor acima do teto dá `400` com `issue: "too_big"`, antes de ser descodificado.
+
+**Alternativas consideradas**
+
+- **S-1 sem dependência**, com um contador caseiro: rejeitado. Limitar pedidos tem detalhes que se acertam mal à primeira — janelas deslizantes, chave por IP com IPv6, cabeçalhos padronizados — e o plugin oficial do Fastify trata-os.
+- **Limitar só as rotas de esportes**: rejeitado por agora. O custo de defender também `/health` é nulo, e a regra única é mais fácil de raciocinar.
+- **Derivar o teto do cursor dos limites do esquema**, em vez de uma constante: rejeitado. Daria uma expressão difícil de ler para proteger contra um caso que a medição já cobre com folga.
+
+**Consequências**
+
+- **`pnpm-lock.yaml` mudou** (ficheiro partilhado): +30 linhas, só acrescentos, 4 pacotes novos — `@fastify/rate-limit`, `@lukeed/ms`, `toad-cache` e dependências diretas suas. Nenhuma entrada existente foi alterada. Anunciado no quadro.
+- **`packages/contracts` mudou**, logo exige **revisão cruzada do `frontend`** (DT-005). A mudança é apertar um limite, não mudar uma forma: nenhum cursor que a api emita é afetado.
+- O S-3 da revisão (cabeçalhos de segurança e CORS) **continua aberto**, ligado à plataforma de publicação (DP-008).
+
+**Pendências** — revisão cruzada do `frontend` à mudança em `packages/contracts`; e, antes de publicar, decidir se o limite por omissão serve para o tráfego real, que hoje ninguém conhece.
+
+~~O S-3 continua aberto.~~ **Fechado pela DT-020**, que trouxe os cabeçalhos de segurança e o CORS restrito sem esperar pela DP-008: a lista de origens é configuração, não decisão de arquitetura.
+
+---
+
+### DT-020 — Contas de utilizador e autenticação (mudança de escopo)
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** **Pedro**, 2026-10-28, autorizando expressamente a mudança de escopo depois de lhe ser apresentada a colisão com as regras em vigor
+- **Registado por:** `backend`
+- **Revê:** **RN-006** do `requisitos.md` e a secção "Natureza do projeto" do `CLAUDE.md`. **RN-001 (sem transações financeiras) e RN-007 (nada que dependa de autorização regulatória) continuam em vigor** — esta decisão cria contas, não dinheiro
+
+**Contexto** — Até aqui o blbet era, por decisão registada, um protótipo demonstrativo: a **RN-006** dizia textualmente "não há autenticação real, cadastro, coleta de dados pessoais verdadeiros, KYC ou verificação de identidade", a **RN-001** proibia qualquer operação financeira e a **RN-007** excluía tudo o que dependesse de autorização regulatória. Nenhum requisito funcional de RF-001 a RF-008 menciona contas. O Pedro pediu um backend de autenticação e segurança; essa colisão foi-lhe apresentada por escrito, com as regras citadas, e ele autorizou a mudança.
+
+**Decisão** — O blbet passa a ter **contas reais**, com o que isso implica em proteção de dados. O que entra **agora**:
+
+| Entrega | Estado |
+|---|---|
+| Cadastro com validação no servidor e senha em Argon2id | feito |
+| Verificação de e-mail, com token de uso único | feito |
+| Entrada e saída, com sessão em cookie `HttpOnly`, `Secure`, `SameSite=Strict` | feito |
+| Expiração por inatividade **e** teto absoluto da sessão | feito |
+| Lista e revogação de sessões, uma a uma ou todas as outras | feito |
+| Recuperação e redefinição de senha, que derruba todas as sessões | feito |
+| Alteração de senha com reautenticação | feito |
+| Travão progressivo por conta e por origem, e limite próprio nas rotas de autenticação | feito |
+| Proteção contra enumeração de contas, com respostas genéricas | feito |
+| Registo de eventos de segurança, sem segredos nem dados pessoais em claro | feito |
+| Cabeçalhos de segurança, CORS restrito e teto do corpo do pedido (fecha o **S-3**) | feito |
+
+O que **fica de fora, e porquê**:
+
+- **MFA, carteira, depósitos, saques, KYC e jogo responsável com efeito operacional.** Nada disto é a mesma fase. A **RN-007** não é revogada por esta decisão: continua a valer para tudo o que dependa de licenciamento. Dinheiro real exige decisão própria, aqui registada, e é anterior ao código.
+- **Provedor de e-mail.** Não há nenhum escolhido. A api define a costura (`Mailer`) e, fora de produção, escreve a mensagem na saída; **em produção recusa enviar**, para não fingir que enviou. Escolher o provedor é decisão em aberto.
+
+**Alternativas consideradas**
+
+- **Token assinado (JWT) em vez de sessão na base de dados**: rejeitado. Revogar um token assinado obriga a manter na mesma uma lista do lado do servidor, o que anula a vantagem; e o requisito de "revogação de sessões" e de "invalidar sessões após eventos críticos" é central aqui. Um token opaco, cuja verdade está na base de dados, revoga-se apagando uma linha.
+- **Token no corpo da resposta, guardado pela interface**: rejeitado. Qualquer XSS passaria a valer a conta. O cookie `HttpOnly` não é legível por JavaScript.
+- **Responder `409` a um cadastro com e-mail repetido**: rejeitado. É a forma mais comum de descobrir quem tem conta numa plataforma. A resposta é a mesma; quem é dono do endereço recebe aviso por e-mail.
+- **`scrypt` do `node:crypto`, sem dependência nova**: rejeitado. O pedido do Pedro nomeia Argon2id, e o `@node-rs/argon2` traz binários pré-compilados — não há passo de compilação no Windows.
+
+**Consequências**
+
+- **`packages/contracts` mudou:** dois códigos de erro novos (`UNAUTHENTICATED` 401, `FORBIDDEN` 403) e o módulo `accounts.ts`. **Exige revisão cruzada do `frontend`** (DT-005).
+- **O `apps/web` deixou de compilar** por causa disso: `MENSAGEM_POR_CODIGO`, em `apps/web/src/shared/api/erros.ts`, é exaustivo sobre `ErrorCode` e passa a faltar-lhe duas entradas. É ficheiro do `frontend` e **não foi alterado pelo `backend`**; o pedido está no quadro.
+- **`pnpm-lock.yaml` mudou** (ficheiro partilhado): `@node-rs/argon2`, `@fastify/cookie`, `@fastify/cors`, `@fastify/helmet`.
+- **O `CLAUDE.md` ficou desatualizado** na secção "Natureza do projeto". É ficheiro do Pedro e não foi alterado.
+- **Passa a haver dados pessoais.** A LGPD aplica-se a partir de agora: só `accounts` guarda dado pessoal, para a eliminação ser localizada; endereços IP são guardados em resumo com segredo; senhas e tokens nunca aparecem em log.
+
+**Pendências** — escrever os requisitos funcionais das contas, que não existem (RF-001 a RF-008 não os cobrem); escolher o provedor de e-mail; MFA; e a decisão separada, com parecer próprio, antes de qualquer funcionalidade financeira.
+
+---
+
+### DT-021 — Persistência: SQLite agora, PostgreSQL em produção
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** `backend`, dentro da autorização da DT-020
+- **Registado por:** `backend`
+- **Resolve:** a parte da **DP-009** que faltava — até aqui não havia base de dados nenhuma
+
+**Contexto** — O `arquitetura.md` dizia "nenhum banco de dados definido". Contas sem persistência durável não existem. Foi recomendado PostgreSQL ao Pedro e ele aprovou; mas o PostgreSQL exige um servidor que esta máquina não tem, e esperar por isso deixaria a DT-020 sem nada entregue.
+
+**Decisão** — **Uma costura de repositório** (`AccountsRepository`), que o serviço consome e que é a única coisa que sabe SQL. Por trás dela, **SQLite pela biblioteca `node:sqlite` que vem com o Node 24**: sem dependência nova, sem servidor, e a correr em Windows. Migrações **versionadas e imutáveis**, cada uma numa transação; uma migração aplicada nunca é editada.
+
+**Isto não é a escolha de produção.** O destino continua a ser **PostgreSQL**, e a costura existe exatamente para que a troca não toque no serviço nem nas rotas. O que muda é só a implementação do repositório.
+
+**Alternativas consideradas**
+
+- **PostgreSQL já**: adiado, não rejeitado. Exige um servidor a instalar e configurar antes de existir uma linha de código de contas.
+- **Um ORM (Prisma, Drizzle)**: rejeitado por agora. Traria gerador, esquema próprio e um passo de build, para sete tabelas que cabem em SQL simples. A costura deixa a porta aberta.
+- **Guardar as sessões em memória**: rejeitado. Morreriam a cada reinício e não sobreviveriam a mais de um processo.
+
+**Consequências**
+
+- `node:sqlite` ainda é marcado como experimental pelo Node: pode emitir aviso no arranque e a sua API pode mudar numa versão maior.
+- O SQLite escreve um ficheiro só: não serve para mais de uma instância da api a escrever ao mesmo tempo. Enquanto for uma, chega.
+
+**Pendências** — portar o repositório para PostgreSQL antes de publicar, e decidir onde a base de dados vive (ligado à DP-008).
+
+---
+
+### DT-022 — Caminhos dos ecrãs de conta na interface
+
+- **Data:** 2026-10-28
+- **Estado:** aprovada
+- **Decidido por:** `frontend`, dentro da sua área (`apps/web/`), sobre caminhos que a api já tinha fixado
+- **Registado por:** `frontend`
+- **Depende de:** [DT-016](#dt-016--roteamento-com-wouter) (roteamento) e [DT-020](#dt-020--contas-de-utilizador-e-autenticação-mudança-de-escopo)
+
+**Contexto** — A DT-020 trouxe contas reais e sete ecrãs novos à interface. Duas coisas tinham de ser decididas antes de os escrever: onde é que esses ecrãs vivem no endereço, e se passam a ser um destino da navegação principal.
+
+A segunda pergunta já tinha resposta no `requisitos.md`: **RF-001 e CA-001.2 fixam cinco destinos**, e esse documento é do Pedro. Acrescentar um sexto por iniciativa do `frontend` seria mudar um requisito sem decisão dele.
+
+A primeira tinha uma resposta que não era minha: a api **já constrói os links dos e-mails** em `accounts-service.ts`, sobre `PUBLIC_URL`, como `${PUBLIC_URL}/conta/verificar?token=…` e `${PUBLIC_URL}/conta/nova-senha?token=…`. São caminhos da **interface**, escolhidos pelo `backend`, e nunca entraram no `api-contract.md`.
+
+**Decisão**
+
+1. **Os ecrãs de conta vivem em `/conta/…`, e não são um sexto destino.** São sete: `/conta/entrar`, `/conta/criar`, `/conta/verificar`, `/conta/recuperar`, `/conta/nova-senha`, `/conta/alterar-senha` e `/conta/dispositivos`.
+2. **`/conta/verificar` e `/conta/nova-senha` são os caminhos que a api já envia**, letra por letra. Não são escolha do `frontend` e **não podem ser mudados de um lado só**: mudá-los parte todos os e-mails já enviados.
+3. **O destino Perfil marca-se como ativo em `/conta`**, além de `/perfil` — tal como Esportes já cobria `/eventos/:id`. Sem isto, entrar na conta apagava a marca e a navegação ficava sem destino ativo.
+4. **O resumo da conta real fica no topo de `/perfil`, acima do perfil demonstrativo de RF-007, que não é tocado.** O que está em cima é dado verdadeiro de quem entrou; o que está em baixo continua fictício e marcado como tal (`design-system` §6.1 e §6.3).
+
+**Alternativas consideradas**
+
+- **Pendurar tudo em `/perfil/…`** (`/perfil/verificar`, `/perfil/redefinir`): foi o que fiz primeiro, e estava errado — os e-mails da api apontam para `/conta/…`, e os links dariam "página não encontrada". Corrigido antes de qualquer verificação.
+- **Um sexto destino "Conta" na navegação**: rejeitado. Muda RF-001 e CA-001.2, que são do Pedro.
+- **Fundir a conta real com o perfil demonstrativo num só bloco**: rejeitado. Apaga a distinção entre dado verdadeiro e dado fictício, que é a razão de existir do campo tracejado.
+
+**Consequências**
+
+- **Os caminhos de `/conta/verificar` e `/conta/nova-senha` passam a ser superfície de integração**, partilhada entre os dois agentes, e estão documentados num só sítio: aqui. O pedido para os escrever também na secção 7.2 do contrato é a **A-R5** da revisão cruzada.
+- `ehDestinoAtivo`, em `NavegacaoPrincipal.tsx`, ganhou um caso para o Perfil.
+- RF-001 a RF-008 continuam **sem cobrir contas**: os requisitos funcionais das contas não existem, e escrevê-los é pendência da DT-020.

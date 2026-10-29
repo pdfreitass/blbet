@@ -1,4 +1,11 @@
-import { competitionSchema, eventSchema, paginatedSchema, successSchema } from '@blbet/contracts';
+import {
+  competitionSchema,
+  eventSchema,
+  MAX_CURSOR_LENGTH,
+  MAX_QUERY_LENGTH,
+  paginatedSchema,
+  successSchema,
+} from '@blbet/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -6,8 +13,8 @@ import { loadConfig } from '../src/config/env.js';
 import { createSportsCatalog } from '../src/modules/sports/sports-catalog.js';
 import type { SportsProvider } from '../src/modules/sports/sportsbook/client.js';
 import { competitionsResponseSchema, eventsResponseSchema } from '../src/modules/sports/sportsbook/schema.js';
-import competitionsFixture from './fixtures/sportsbook-competitions.json' with { type: 'json' };
-import eventsFixture from './fixtures/sportsbook-epl-events.json' with { type: 'json' };
+import competitionsFixture from '../recordings/competitions.json' with { type: 'json' };
+import eventsFixture from '../recordings/events-EPL.json' with { type: 'json' };
 
 const { competitions } = competitionsResponseSchema.parse(competitionsFixture);
 const { events } = eventsResponseSchema.parse(eventsFixture);
@@ -92,6 +99,18 @@ describe('GET /api/events', () => {
       expect(response.statusCode).toBe(400);
       expect(response.json().error.details).toEqual([{ field: 'query.cursor', issue: 'invalid_cursor' }]);
     }
+  });
+
+  // S-2 — o cursor vai a JSON.parse, por isso tem teto de tamanho. O teto não pode cortar o que a
+  // própria api emite: aqui confirma-se com o cursor real do pior caso que a query permite.
+  it('aceita o cursor do pior caso e rejeita um cursor acima do teto (S-2)', async () => {
+    const heavy = `?limit=1&q=${encodeURIComponent('中'.repeat(MAX_QUERY_LENGTH))}`;
+    const emitted = (await get(`/api/events${heavy}`)).json().meta.nextCursor;
+    expect(emitted === null || emitted.length <= MAX_CURSOR_LENGTH).toBe(true);
+
+    const oversized = await get(`/api/events?cursor=${'x'.repeat(MAX_CURSOR_LENGTH + 1)}`);
+    expect(oversized.statusCode).toBe(400);
+    expect(oversized.json().error.details).toEqual([{ field: 'query.cursor', issue: 'too_big' }]);
   });
 
   it('rejeita campo desconhecido e limite fora do intervalo', async () => {

@@ -3,6 +3,8 @@ import type { z } from 'zod';
 
 const STATUS_BY_CODE: Readonly<Record<ErrorCode, number>> = {
   VALIDATION_FAILED: 400,
+  UNAUTHENTICATED: 401,
+  FORBIDDEN: 403,
   NOT_FOUND: 404,
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
@@ -12,6 +14,9 @@ const STATUS_BY_CODE: Readonly<Record<ErrorCode, number>> = {
 // A1 — o servidor decide se repetir faz sentido; o frontend não mantém esta tabela.
 const RETRYABLE_BY_CODE: Readonly<Record<ErrorCode, boolean>> = {
   VALIDATION_FAILED: false,
+  // Repetir o mesmo pedido não resolve: é preciso entrar, ou cumprir a condição em falta.
+  UNAUTHENTICATED: false,
+  FORBIDDEN: false,
   NOT_FOUND: false,
   RATE_LIMITED: true,
   INTERNAL_ERROR: true,

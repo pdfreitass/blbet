@@ -22,6 +22,10 @@ export interface FalhaApi {
 
 const MENSAGEM_POR_CODIGO: Record<FalhaApi['codigo'], string> = {
   VALIDATION_FAILED: 'O pedido não é válido. Tente de novo a partir da listagem.',
+  // DT-020. UNAUTHENTICATED leva ao ecrã de entrada; FORBIDDEN não leva a lado nenhum — há
+  // sessão, falta é uma condição da conta.
+  UNAUTHENTICATED: 'Precisa de entrar na sua conta para continuar.',
+  FORBIDDEN: 'A sua conta ainda não tem acesso a isto.',
   NOT_FOUND: 'Não encontrámos o que procurava.',
   RATE_LIMITED: 'Há demasiados pedidos neste momento. Tente daqui a pouco.',
   INTERNAL_ERROR: 'Algo correu mal do nosso lado.',

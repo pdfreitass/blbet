@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createSportsCatalog } from '../src/modules/sports/sports-catalog.js';
 import type { SportsProvider, TimeWindow } from '../src/modules/sports/sportsbook/client.js';
 import { competitionsResponseSchema, eventsResponseSchema } from '../src/modules/sports/sportsbook/schema.js';
-import competitionsFixture from './fixtures/sportsbook-competitions.json' with { type: 'json' };
-import eventsFixture from './fixtures/sportsbook-epl-events.json' with { type: 'json' };
+import competitionsFixture from '../recordings/competitions.json' with { type: 'json' };
+import eventsFixture from '../recordings/events-EPL.json' with { type: 'json' };
 
 const { competitions } = competitionsResponseSchema.parse(competitionsFixture);
 const { events } = eventsResponseSchema.parse(eventsFixture);

@@ -1,3 +1,5 @@
+import { MAX_QUERY_LENGTH } from '@blbet/contracts';
+
 import estilos from './CampoBusca.module.css';
 
 interface CampoBuscaProps {
@@ -26,11 +28,19 @@ export function CampoBusca({ termo, onAlterar, contagem }: CampoBuscaProps) {
         <span className={estilos.icone} aria-hidden="true">
           ⌕
         </span>
+        {/*
+          O teto e o do contrato (`MAX_QUERY_LENGTH`), importado e nao copiado.
+          Sem ele, o 101.o caractere faz a api responder `VALIDATION_FAILED` com
+          `too_big` e o utilizador le "o pedido nao e valido" por ter escrito um
+          nome comprido -- que nao explica nada e nao sugere o que fazer. O
+          atributo tambem trunca o que for colado.
+        */}
         <input
           id="busca"
           type="search"
           className={estilos.entrada}
           value={termo}
+          maxLength={MAX_QUERY_LENGTH}
           placeholder="Competição, participante ou esporte"
           onChange={(evento) => onAlterar(evento.target.value)}
         />

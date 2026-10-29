@@ -58,5 +58,11 @@ function ehDestinoAtivo(caminho: string, href: string): boolean {
     return caminho === '/' || caminho.startsWith('/eventos');
   }
 
+  if (href === '/perfil') {
+    // Os ecras de conta (DT-020) vivem em /conta/..., mas pertencem ao Perfil: sem
+    // isto, entrar na conta apagava a marca e deixava a navegacao sem destino ativo.
+    return caminho === '/perfil' || caminho.startsWith('/perfil/') || caminho.startsWith('/conta');
+  }
+
   return caminho === href || caminho.startsWith(`${href}/`);
 }

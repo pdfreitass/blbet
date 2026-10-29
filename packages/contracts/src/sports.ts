@@ -85,12 +85,21 @@ export type SportEvent = z.infer<typeof eventSchema>;
 export const DEFAULT_PAGE_LIMIT = 20;
 export const MAX_PAGE_LIMIT = 100;
 export const MAX_QUERY_LENGTH = 100;
+/**
+ * S-2 — teto de tamanho do cursor, que o servidor descodifica e passa a `JSON.parse`. Um cursor
+ * legítimo é a codificação em base64url dos filtros que o emitiram, por isso o pior caso é
+ * `competitionId` longo mais `q` no máximo de MAX_QUERY_LENGTH. Como esse máximo conta unidades
+ * UTF-16, o texto mais pesado são 100 caracteres de 3 bytes (ex.: CJK): medido, 272 caracteres de
+ * cursor com texto latino e 539 com CJK. 1024 cobre isso com folga e continua a travar uma
+ * entrada arbitrariamente grande.
+ */
+export const MAX_CURSOR_LENGTH = 1024;
 
 export const eventsQuerySchema = z.strictObject({
   competitionId: idSchema.optional(),
   /** A7 e T14-A4 — busca por nome de equipa ou de competição. Sem resultados dá `200` com `data: []`. */
   q: z.string().trim().min(1).max(MAX_QUERY_LENGTH).optional(),
   limit: z.coerce.number().int().min(1).max(MAX_PAGE_LIMIT).default(DEFAULT_PAGE_LIMIT),
-  cursor: z.string().min(1).optional(),
+  cursor: z.string().min(1).max(MAX_CURSOR_LENGTH).optional(),
 });
 export type EventsQuery = z.infer<typeof eventsQuerySchema>;

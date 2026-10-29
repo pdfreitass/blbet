@@ -7,3 +7,7 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Testes end-to-end (DT-015): relatórios e vestígios de execução, nunca versionados.
+test-results/
+playwright-report/

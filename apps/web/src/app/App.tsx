@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 import { Route, Switch, useSearchParams } from 'wouter';
 
-import { obterEventos } from '../shared/api/esportes';
+import { obterCompeticoes, obterEventos } from '../shared/api/esportes';
 import { useListaPaginada } from '../shared/api/useListaPaginada';
+import { useRecurso } from '../shared/api/useRecurso';
 import { useTermoAdiado } from '../shared/api/useTermoAdiado';
 import { CampoBusca } from '../shared/componentes/CampoBusca';
 import {
@@ -15,12 +16,22 @@ import { FaixaDemonstrativa } from '../shared/componentes/FaixaDemonstrativa';
 import { MaisResultados } from '../shared/componentes/MaisResultados';
 import { NaoEncontrado } from '../shared/componentes/NaoEncontrado';
 import { NavegacaoPrincipal } from '../shared/componentes/NavegacaoPrincipal';
+import { ContaProvider } from '../shared/conta/contexto';
 import { FavoritosProvider } from '../shared/favoritos/contexto';
 import { CatalogoJogos } from '../modules/cassino/CatalogoJogos';
 import { JOGOS_DEMONSTRATIVOS } from '../modules/cassino/dadosDemonstrativos';
 import { DetalheJogo } from '../modules/cassino/DetalheJogo';
 import { DetalheEvento } from '../modules/esportes/DetalheEvento';
+import { FiltroCompeticao } from '../modules/esportes/FiltroCompeticao';
 import { ListaEventos } from '../modules/esportes/ListaEventos';
+import { AlterarSenha } from '../modules/conta/AlterarSenha';
+import { CriarConta } from '../modules/conta/CriarConta';
+import { Dispositivos } from '../modules/conta/Dispositivos';
+import { Entrar } from '../modules/conta/Entrar';
+import { Recuperar } from '../modules/conta/Recuperar';
+import { Redefinir } from '../modules/conta/Redefinir';
+import { ResumoConta } from '../modules/conta/ResumoConta';
+import { VerificarEmail } from '../modules/conta/VerificarEmail';
 import { Perfil } from '../modules/perfil/Perfil';
 import estilos from './App.module.css';
 import { ListaFavoritos } from './ListaFavoritos';
@@ -28,9 +39,11 @@ import { ListaFavoritos } from './ListaFavoritos';
 
 export function App() {
   return (
-    <FavoritosProvider>
-      <Aplicacao />
-    </FavoritosProvider>
+    <ContaProvider>
+      <FavoritosProvider>
+        <Aplicacao />
+      </FavoritosProvider>
+    </ContaProvider>
   );
 }
 
@@ -59,6 +72,22 @@ function Aplicacao() {
           <Route path="/busca" component={Busca} />
           <Route path="/favoritos" component={Favoritos} />
           <Route path="/perfil" component={PerfilDaRota} />
+          {/*
+            Os ecras de conta (DT-020). Nao sao um sexto destino da navegacao: RF-001
+            e CA-001.2 fixam cinco, e `ehDestinoAtivo` marca o Perfil tambem em /conta.
+            Os caminhos `/conta/verificar` e `/conta/nova-senha` NAO sao escolha minha:
+            sao os que a api ja poe nos links dos e-mails
+            (`accounts-service.ts`, sobre `PUBLIC_URL`). Mudar um deles parte um e-mail
+            ja enviado, por isso ficam onde a api os espera -- e o pedido para os
+            escrever no contrato esta no quadro.
+          */}
+          <Route path="/conta/entrar" component={Entrar} />
+          <Route path="/conta/criar" component={CriarConta} />
+          <Route path="/conta/verificar" component={VerificarEmail} />
+          <Route path="/conta/recuperar" component={Recuperar} />
+          <Route path="/conta/nova-senha" component={Redefinir} />
+          <Route path="/conta/alterar-senha" component={AlterarSenha} />
+          <Route path="/conta/dispositivos" component={Dispositivos} />
           {/* Endereco desconhecido tem saida, como tudo o resto (CA-008.4). */}
           <Route component={NaoEncontrado} />
         </Switch>
@@ -71,19 +100,68 @@ function Aplicacao() {
 const EVENTOS_POR_PAGINA = 30;
 
 function Esportes() {
+  /*
+   * A competicao filtrada vive no endereco, com o NOME DO PARAMETRO DO CONTRATO
+   * (`competitionId`, regra A7), como o termo de busca. Recarregar mantem o filtro e o
+   * endereco pode ser guardado ou partilhado.
+   */
+  const [parametros, definirParametros] = useSearchParams();
+  const competicaoId = parametros.get('competitionId') ?? undefined;
+
+  const carregarCompeticoes = useCallback(
+    (opcoes: { signal: AbortSignal }) => obterCompeticoes(opcoes),
+    [],
+  );
+  const competicoes = useRecurso(carregarCompeticoes, []);
+
   const carregar = useCallback(
     (cursor: string | undefined, opcoes: { signal: AbortSignal }) =>
       obterEventos(
-        { limit: EVENTOS_POR_PAGINA, ...(cursor === undefined ? {} : { cursor }) },
+        {
+          limit: EVENTOS_POR_PAGINA,
+          ...(competicaoId === undefined ? {} : { competitionId: competicaoId }),
+          ...(cursor === undefined ? {} : { cursor }),
+        },
         opcoes,
       ),
-    [],
+    [competicaoId],
   );
-  const lista = useListaPaginada(carregar, []);
+  const lista = useListaPaginada(carregar, [competicaoId]);
+
+  const alterarCompeticao = useCallback(
+    (id: string | undefined) => {
+      definirParametros(id === undefined ? {} : { competitionId: id });
+    },
+    [definirParametros],
+  );
+
+  const disponiveis = competicoes.dados?.data ?? [];
+  /* Filtro desconhecido no endereco: mostra-se o identificador, que e o que se sabe. */
+  const nomeFiltrado =
+    disponiveis.find((competicao) => competicao.id === competicaoId)?.name ?? competicaoId;
+
+  /*
+   * O filtro aparece com DUAS competicoes ou mais. Com uma so, um `select` de uma
+   * opcao nao filtra nada e sugere uma escolha que nao existe. A excecao e haver
+   * filtro no endereco: ai o controle tem de estar la, ou nao ha como o desfazer.
+   *
+   * Uma falha a carregar as competicoes NAO estraga a pagina: o filtro desaparece e a
+   * listagem continua -- e o que ela mostra sem filtro e a lista completa.
+   */
+  const mostrarFiltro = disponiveis.length > 1 || competicaoId !== undefined;
 
   return (
     <>
       <h1 className={estilos.titulo}>Esportes</h1>
+
+      {mostrarFiltro ? (
+        <FiltroCompeticao
+          competicoes={disponiveis}
+          selecionada={competicaoId}
+          onAlterar={alterarCompeticao}
+        />
+      ) : null}
+
       {lista.carregando ? <EsqueletoLista descricao="os jogos" linhas={4} /> : null}
 
       {!lista.carregando && lista.falha !== null ? (
@@ -94,7 +172,15 @@ function Esportes() {
       ) : null}
 
       {!lista.carregando && lista.falha === null ? (
-        lista.itens.length === 0 ? (
+        lista.itens.length === 0 && competicaoId !== undefined ? (
+          /* Ha filtro aplicado: CA-008.3 exige texto distinto do conjunto vazio, e
+             CA-005.2 e CA-005.4 exigem mostrar o critério e dar saída. */
+          <NadaEncontrado
+            criterio={nomeFiltrado ?? ''}
+            rotuloLimpar="Ver todas as competições"
+            onLimpar={() => alterarCompeticao(undefined)}
+          />
+        ) : lista.itens.length === 0 ? (
           <NadaCadastrado conjunto="jogos" />
         ) : (
           <>
@@ -138,6 +224,8 @@ function PerfilDaRota() {
   return (
     <>
       <h1 className={estilos.titulo}>Perfil</h1>
+      {/* A conta real primeiro; o perfil demonstrativo de RF-007 a seguir, intacto. */}
+      <ResumoConta />
       <Perfil />
     </>
   );

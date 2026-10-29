@@ -3,6 +3,8 @@ import {
   competitionSchema,
   eventSchema,
   eventsQuerySchema,
+  MAX_CURSOR_LENGTH,
+  MAX_QUERY_LENGTH,
   oddSchema,
   totalLineSchema,
 } from '../src/sports.js';
@@ -108,4 +110,35 @@ describe('eventsQuerySchema', () => {
     expect(eventsQuerySchema.safeParse({ limit: '101' }).success).toBe(false);
     expect(eventsQuerySchema.safeParse({ sort: 'startsAt' }).success).toBe(false);
   });
+
+  it('limita o tamanho do cursor sem cortar os legítimos (S-2)', () => {
+    expect(eventsQuerySchema.safeParse({ cursor: 'x'.repeat(MAX_CURSOR_LENGTH) }).success).toBe(true);
+    expect(eventsQuerySchema.safeParse({ cursor: 'x'.repeat(MAX_CURSOR_LENGTH + 1) }).success).toBe(false);
+    expect(eventsQuerySchema.safeParse({ cursor: '' }).success).toBe(false);
+  });
+
+  // O servidor emite o cursor codificando os filtros em base64url, por isso o teto tem de cobrir o
+  // pior caso, incluindo texto de 4 bytes por caractere. Este pacote não conhece o ambiente
+  // (`types: []`), por isso a conta é feita aqui à mão; o cursor a sério é exercitado em apps/api.
+  it('o teto cobre o pior caso de cursor emitido (S-2)', () => {
+    for (const char of ['a', 'á', '中', '😀']) {
+      const q = char.repeat(MAX_QUERY_LENGTH);
+      const payload = JSON.stringify({ offset: 999_999, filter: JSON.stringify(['X'.repeat(64), q]) });
+      expect(base64urlLength(utf8ByteLength(payload))).toBeLessThanOrEqual(MAX_CURSOR_LENGTH);
+    }
+  });
 });
+
+function utf8ByteLength(text: string): number {
+  let bytes = 0;
+  for (const char of text) {
+    const code = char.codePointAt(0) ?? 0;
+    bytes += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x1_00_00 ? 3 : 4;
+  }
+  return bytes;
+}
+
+/** base64url não leva preenchimento: 4 caracteres por cada 3 bytes, arredondando para cima. */
+function base64urlLength(bytes: number): number {
+  return Math.ceil((bytes * 4) / 3);
+}
